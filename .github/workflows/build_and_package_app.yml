@@ -1,0 +1,132 @@
+name: Node.js CI - Build app
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x, 18.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    outputs:
+      app_version: ${{ steps.version_information.outputs.app_version }}
+      build_number: ${{ steps.version_information.outputs.build_number }}
+      artifact_name_prefix: ${{ steps.version_information.outputs.artifact_name_prefix }}
+      tar_name: ${{ steps.version_information.outputs.tar_name }}
+      tar_sha256: ${{ steps.XYZ.outputs.tar_name }}
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: './appserver/static/visualizations/hman/package-lock.json'
+
+    # Write app version and workflow id to variables for later usage
+    - name: Version information
+      id: version_information
+      run: |
+           app_version=$(cat default/app.conf | grep -o 'version =.*' | cut -f2- -d=)
+           echo "App version: " $app_version
+           echo "::set-output name=app_version::$app_version"
+
+           build_number="${{ github.run_id }}-${{ github.run_attempt }}"
+           echo "Build number: $build_number"
+           echo "::set-output name=build_number::$build_number"
+
+           app_version_short=$(echo $app_version | sed 's/\.//g')
+           artifact_name_prefix="visualization_toolbox_${app_version_short}_${build_number}"
+           echo "Artifact name: $artifact_name_prefix"
+           echo "::set-output name=artifact_name_prefix::$artifact_name_prefix"
+
+           tar_name="visualization_toolbox_$app_version_short.tar.gz"
+           echo "Tar.gz name: $tar_name"
+           echo "::set-output name=tar_name::$tar_name"
+        
+    - name: NPM install 
+      run: |
+           cd appserver/static/visualizations/hman
+           npm install
+    
+    # Manual changes on node_modules. This must be resolved in future
+    - name: Patch Modules with own changes      
+      run: |
+          cd appserver/static/visualizations/hman
+          cp -a -v node_modules_patch/* node_modules/
+          
+    - name: NPM run build
+      run: |
+        cd appserver/static/visualizations/hman
+        npm run build
+        
+    - name: Clean node-modules
+      run: | 
+        cd appserver/static/visualizations/hman
+        rm -rfv node_modules
+        rm -rfv node_modules_patch  
+
+    - name: Set build number app.conf
+      run: |
+          sed -i -e "s/replacebuild/${{ steps.version_information.outputs.build_number }}/g" default/app.conf
+
+    - name: Create tar file
+      id: create_tar_file
+      run: |
+          cd ..
+          tar -czvf ${{ steps.version_information.outputs.tar_name }} \
+          --exclude=visualization_toolbox_dev/.git \
+          --exclude=visualization_toolbox_dev/.github \
+          visualization_toolbox_dev/
+
+          tar_checksum=$(sha256sum ${{ steps.version_information.outputs.tar_name }} | awk '{print $1}')
+          echo "Checksums:"
+          find . -maxdepth 1 -type f -exec sha256sum {} \;
+          echo "::set-output name=tar_checksum::$tar_checksum"
+          sha256sum ${{ steps.version_information.outputs.tar_name }} > ${{ steps.version_information.outputs.tar_name }}.sha256
+
+    - name: Copy to staging directory
+      run: |
+          cd ..
+          mkdir staging_app
+          cp -v ${{ steps.version_information.outputs.tar_name }} staging_app/
+          cp -v ${{ steps.version_information.outputs.tar_name }}.sha256 staging_app/
+
+    - name: Upload artifacts - app
+      uses: actions/upload-artifact@v3
+      with:
+       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
+       path: /home/runner/work/visualization_toolbox_dev/staging_app
+
+    - name: Run Splunk AppInspect
+      run: |
+          pip install splunk-appinspect
+          cd ..
+          splunk-appinspect inspect ${{ steps.version_information.outputs.tar_name }} \
+          --mode test \
+          --generate-feedback \
+          --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
+
+    - name: Copy to staging directory
+      run: |
+          cd ..
+          mkdir staging_AppInspect-results
+          cp -v ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json staging_AppInspect-results//
+          cp -v inspect.yml staging_AppInspect-results//
+
+    - name: Upload artifacts - AppInspect results
+      uses: actions/upload-artifact@v3
+      with:
+       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
+       path: /home/runner/work/visualization_toolbox_dev/staging_AppInspect-results/

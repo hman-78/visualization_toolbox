@@ -1,0 +1,72 @@
+<dashboard>
+  <label>Sample</label>
+  <row>
+    <panel>
+      <viz type="visualization_toolbox.hman">
+        <search>
+          <query>| inputlookup spc.csv
+            | table no,UCL,LCL,Center,Data,"Out of Limits","Run of 7"
+            | sort no</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="visualization_toolbox.hman.dataType">Custom</option>
+        <option name="visualization_toolbox.hman.option">{ 
+                        legend: {
+                            y: 'bottom'
+                        },
+                        grid: {
+                            left: '1%',
+                            right: '1%',
+                            bottom: '5%',
+                            containLabel: true
+                        }, 
+                        toolbox: {
+                            feature: {
+                                saveAsImage: {}
+                            }
+                        },
+                        xAxis: {
+                            type: 'category',
+                            boundaryGap: false
+                        },
+                        yAxis: {
+                            type: 'value',
+                            scale: true,
+                            axisLine: { show: false }
+                        },
+                       color: ['#0D4483', 'red', '#008000', '#008000', '#99CC00', 'yellow'],
+                        series: [{ 
+                                type: 'line',
+                                showSymbol: false,
+                                lineStyle: {
+                                    type: 'dotted',
+                                    opacity: 0.7
+                                },
+                                symbol: 'none' 
+                            },
+                            { 
+                                type: 'scatter',
+                                symbolSize: 15,
+                                z: 7 
+                            },
+                            { 
+                                type: 'bar',
+                                showSymbol: false,
+                                lineStyle: {
+                                    type: 'dotted',
+                                    opacity: 0.7
+                                },
+                                symbol: 'none' 
+                            }
+                        ]
+                }</option>
+        <option name="visualization_toolbox.hman.seriesDataIndexBinding">1,5,3</option>
+        <option name="visualization_toolbox.hman.xAxisDataIndexBinding">0</option>
+        <option name="drilldown">none</option>
+        <option name="height">387</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+  </row>
+</dashboard>

@@ -1,0 +1,22 @@
+{
+  "name": "spc",
+  "version": "1.0.0",
+  "description": "ECharts visualization for Splunk",
+  "main": "visualization.js",
+  "scripts": {
+    "build": "node ./node_modules/webpack/bin/webpack.js",
+    "devbuild": "node ./node_modules/webpack/bin/webpack.js --progress",
+    "watch": "node ./node_modules/webpack/bin/webpack.js -d --watch --progress"
+  },
+  "author": "Björn Hamann",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^1.15.0"
+  },
+  "dependencies": {
+    "echart": "^0.1.3",
+    "echarts": "^5.2.2",
+    "jquery": "^3.6.0",
+    "underscore": "^1.13.2"
+  }
+}
