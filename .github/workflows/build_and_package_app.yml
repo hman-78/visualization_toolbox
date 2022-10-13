@@ -88,6 +88,7 @@ jobs:
           tar -czvf ${{ steps.version_information.outputs.tar_name }} \
           --exclude=splunk-visualization-toolbox/.git \
           --exclude=splunk-visualization-toolbox/.github \
+          --exclude=splunk-visualization-toolbox/.gitignore \
           splunk-visualization-toolbox/
 
           tar_checksum=$(sha256sum ${{ steps.version_information.outputs.tar_name }} | awk '{print $1}')
