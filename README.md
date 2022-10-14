@@ -5,7 +5,7 @@ Visualization Toolbox is an add-on for Splunk Enterprise powered by the Apache E
 
 ## Releases:
 A tar file for installation on you instance can be found here:
-* Github: https://github.com/hman-78/splunk-visualization-toolbox/releases\
+* Github: https://github.com/hman-78/splunk-visualization-toolbox/releases
 * Splunkbase: TBA
 ## Usage
 To-Do
