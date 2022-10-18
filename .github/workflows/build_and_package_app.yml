@@ -133,7 +133,7 @@ jobs:
        path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
        
     - name:  NPM Audit
-      run: npm-audit --audit-level moderate 
+      run: npm audit --audit-level moderate 
       env: 
        CI: true
        
