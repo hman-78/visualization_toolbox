@@ -86,10 +86,10 @@ jobs:
       run: |
           cd ..
           tar -czvf ${{ steps.version_information.outputs.tar_name }} \
-          --exclude=splunk-visualization-toolbox/.git \
-          --exclude=splunk-visualization-toolbox/.github \
-          --exclude=splunk-visualization-toolbox/.gitignore \
-          splunk-visualization-toolbox/
+          --exclude=visualization_toolbox/.git \
+          --exclude=visualization_toolbox/.github \
+          --exclude=visualization_toolbox/.gitignore \
+          visualization_toolbox/
 
           tar_checksum=$(sha256sum ${{ steps.version_information.outputs.tar_name }} | awk '{print $1}')
           echo "Checksums:"
@@ -108,7 +108,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
-       path: /home/runner/work/splunk-visualization-toolbox/staging_app
+       path: /home/runner/work/visualization_toolbox/staging_app
 
     - name: Run Splunk AppInspect
       run: |
@@ -130,4 +130,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
-       path: /home/runner/work/splunk-visualization-toolbox/staging_AppInspect-results/
+       path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
