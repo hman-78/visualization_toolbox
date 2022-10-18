@@ -131,3 +131,9 @@ jobs:
       with:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
        path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
+       
+    - name:  NPM Audit
+      run: npm-audit --audit-level moderate 
+      env: 
+       CI: true
+       
