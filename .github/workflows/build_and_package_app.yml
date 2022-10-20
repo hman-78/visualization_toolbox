@@ -38,7 +38,7 @@ jobs:
     - name: Version information
       id: version_information
       run: |
-           app_version=$(cat default/app.conf | grep -o 'version =.*' | cut -f2- -d=)
+           app_version=$(cat default/app.conf | grep -o 'version =.*' | head -1 |cut -f2- -d=)
            echo "App version: " $app_version
            echo "::set-output name=app_version::$app_version"
 
@@ -71,6 +71,28 @@ jobs:
         cd appserver/static/visualizations/hman
         npm run build
         
+    - name: upgrade version  
+      run: npm install npm@latest -g  
+      
+    - name: npm update
+      run: |
+          cd appserver/static/visualizations/hman
+          npm update
+          
+    - name: audit fund to fix a specific vulnerability 
+      run: |
+         cd appserver/static/visualizations/hman
+         npm fund
+         
+    - name: npm audit fix
+      run: |
+         cd appserver/static/visualizations/hman
+         npm audit fix --force
+              
+    - name: npm audit
+      run: |
+        cd appserver/static/visualizations/hman
+        npm audit        
     - name: Clean node-modules
       run: | 
         cd appserver/static/visualizations/hman
