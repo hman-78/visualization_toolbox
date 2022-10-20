@@ -38,7 +38,7 @@ jobs:
     - name: Version information
       id: version_information
       run: |
-           app_version=$(cat default/app.conf | grep -o 'version =.*' | cut -f2- -d=)
+           app_version=$(cat default/app.conf | grep -o 'version =.*' | head -1 |cut -f2- -d=)
            echo "App version: " $app_version
            echo "::set-output name=app_version::$app_version"
 
