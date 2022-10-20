@@ -1,0 +1,61 @@
+<dashboard  version="1.1" stylesheet="tutorial.css">
+  <label>FAQ</label>
+  <row>
+    <panel>
+      <html>
+        <p>
+          <b>Question: I'm getting confused with these new terms like toolbox, tooltip, dataZoom, series.. Where is a good starting point?</b>
+        </p>
+        <p>
+          Answer: Check out the <a href="https://echarts.apache.org/en/cheat-sheet.html" target="_blank">ECharts Cheat Sheet</a>. It's a great starting point to get familiar with the terms.
+        </p>
+        <hr />
+        <p>
+          <b>Question: The visualization failes loading and prints out "Error rendering Visualization Toolbox visualization"</b>
+        </p>
+        <p>
+          Answer: We suggest the following steps to solve this issue: First copy your options code to <a href="https://echarts.apache.org/examples/en/editor.html" target="_blank">echarts example page (IDE)</a> to check if there is an sytax error in your options.
+          Second check the data mapping: seriesDataIndexBinding, xAxisDataIndexBinding. 
+        </p>
+        <hr />
+        <p>
+          <b>Question: Does visualization toolbox support Dashboard Studio?</b>
+        </p>
+        <p>
+          Answer: As Dashboard Studio does no support custom visualizations, the visualization toolki is not supported in Dashboard Studio.
+        </p>
+        <hr />
+        <p>
+          <b>Question: Does visualization toolbox support Splunk Mobile?</b>
+        </p>
+        <p>
+          Answer: As Splunk Mobile app does no support custom visualizations, the visualization toolbox is not supported using Splunk Mobile.
+        </p>
+        <hr />
+        <p>
+          <b>Question: I want to use visualization toolbox within my own business critial app. Do you have support offerings?</b>
+        </p>
+        <p>
+          Answer: Generally speaking the app is free to use. You can connect to us using the <a href="https://github.com/hman-78/visualization_toolbox/issues" target="_blank">github issue tracker</a>. We will try to answer your questions as soon as possible.
+          If this is not enough for you, we offer paid support, consulting and training for the app. Please contact us via email: XXX . 
+        </p>
+        <hr />
+        <p>
+          <b>Question: Is visualization toolbox running on Splunk Cloud?</b>
+        </p>
+        <p>
+          Answer: Yes, we tested it on Splunk Cloud. If you find any issues, please let us know via <a href="https://github.com/hman-78/visualization_toolbox/issues" target="_blank">github issue tracker</a>.
+        </p>
+        <hr />
+        <p>
+          <b>Question: I need feature XYZ in my chart. How do I configure it?</b>
+        </p>
+        <p>
+          Answer: We suggest using <a href="https://echarts.apache.org/examples/en/editor.html" target="_blank">ECharts example page (IDE)</a> and <a href="https://echarts.apache.org/en/option.html#title">Chart Option Documentation</a> to create your chart first. 
+          Then copy the option code into the visualization toolbox.
+        </p>
+
+    </html>
+</panel>
+</row>
+</dashboard>

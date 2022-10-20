@@ -1,0 +1,306 @@
+<dashboard  version="1.1" stylesheet="tutorial.css">
+  <label>2. Map Splunk data</label>
+  <row>
+    <panel>
+      <html>
+        <p>
+          In the first tutorial you created your first ECharts visualization in Splunk. The data for the visualisation was part of the option parameter and static. <br />
+          Now we want to map Splunk data into the visualisation.
+        </p>
+
+        <hr />
+
+        <div id="getting_started">
+
+          <h1>How data is mapped</h1>
+          <p>
+            Every Splunk search you are running will return a set of events. The data (fields) in the 
+          events are manipulated, meaning you are doing calculations, transformations, evals, etc. on it.
+            At the end of the day/search you will get a result table of our data. This consists of n rows with m columns.
+
+            For mapping this result table into ECharts we use the following options of the visualization:
+          </p>
+        </div>
+
+<pre>
+<code><![CDATA[<option name="visualization_toolbox.hman.seriesDataIndexBinding"></option>
+<option name="visualization_toolbox.hman.xAxisDataIndexBinding"></option>]]></code>
+</pre>
+
+      Let's create the first example. For this we use the following search to create a dataset: 
+
+<pre><code><![CDATA[| makeresults count=7 
+| streamstats count as count 
+| eval _time = _time - (count*86400) 
+| eval myday = strftime(_time, "%A")
+]]></code></pre>
+    
+    <p>You will see a result table with 7 rows and 3 columns. The first column is the timestamp, the second column is the count and the third column is the day of the week. 
+    <br/>
+    Now we take the example of the previous tutorial and add the options for data binding.
+    </p>
+
+    </html>      
+<viz type="visualization_toolbox.hman">
+    <search>
+      <query>| makeresults count=7 
+| streamstats count as count 
+| eval _time = _time - (count*86400) 
+| eval myday = strftime(_time, "%A")</query>
+    </search>
+    <option name="visualization_toolbox.hman.dataType">Custom</option>
+    <option name="visualization_toolbox.hman.option">
+option = {
+  toolbox: {
+    show: true,
+    feature: {
+      magicType: {
+        type: ["line", "bar"]
+      },
+      saveAsImage: {}
+    }
+  },
+  xAxis: {
+    type: 'category',
+    name: 'day of week'
+  },
+  yAxis: {
+    type: 'value',
+    name: 'pieces'
+  },
+  title: {
+    text: "data is coming from splunk search",
+    left: "center",
+    textStyle: {
+      fontSize: 12
+    },
+  },
+  series: [
+    {
+      type: 'line'
+    }
+  ]
+};
+    </option>
+    <option name="height">300</option>
+    <option name="visualization_toolbox.hman.seriesDataIndexBinding">1</option>
+    <option name="visualization_toolbox.hman.xAxisDataIndexBinding">2</option>
+    <option name="refresh.display">progressbar</option>
+</viz>
+<html>
+<p>Full viz source: </p>
+<pre><code><![CDATA[<viz type="visualization_toolbox.hman">
+    <search>
+      <query>| makeresults count=7 
+| streamstats count as count 
+| eval _time = _time - (count*86400) 
+| eval myday = strftime(_time, "%A")</query>
+    </search>
+    <option name="visualization_toolbox.hman.dataType">Custom</option>
+    <option name="visualization_toolbox.hman.option">
+option = {
+  toolbox: {
+    show: true,
+    feature: {
+      magicType: {
+        type: ["line", "bar"]
+      },
+      saveAsImage: {}
+    }
+  },
+  xAxis: {
+    type: 'category',
+    name: 'day of week'
+  },
+  yAxis: {
+    type: 'value',
+    name: 'pieces'
+  },
+  title: {
+    text: "data is coming from splunk search",
+    left: "center",
+    textStyle: {
+      fontSize: 12
+    },
+  },
+  series: [
+    {
+      type: 'line'
+    }
+  ]
+};
+    </option>
+    <option name="height">300</option>
+    <option name="visualization_toolbox.hman.seriesDataIndexBinding">1</option>
+    <option name="visualization_toolbox.hman.xAxisDataIndexBinding">2</option>
+    <option name="refresh.display">progressbar</option>
+</viz>
+]]></code></pre>
+
+<p>As you see we did 3 modifications. <b>First</b> we updated the search query:
+<pre><code><![CDATA[    <search>
+      <query>| makeresults count=7 
+| streamstats count as count 
+| eval _time = _time - (count*86400) 
+| eval myday = strftime(_time, "%A")</query>
+    </search>]]></code></pre>
+
+<b>Second</b> we used the new options for the visualization</p>
+<pre><code><![CDATA[<option name="visualization_toolbox.hman.seriesDataIndexBinding">1</option>
+<option name="visualization_toolbox.hman.xAxisDataIndexBinding">2</option>
+]]></code></pre> 
+<p>to map the data of the 3rd column (index value 2) to the xAxis and the data of the 2nd column (index value 1) to the series data. <br />
+<b>Third</b> we removed the data: [] parameters from xAxis{} and series{} in the option.</p>
+
+
+<h1>Map more series data</h1>
+
+Now we want to use multiple columns in the visualisation. For that we have to map it to the series data. <br />
+First we adjust the Splunk search to output more columns:
+
+<pre><code><![CDATA[| makeresults count=7 
+| streamstats count as count 
+| eval _time = _time - (count*86400) 
+| eval myday = strftime(_time, "%A")
+| eval count1 = count + 1, count2 = count1 + 1
+]]></code></pre> 
+
+In the next step we add more data series to the options:
+
+<pre><code><![CDATA[series: [
+    {
+      type: 'bar',
+      color: "green"
+    },
+    {
+      type: 'line',
+      color: "red"
+    },
+    {
+      type: 'bar',
+      color: "blue"
+    }
+  ]
+]]></code></pre>
+
+<p>As last step we adjust the options xAxisDataIndexBinding to use the 5th column (indexvalue: 4) as the xAxis. We set seriesDataIndexBinding to "1,2,3" meaning
+the 2nd column is mapped to the first series, 3rd to the seconds series and 4th column to the 3rd series.</p>
+
+<img src="/static/app/visualization_toolbox/docs/tutorial_2_mapping-1.png" />
+
+</html>
+
+<viz type="visualization_toolbox.hman">
+    <search>
+      <query>| makeresults count=7 
+| streamstats count as count 
+| eval _time = _time - (count*86400) 
+| eval myday = strftime(_time, "%A")
+| eval count1 = count + 1, count2 = count1 + 1
+</query>
+    </search>
+    <option name="visualization_toolbox.hman.dataType">Custom</option>
+    <option name="visualization_toolbox.hman.option">
+option = {
+  toolbox: {
+    show: true,
+    feature: {
+      magicType: {
+        type: ["line", "bar"]
+      },
+      saveAsImage: {}
+    }
+  },
+  xAxis: {
+    type: 'category',
+    name: 'day of week'
+  },
+  yAxis: {
+    type: 'value',
+    name: 'pieces'
+  },
+  title: {
+    text: "map multiple columns",
+    left: "center",
+    textStyle: {
+      fontSize: 12
+    },
+  },
+  series: [
+    {
+      type: 'bar',
+      color: "green"
+    },
+    {
+      type: 'line',
+      color: "red"
+    },
+    {
+      type: 'bar',
+      color: "blue"
+    }
+  ]
+};
+    </option>
+    <option name="height">300</option>
+    <option name="visualization_toolbox.hman.seriesDataIndexBinding">1,2,3</option>
+    <option name="visualization_toolbox.hman.xAxisDataIndexBinding">4</option>
+    <option name="refresh.display">progressbar</option>
+</viz>
+<html>
+
+<h1>Advanced data mapping</h1>
+
+<p>Sometimes the chart is needs more complex, multi-dimensional data for a data series. The parameter seriesDataIndexBinding is very flexible.</p>
+
+<p>Lets assume we have the following result table:</p>
+
+<img src="/static/app/visualization_toolbox/tutorial201.png" width="800" />
+
+<br/>
+<table class="mytableclass">
+  <tr>
+    <td><b>seriesDataIndexBinding</b></td>
+    <td><b>series.data</b></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>series[0].data[11,12,13,14,15,16]</td>
+  </tr>
+  <tr>
+    <td>1,5</td>
+    <td>series[0].data[11,12,13,14,15,16]<br/>
+    series[1].data[51,52,53,54,55,56]</td>
+  </tr>
+  <tr>
+    <td>1,5,4</td>
+    <td>series[0].data[11,12,13,14,15,16]<br/>
+    series[1].data[51,52,53,54,55,56]<br/>
+    series[2].data[41,42,43,44,45,46]<br/>
+    </td>
+  </tr>
+  <tr>
+    <td>[1;2]</td>
+    <td>series[0].data[11,21],[12,22],[13,23],[14,24],[15,25],[16,26]]<br/>
+    </td>
+  </tr>
+  <tr>
+    <td>[1;2;4],1,[1;2]</td>
+    <td>series[0].data[11,21,41],[12,22,42],[13,23,43],[14,24,44],[15,25,45],[16,26,46]]<br/>
+    series[1].data[11,12,13,14,15,16]<br/>
+    series[2].data[11,21],[12,22],[13,23],[14,24],[15,25],[16,26]]<br/>
+    </td>
+
+  </tr>
+</table>
+
+<h1>What visualization toolbox does differently</h1>
+
+As you have seen the parameters for mapping the data are very dynamic. This is different from other visualizations from Splunkbase you might have used before.
+Those visualizations force you to format the data and name the column in a specific way. This is not the case with the visualization toolbox. 
+We think this is more flexible and gives you more freedom. The downside is that you will not have out-of-the-box formatting for your data.
+
+</html>
+</panel>
+</row>
+</dashboard>
