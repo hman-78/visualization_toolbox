@@ -30,7 +30,7 @@ rm -rf node_modules_patch
 
 
 ## Version support
-8.2.9 and all versions bellow it
+8.2.9 and all versions below it
 
 
 ## Support
