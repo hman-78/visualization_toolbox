@@ -8,10 +8,10 @@ A tar file for installation on you instance can be found here:
 * Github: https://github.com/hman-78/splunk-visualization-toolbox/releases
 * Splunkbase: TBA
 ## Usage
-To-Do
+Sample Data can be found in the Lookups folder, add those data in Splunk and follow visualizations
 
 
-## Build app by yourself
+## Install and build app by yourself
 * Clone repository
 * run:
 ```
@@ -27,3 +27,11 @@ rm -rf node_modules
 rm -rf node_modules_patch  
 ```
 * Copy app folder to your Splunk instance
+
+
+## Version support
+8.2.9 and all versions bellow it
+
+
+## Support
+This App is developer-supported 

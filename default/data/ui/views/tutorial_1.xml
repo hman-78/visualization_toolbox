@@ -1,0 +1,246 @@
+<dashboard  version="1.1" stylesheet="tutorial.css">
+  <label>1. Getting started</label>
+  <row>
+    <panel>
+      <html>
+        <p>
+          The visualization toolbox brings the power of Apache ECharts to Splunk Enterprise and Splunk Cloud. This tutorial will walk you through the basics of using the toolbox.
+        </p>
+
+        <hr />
+
+        <div id="getting_started">
+
+          <h1>Getting started</h1>
+          <p>
+            If you have not worked with ECharts before you find examples <a href="https://echarts.apache.org/examples/en/index.html" target="_blank">here</a>. You will be able to integrate every of the shown visualizations using your own data into Splunk.
+            The example page also can be used as an IDE to customize your charts before bringing it to Splunk.
+          </p>
+
+          <hr />
+
+          <h1>Create the first visualization</h1>
+          <p>
+           Let's open the very <a href="https://echarts.apache.org/examples/en/editor.html?c=line-simple" target="_blank">first example page</a>. On the left side you see an <b>option = "SomeJSON" </b>string. This configures the 
+           visualization on the right. Try to play around with the data: attributes within the sections "xAxis" and "series".  
+
+          <br />
+           <img src="/static/app/visualization_toolbox/tutorial001.png" />
+
+          </p>
+          
+          <p>
+          Here is the basic skeleton for the custom visualization. Copy the code to  &lt;panel&gt;&lt;/panel&gt; of your new dashboard. 
+          </p>
+<pre><code><![CDATA[
+<viz type="visualization_toolbox.hman">
+    <search>
+      <query>| makeresults</query>
+      <earliest>$earliest$</earliest>
+      <latest>$latest$</latest>
+    </search>
+    <option name="visualization_toolbox.hman.dataType">Custom</option>
+    <option name="visualization_toolbox.hman.option">
+    </option>
+    <option name="height">300</option>
+    <option name="refresh.display">progressbar</option>
+</viz>
+]]></code></pre>
+
+        In the next step copy your code from the ECharts example page within the visualization_toolbox.hman.option tag.
+
+<pre><code><![CDATA[
+<viz type="visualization_toolbox.hman">
+    <search>
+      <query>| makeresults</query>
+      <earliest>$earliest$</earliest>
+      <latest>$latest$</latest>
+    </search>
+    <option name="visualization_toolbox.hman.dataType">Custom</option>
+    <option name="visualization_toolbox.hman.option">option = {
+  xAxis: {
+    type: 'category',
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  },
+  yAxis: {
+    type: 'value'
+  },
+  series: [
+    {
+      data: [150, 230, 224, 218, 135, 147, 260],
+      type: 'line'
+    }
+  ]
+};
+    </option>
+    <option name="height">300</option>
+    <option name="refresh.display">progressbar</option>
+</viz>
+]]></code></pre>
+        </div>
+ 
+  <p>This should show you your first visualization link in the panel below:</p>
+
+      </html>
+<viz type="visualization_toolbox.hman">
+    <search>
+      <query>| makeresults</query>
+    </search>
+    <option name="visualization_toolbox.hman.dataType">Custom</option>
+    <option name="visualization_toolbox.hman.option">option = {
+  xAxis: {
+    type: 'category',
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  },
+  yAxis: {
+    type: 'value'
+  },
+  series: [
+    {
+      data: [150, 230, 224, 218, 135, 147, 260],
+      type: 'line'
+    }
+  ]
+};
+    </option>
+    <option name="height">300</option>
+    <option name="refresh.display">progressbar</option>
+</viz>
+
+  <html>
+    <h1>Customize your chart</h1>
+    <p>
+      ECharts brings you thousands of different options to customize your chart. You can find the documentation <a href="https://echarts.apache.org/en/option.html" target="_blank">here</a>.
+      We customize the chart by editing the option string. As mentioned the easiest way might be to use the ECharts example page as an IDE. <br />
+      Let's add a title to our chart, give a name to the xAxis and yAxis, add a toolbox for switching between bar and linechart.
+      To do this we only have to edit the option string.
+
+<br />
+Add the title:
+<pre><code><![CDATA[
+  title: {
+    text: "this is my first EChart in Splunk",
+    left: "center",
+    textStyle: {
+      fontSize: 16
+    },
+  },
+]]></code></pre>
+Name the xAxis and yAxis:
+<pre><code><![CDATA[
+  xAxis: {
+    type: 'category',
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    name: 'day of week'
+  },
+  yAxis: {
+    type: 'value',
+    name: 'pieces'
+  },
+]]></code></pre>
+
+Add the toolbox:
+<pre><code><![CDATA[
+  toolbox: {
+    show: true,
+    feature: {
+      magicType: {
+        type: ["line", "bar"]
+      },
+      saveAsImage: {}
+    }
+  }
+]]></code></pre>
+
+Which makes the final option string look like this:
+    </p>
+<pre><code><![CDATA[
+    <option name="visualization_toolbox.hman.option">
+option = {
+  toolbox: {
+    show: true,
+    feature: {
+      magicType: {
+        type: ["line", "bar"]
+      },
+      saveAsImage: {}
+    }
+  },
+  xAxis: {
+    type: 'category',
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    name: 'day of week'
+  },
+  yAxis: {
+    type: 'value',
+    name: 'pieces'
+  },
+  title: {
+    text: "this is my first EChart in Splunk",
+    left: "center",
+    textStyle: {
+      fontSize: 16
+    },
+  },
+  series: [
+    {
+      data: [150, 230, 224, 218, 135, 147, 260],
+      type: 'bar'
+    }
+  ]
+};
+
+    </option>
+]]></code></pre>
+
+You can also check the Source of this tutorial page. Checkout the chart below. Try to change the chart from bar to linechart by clicking on the toolbox icon in the top right corner of the chart.
+You can also export the chart as an image by clicking on the save icon in the toolbox. Cool, right?!
+    </html>
+
+<viz type="visualization_toolbox.hman">
+    <search>
+      <query>| makeresults</query>
+    </search>
+    <option name="visualization_toolbox.hman.dataType">Custom</option>
+    <option name="visualization_toolbox.hman.option">
+option = {
+  toolbox: {
+    show: true,
+    feature: {
+      magicType: {
+        type: ["line", "bar"]
+      },
+      saveAsImage: {}
+    }
+  },
+  xAxis: {
+    type: 'category',
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    name: 'day of week'
+  },
+  yAxis: {
+    type: 'value',
+    name: 'pieces'
+  },
+  title: {
+    text: "this is my first EChart in Splunk",
+    left: "center",
+    textStyle: {
+      fontSize: 16
+    },
+  },
+  series: [
+    {
+      data: [150, 230, 224, 218, 135, 147, 260],
+      type: 'bar'
+    }
+  ]
+};
+
+    </option>
+    <option name="height">300</option>
+    <option name="refresh.display">progressbar</option>
+</viz>
+</panel>
+</row>
+</dashboard>

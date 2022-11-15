@@ -1,0 +1,208 @@
+<dashboard  version="1.1" stylesheet="tutorial.css">
+  <label>3. Advanced vizualizations examples</label>
+  <row>
+    <panel>
+      <html>
+  
+          <h1>Multiple Y axis</h1>
+          <p>
+            Just define multiple yAxis, use series for the values and configure "xAxisDataIndexBinding" and "seriesDataIndexBinding" to map the data.
+          </p>
+</html>
+
+<viz type="visualization_toolbox.hman">
+    <search>
+      <query>| inputlookup tut_3_2.csv
+| table Month,Temperature,Precipitation</query>
+    </search>
+    <option name="visualization_toolbox.hman.dataType">Custom</option>
+    <option name="visualization_toolbox.hman.option">
+option = {
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { type: 'cross' }
+  },
+  toolbox: {
+    feature: {
+      dataView: { show: true, readOnly: false },
+      magicType: { show: true, type: ['line', 'bar'] },
+      restore: { show: true },
+      saveAsImage: { show: true }
+    }
+  },
+  legend: {},
+  xAxis: [
+    {
+      type: 'category',
+      axisTick: {
+        alignWithLabel: true
+      },
+      axisLabel: {
+        rotate: 30
+      },
+      data: [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+      ]
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value',
+      name: 'Precipitation',
+      min: 0,
+      max: 250,
+      position: 'right',
+      axisLabel: {
+        formatter: '{value} ml'
+      }
+    },
+    {
+      type: 'value',
+      name: 'Temperature',
+      min: 0,
+      max: 25,
+      position: 'left',
+      axisLabel: {
+        formatter: '{value} °C'
+      }
+    }
+  ],
+  series: [
+    {
+      name: 'Precipitation',
+      type: 'bar',
+      yAxisIndex: 0,
+      data: [6, 32, 70, 86, 68.7, 100.7, 125.6, 112.2, 78.7, 48.8, 36.0, 19.3]
+    },
+    {
+      name: 'Temperature',
+      type: 'line',
+      smooth: true,
+      yAxisIndex: 1,
+      data: [
+        6.0,
+        10.2,
+        10.3,
+        11.5,
+        10.3,
+        13.2,
+        14.3,
+        16.4,
+        18.0,
+        16.5,
+        12.0,
+        5.2
+      ]
+    }
+  ]
+};    
+    </option>
+    <option name="visualization_toolbox.hman.seriesDataIndexBinding">2,1</option>
+    <option name="visualization_toolbox.hman.xAxisDataIndexBinding">0</option>-->
+   <option name="height">700</option>
+    <option name="refresh.display">progressbar</option>
+</viz>
+
+<html>
+
+<h1>Data slider</h1>
+
+Sometimes you want to display a lot of data, but you don't want to display all of them at the same time. You can use the data slider to display only a part of the data.
+We used the following code for this:
+<pre><code><![CDATA[  dataZoom: [
+    {
+      type: 'slider',
+      show: true,
+      xAxisIndex: [0],
+      start: 1,
+      end: 35
+    },
+    {
+      start: 80,
+      type: "inside"
+    }
+  ],
+]]></code></pre>
+
+Note that the first configuration is for the slider on the bottom. The second one is used to zoom into the data points when using the mousewheel. See more options in the <a href="https://echarts.apache.org/en/option.html#dataZoom">ECharts
+documentation</a>. 
+
+</html>
+
+      <viz type="visualization_toolbox.hman">
+        <search>
+          <query>| makeresults count=20000 
+| streamstats count
+| eval _time = _time - count
+| eval high = 30 
+| eval low = 10 
+| eval rand1 =round(((random() % high)/(high)) * (high - low) + low)
+| eval high = 100 
+| eval low = 40
+| eval rand2 =round(((random() % high)/(high)) * (high - low) + low)
+| eval time = _time
+| fields  time rand1 rand2 _time
+| sort time
+</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="visualization_toolbox.hman.dataType">Custom</option>
+        <option name="visualization_toolbox.hman.option">
+option = {
+  dataZoom: [
+    {
+      type: 'slider',
+      show: true,
+      xAxisIndex: [0],
+      start: 1,
+      end: 35
+    },
+    {
+      start: 80,
+      type: "inside"
+    }
+  ],  
+  xAxis: {
+    type: 'category'
+
+  },
+  yAxis: {
+    type: 'value'
+  },
+  series: [
+    {
+      type: 'line',
+    },
+    {
+      type: 'line',
+      color: "orange"
+    }
+  ]
+};
+        </option>
+        <option name="visualization_toolbox.hman.xAxisDataIndexBinding">3</option>
+        <option name="visualization_toolbox.hman.seriesDataIndexBinding">1,2</option>
+        <option name="drilldown">none</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+
+
+
+
+
+</panel>
+</row>
+</dashboard>
