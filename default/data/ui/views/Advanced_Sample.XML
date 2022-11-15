@@ -1,0 +1,111 @@
+<dashboard  version="1.1" stylesheet="tutorial.css">
+  <label> Advanced vizualization example</label>
+  <row>
+    <panel>
+<viz type="visualization_toolbox.hman">
+    <search>
+      <query>| inputlookup tut_3_2.csv
+| table Month,Temperature,Precipitation</query>
+    </search>
+    <option name="visualization_toolbox.hman.dataType">Custom</option>
+    <option name="visualization_toolbox.hman.option">
+option = {
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { type: 'cross' }
+  },
+  toolbox: {
+    feature: {
+      dataView: { show: true, readOnly: false },
+      magicType: { show: true, type: ['line', 'bar'] },
+      restore: { show: true },
+      saveAsImage: { show: true }
+    }
+  },
+  legend: {},
+  xAxis: [
+    {
+      type: 'category',
+      axisTick: {
+        alignWithLabel: true
+      },
+      axisLabel: {
+        rotate: 30
+      },
+      data: [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+      ]
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value',
+      name: 'Precipitation',
+      min: 0,
+      max: 250,
+      position: 'right',
+      axisLabel: {
+        formatter: '{value} ml'
+      }
+    },
+    {
+      type: 'value',
+      name: 'Temperature',
+      min: 0,
+      max: 25,
+      position: 'left',
+      axisLabel: {
+        formatter: '{value} °C'
+      }
+    }
+  ],
+  series: [
+    {
+      name: 'Precipitation',
+      type: 'bar',
+      yAxisIndex: 0,
+      data: [6, 32, 70, 86, 68.7, 100.7, 125.6, 112.2, 78.7, 48.8, 36.0, 19.3]
+    },
+    {
+      name: 'Temperature',
+      type: 'line',
+      smooth: true,
+      yAxisIndex: 1,
+      data: [
+        6.0,
+        10.2,
+        10.3,
+        11.5,
+        10.3,
+        13.2,
+        14.3,
+        16.4,
+        18.0,
+        16.5,
+        12.0,
+        5.2
+      ]
+    }
+  ]
+};    
+    </option>
+    <option name="visualization_toolbox.hman.seriesDataIndexBinding">2,1</option>
+    <option name="visualization_toolbox.hman.xAxisDataIndexBinding">0</option>-->
+   <option name="height">700</option>
+    <option name="refresh.display">progressbar</option>
+</viz>
+
+</panel>
+</row>
+</dashboard>
