@@ -3,7 +3,6 @@
   <view name="dashboards" />
   <view name="Advanced_Sample" default="true"  />
   <collection label="Docs / Tutorial">
-    <view name="sample" />
     <view name="tutorial_1" />
     <view name="tutorial_2" />
     <view name="tutorial_3" />
