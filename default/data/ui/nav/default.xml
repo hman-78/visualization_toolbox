@@ -1,7 +1,7 @@
 <nav search_view="search" color="#65A637">
   <view name="search"/>
   <view name="dashboards" />
-  <view name="Advanced_Sample" default="true"  />
+  <view name="sample" default="true"  />
   <collection label="Docs / Tutorial">
     <view name="tutorial_1" />
     <view name="tutorial_2" />
