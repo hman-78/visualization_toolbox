@@ -156,4 +156,6 @@ jobs:
        
        
     - name: Package with packaging toolkit CLI
-      run: man slim 
+      run: |
+         cd .. 
+         man slim 
