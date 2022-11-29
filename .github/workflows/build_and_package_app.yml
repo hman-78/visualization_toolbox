@@ -153,3 +153,7 @@ jobs:
       with:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
        path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
+       
+       
+    - name: Package with packaging toolkit CLI
+      run: man slim 
