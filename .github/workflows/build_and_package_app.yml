@@ -159,4 +159,4 @@ jobs:
       run: |
          pip install splunk-packaging-toolkit-1.0.1.tar.gz 
          cd ..
-         slim [-v] [-h] [--debug] [--quiet] {config,describe,generate-manifest,package,partition,validate,update-installation} ...
+         slim config
