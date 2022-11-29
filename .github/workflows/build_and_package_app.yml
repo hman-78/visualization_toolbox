@@ -157,5 +157,5 @@ jobs:
        
     - name: Package with packaging toolkit CLI
       run: |
-         cd .. 
-         man slim-{config,describe,generate-manifest,package,partition,validate,update-installation}
+         pip install splunk-packaging-toolkit-1.0.1.tar.gz 
+         
