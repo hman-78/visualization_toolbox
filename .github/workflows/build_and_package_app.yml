@@ -154,9 +154,10 @@ jobs:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
        path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
        
-    - name: change python version  
-      run: |  
-          pip install python@3.9       
+    - name: install python 3.9
+      uses: actions/setup-python@v2
+      with: 
+       python-version: '3.9'     
        
     - name: install packaging toolkit CLI
       run: | 
