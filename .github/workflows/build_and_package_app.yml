@@ -164,11 +164,15 @@ jobs:
        pip install splunk-packaging-toolkit-1.0.1.tar.gz 
        pip --version 
       
-
+    - name: slim validate App
+      run: |
+          cd .. 
+          slim validate visualization_toolbox/
+        
       
     - name: package App
       run: |
           cd .. 
-          slim validate visualization_toolbox/
+          slim package visualization_toolbox/
         
         
