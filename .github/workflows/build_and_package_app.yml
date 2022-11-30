@@ -173,8 +173,7 @@ jobs:
     - name: package App
       run: |
           cd .. 
-          slim package --output-dir=/home/runner/work/visualization_toolbox/staging_AppPackaging-results/
-          visualization_toolbox/
+          slim package --output-dir=/home/runner/work/visualization_toolbox/staging_AppPackaging-results/ visualization_toolbox/
           
 
     - name: Upload artifacts - Packagingtoolkit results
