@@ -161,6 +161,6 @@ jobs:
     - name: package App
       run: |
           cd .. 
-          slim validate visualization_toolbox 
+          slim validate visualization_toolbox/appserver/static/visualizations/hman/src/
         
         
