@@ -156,7 +156,6 @@ jobs:
        
     - name: change python version  
       run: |  
-          pip uninstall python@3.10
           pip install python@3.9       
        
     - name: install packaging toolkit CLI
