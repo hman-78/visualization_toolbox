@@ -161,6 +161,6 @@ jobs:
     - name: package App
       run: |
           cd .. 
-          slim package visualization_toolbox --repository ~/.slim/repository
+          slim validate visualization_toolbox 
         
         
