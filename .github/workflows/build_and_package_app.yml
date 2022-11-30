@@ -173,11 +173,11 @@ jobs:
     - name: package App
       run: |
           cd .. 
-          slim package 
+          slim package visualization_toolbox/
           --exclude=visualization_toolbox/.git \
           --exclude=visualization_toolbox/.github \
           --exclude=visualization_toolbox/.gitignore \
-          visualization_toolbox/
+          
           
           
         
