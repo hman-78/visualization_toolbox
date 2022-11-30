@@ -160,6 +160,10 @@ jobs:
        pip install splunk-packaging-toolkit-1.0.1.tar.gz 
        pip --version 
       
+    - name: change python version  
+      run: |  
+          brew uninstall --ignore-dependencies python@3.10
+          brew install python@3.9
       
     - name: package App
       run: |
