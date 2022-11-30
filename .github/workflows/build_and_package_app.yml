@@ -156,7 +156,7 @@ jobs:
        
        
     - name: install packaging toolkit CLI
-      run: pip install splunk-packaging-toolkit-0.9.1.tar.gz 
+      run: pip install splunk-packaging-toolkit-1.0.1.tar.gz 
       
     - name: package App
       run: |
