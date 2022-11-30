@@ -174,9 +174,7 @@ jobs:
       run: |
           cd .. 
           slim package visualization_toolbox/
-          --exclude=visualization_toolbox/.git \
-          --exclude=visualization_toolbox/.github \
-          --exclude=visualization_toolbox/.gitignore \
+          --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppPackage-results.json"
           
           
           
