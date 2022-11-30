@@ -158,6 +158,6 @@ jobs:
     - name: Package with packaging toolkit CLI
       run: |
          pip install splunk-packaging-toolkit-1.0.1.tar.gz 
-         cd ..
+        
          slim package -h --debug --quiet -o default -r ~/.slim/repository -u warn visualization_toolbox/appserver/static/visualizations/hman/src/
         
