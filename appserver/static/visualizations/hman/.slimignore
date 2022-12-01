@@ -1,6 +1,0 @@
-.DS_STORE
-Thumbs.db
-*.py[co]
-/default/indexes.conf
-/local/*
-/metadata/local.meta
