@@ -26,7 +26,7 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-
+    
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -153,3 +153,34 @@ jobs:
       with:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
        path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
+       
+    - name: install python 3.9
+      uses: actions/setup-python@v2
+      with: 
+       python-version: '3.9'     
+       
+    - name: install packaging toolkit CLI
+      run: | 
+       pip install splunk-packaging-toolkit-1.0.1.tar.gz 
+       pip --version 
+      
+    - name: slim validate App
+      run: |
+          cd .. 
+          slim validate visualization_toolbox/
+        
+      
+    - name: package App
+      run: |
+          cd .. 
+          slim package --output-dir=/home/runner/work/visualization_toolbox/staging_AppPackaging-results/ visualization_toolbox/
+          
+    - name: Upload artifacts - Packagingtoolkit results
+      uses: actions/upload-artifact@v3
+      with:
+       name:  AppPackaging-results
+       path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results/     
+                    
+          
+        
+        
