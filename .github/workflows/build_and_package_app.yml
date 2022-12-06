@@ -111,6 +111,7 @@ jobs:
           --exclude=visualization_toolbox/.git \
           --exclude=visualization_toolbox/.github \
           --exclude=visualization_toolbox/.gitignore \
+          --exclude=visualization_toolbox/splunk-packaging-toolkit-1.0.1.tar.gz \
           visualization_toolbox/
 
           tar_checksum=$(sha256sum ${{ steps.version_information.outputs.tar_name }} | awk '{print $1}')
