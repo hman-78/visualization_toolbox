@@ -132,28 +132,7 @@ jobs:
       with:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
        path: /home/runner/work/visualization_toolbox/staging_app
-
-    - name: Run Splunk AppInspect
-      run: |
-          pip install splunk-appinspect
-          cd ..
-          splunk-appinspect inspect ${{ steps.version_information.outputs.tar_name }} \
-          --mode test \
-          --generate-feedback \
-          --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
-
-    - name: Copy to staging directory
-      run: |
-          cd ..
-          mkdir staging_AppInspect-results
-          cp -v ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json staging_AppInspect-results//
-          cp -v inspect.yml staging_AppInspect-results//
-
-    - name: Upload artifacts - AppInspect results
-      uses: actions/upload-artifact@v3
-      with:
-       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
-       path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
+       
        
     - name: install python 3.9
       uses: actions/setup-python@v2
@@ -181,7 +160,31 @@ jobs:
       with:
        name:  AppPackaging-results
        path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results/     
-                    
+                           
+
+    - name: Run Splunk AppInspect
+      run: |
+          pip install splunk-appinspect
+          cd ..
+          splunk-appinspect inspect ${{ steps.version_information.outputs.tar_name }} \
+          --mode test \
+          --generate-feedback \
+          --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
+
+    - name: Copy to staging directory
+      run: |
+          cd ..
+          mkdir staging_AppInspect-results
+          cp -v ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json staging_AppInspect-results//
+          cp -v inspect.yml staging_AppInspect-results//
+
+    - name: Upload artifacts - AppInspect results
+      uses: actions/upload-artifact@v3
+      with:
+       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
+       path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
+       
+
           
         
         
