@@ -103,35 +103,35 @@ jobs:
       run: |
           sed -i -e "s/replacebuild/${{ steps.version_information.outputs.build_number }}/g" default/app.conf
 
-    - name: Create tar file
-      id: create_tar_file
-      run: |
-          cd ..
-          tar -czvf ${{ steps.version_information.outputs.tar_name }} \
-          --exclude=visualization_toolbox/.git \
-          --exclude=visualization_toolbox/.github \
-          --exclude=visualization_toolbox/.gitignore \
-          --exclude=visualization_toolbox/splunk-packaging-toolkit-1.0.1.tar.gz \
-          visualization_toolbox/
+#    - name: Create tar file
+#      id: create_tar_file
+#      run: |
+#          cd ..
+#          tar -czvf ${{ steps.version_information.outputs.tar_name }} \
+#          --exclude=visualization_toolbox/.git \
+#          --exclude=visualization_toolbox/.github \
+#          --exclude=visualization_toolbox/.gitignore \
+#          --exclude=visualization_toolbox/splunk-packaging-toolkit-1.0.1.tar.gz \
+#          visualization_toolbox/
 
-          tar_checksum=$(sha256sum ${{ steps.version_information.outputs.tar_name }} | awk '{print $1}')
-          echo "Checksums:"
-          find . -maxdepth 1 -type f -exec sha256sum {} \;
-          echo "::set-output name=tar_checksum::$tar_checksum"
-          sha256sum ${{ steps.version_information.outputs.tar_name }} > ${{ steps.version_information.outputs.tar_name }}.sha256
+#          tar_checksum=$(sha256sum ${{ steps.version_information.outputs.tar_name }} | awk '{print $1}')
+#          echo "Checksums:"
+#          find . -maxdepth 1 -type f -exec sha256sum {} \;
+#          echo "::set-output name=tar_checksum::$tar_checksum"
+#          sha256sum ${{ steps.version_information.outputs.tar_name }} > ${{ steps.version_information.outputs.tar_name }}.sha256  
 
-    - name: Copy to staging directory
-      run: |
-          cd ..
-          mkdir staging_app
-          cp -v ${{ steps.version_information.outputs.tar_name }} staging_app/
-          cp -v ${{ steps.version_information.outputs.tar_name }}.sha256 staging_app/
+#    - name: Copy to staging directory
+#      run: |
+#          cd ..
+#          mkdir staging_app
+#          cp -v ${{ steps.version_information.outputs.tar_name }} staging_app/
+#          cp -v ${{ steps.version_information.outputs.tar_name }}.sha256 staging_app/      
 
-    - name: Upload artifacts - app
-      uses: actions/upload-artifact@v3
-      with:
-       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
-       path: /home/runner/work/visualization_toolbox/staging_app
+#    - name: Upload artifacts - app
+#      uses: actions/upload-artifact@v3
+#      with:
+#       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
+#       path: /home/runner/work/visualization_toolbox/staging_app
        
        
     - name: install python 3.9
