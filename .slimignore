@@ -1,2 +1,5 @@
 .DS_STORE
-
+.git 
+.github 
+.gitignore 
+visualization_toolbox/splunk-packaging-toolkit-1.0.1.tar.gz 
