@@ -175,7 +175,7 @@ jobs:
     - name: Upload artifacts - Packagingtoolkit results
       uses: actions/upload-artifact@v3
       with:
-       name:  Toolkit-Package
+       name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
        path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results    
 
                            
