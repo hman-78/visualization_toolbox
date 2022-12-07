@@ -169,7 +169,7 @@ jobs:
           echo "Checksums:"
           find . -maxdepth 1 -type f -exec sha256sum {} \;
           echo "::set-output name=tar_checksum::$tar_checksum"
-          sha256sum ${{ steps.version_information.outputs.tar_name }} > ${{ steps.version_information.outputs.tar_name }}.sha256  
+          sha256sum $TARNAME_NO_WHITESPACE > $TARNAME_NO_WHITESPACE.sha256  
           
           
     - name: Upload artifacts - Packagingtoolkit results
