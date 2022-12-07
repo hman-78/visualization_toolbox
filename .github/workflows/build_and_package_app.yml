@@ -166,7 +166,7 @@ jobs:
       run: |
           pip install splunk-appinspect
           cd ..
-          splunk-appinspect inspect /home/runner/work/visualization_toolbox/staging_AppPackaging-results/  
+          splunk-appinspect inspect /home/runner/work/visualization_toolbox/staging_AppPackaging-results/Toolkit-Package  
           --mode test \
           --generate-feedback \
           --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
