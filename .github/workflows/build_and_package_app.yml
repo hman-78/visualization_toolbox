@@ -20,8 +20,9 @@ jobs:
       app_version: ${{ steps.version_information.outputs.app_version }}
       build_number: ${{ steps.version_information.outputs.build_number }}
       artifact_name_prefix: ${{ steps.version_information.outputs.artifact_name_prefix }}
-      tar_name: ${{ steps.version_information.outputs.tar_name }}
-      tar_sha256: ${{ steps.XYZ.outputs.tar_name }}
+    #  tar_name: ${{ steps.version_information.outputs.tar_name }}
+      tar_sha256: ${{ steps.package_app.outputs.tar_name }}
+      slim_package_name: ${{ steps.package_app.outputs.slim_package_name }}
       
     steps:
     - name: Checkout repository
@@ -103,43 +104,93 @@ jobs:
       run: |
           sed -i -e "s/replacebuild/${{ steps.version_information.outputs.build_number }}/g" default/app.conf
 
-    - name: Create tar file
-      id: create_tar_file
-      run: |
-          cd ..
-          tar -czvf ${{ steps.version_information.outputs.tar_name }} \
-          --exclude=visualization_toolbox/.git \
-          --exclude=visualization_toolbox/.github \
-          --exclude=visualization_toolbox/.gitignore \
-          visualization_toolbox/
+#    - name: Create tar file
+#      id: create_tar_file
+#      run: |
+#          cd ..
+#          tar -czvf ${{ steps.version_information.outputs.tar_name }} \
+#          --exclude=visualization_toolbox/.git \
+#          --exclude=visualization_toolbox/.github \
+#          --exclude=visualization_toolbox/.gitignore \
+#          --exclude=visualization_toolbox/splunk-packaging-toolkit-1.0.1.tar.gz \
+#          visualization_toolbox/
 
-          tar_checksum=$(sha256sum ${{ steps.version_information.outputs.tar_name }} | awk '{print $1}')
+#          tar_checksum=$(sha256sum ${{ steps.version_information.outputs.tar_name }} | awk '{print $1}')
+#          echo "Checksums:"
+#          find . -maxdepth 1 -type f -exec sha256sum {} \;
+#          echo "::set-output name=tar_checksum::$tar_checksum"
+#          sha256sum ${{ steps.version_information.outputs.tar_name }} > ${{ steps.version_information.outputs.tar_name }}.sha256  
+
+#    - name: Copy to staging directory
+#      run: |
+#          cd ..
+#          mkdir staging_app
+#          cp -v ${{ steps.version_information.outputs.tar_name }} staging_app/
+#          cp -v ${{ steps.version_information.outputs.tar_name }}.sha256 staging_app/      
+
+#    - name: Upload artifacts - app
+#      uses: actions/upload-artifact@v3
+#      with:
+#       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
+#       path: /home/runner/work/visualization_toolbox/staging_app
+       
+       
+    - name: install python 3.9
+      uses: actions/setup-python@v2
+      with: 
+       python-version: '3.9'     
+       
+    - name: install packaging toolkit CLI
+      run: | 
+       pip install splunk-packaging-toolkit-1.0.1.tar.gz 
+       pip --version 
+      
+
+        
+      
+    - name: package App
+      id: package_app
+      run: |
+          cd .. 
+          slim package --output-dir=/home/runner/work/visualization_toolbox/staging_AppPackaging-results/ visualization_toolbox/
+          echo ${{ steps.version_information.outputs.app_version }}
+          TARNAME='visualization_toolbox-${{ steps.version_information.outputs.app_version }}.tar.gz'
+          TARNAME_NO_WHITESPACE="$(echo -e "${TARNAME}" | tr -d '[:space:]')"
+          echo "$TARNAME_NO_WHITESPACE"
+          echo "::set-output name=slim_package_name::$TARNAME_NO_WHITESPACE"
+          ls /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
+          
+          
+          cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/
+          tar_checksum=$(sha256sum $TARNAME_NO_WHITESPACE | awk '{print $1}')
           echo "Checksums:"
           find . -maxdepth 1 -type f -exec sha256sum {} \;
           echo "::set-output name=tar_checksum::$tar_checksum"
-          sha256sum ${{ steps.version_information.outputs.tar_name }} > ${{ steps.version_information.outputs.tar_name }}.sha256
-
-    - name: Copy to staging directory
-      run: |
-          cd ..
-          mkdir staging_app
-          cp -v ${{ steps.version_information.outputs.tar_name }} staging_app/
-          cp -v ${{ steps.version_information.outputs.tar_name }}.sha256 staging_app/
-
-    - name: Upload artifacts - app
+          sha256sum $TARNAME_NO_WHITESPACE > $TARNAME_NO_WHITESPACE.sha256  
+          
+          
+    - name: Upload artifacts - Packagingtoolkit results
       uses: actions/upload-artifact@v3
       with:
-       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
-       path: /home/runner/work/visualization_toolbox/staging_app
+       name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
+       path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results    
 
+
+    - name: slim validate App
+      run: |
+          cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
+          slim validate ${{ steps.package_app.outputs.slim_package_name }}
+
+                           
     - name: Run Splunk AppInspect
       run: |
           pip install splunk-appinspect
           cd ..
-          splunk-appinspect inspect ${{ steps.version_information.outputs.tar_name }} \
+          splunk-appinspect inspect /home/runner/work/visualization_toolbox/staging_AppPackaging-results/${{ steps.package_app.outputs.slim_package_name }}  \
           --mode test \
           --generate-feedback \
           --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
+          
 
     - name: Copy to staging directory
       run: |
@@ -154,33 +205,7 @@ jobs:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
        path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
        
-    - name: install python 3.9
-      uses: actions/setup-python@v2
-      with: 
-       python-version: '3.9'     
-       
-    - name: install packaging toolkit CLI
-      run: | 
-       pip install splunk-packaging-toolkit-1.0.1.tar.gz 
-       pip --version 
-      
-    - name: slim validate App
-      run: |
-          cd .. 
-          slim validate visualization_toolbox/
-        
-      
-    - name: package App
-      run: |
-          cd .. 
-          slim package --output-dir=/home/runner/work/visualization_toolbox/staging_AppPackaging-results/ visualization_toolbox/
-          
-    - name: Upload artifacts - Packagingtoolkit results
-      uses: actions/upload-artifact@v3
-      with:
-       name:  AppPackaging-results
-       path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results/     
-                    
+
           
         
         
