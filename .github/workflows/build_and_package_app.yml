@@ -156,7 +156,7 @@ jobs:
           slim package --output-dir=/home/runner/work/visualization_toolbox/staging_AppPackaging-results/ visualization_toolbox/
           echo ${{ steps.version_information.outputs.app_version }}
           TARNAME='visualization_toolbox-${{ steps.version_information.outputs.app_version }}.tar.gz'
-          echo '$TARNAME'
+          echo "$TARNAME"
           ls /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
           
           
