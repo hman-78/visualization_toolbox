@@ -159,7 +159,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
        name:  Toolkit-Package
-       path: /home/runner/work/visualization_toolbox/staging_app    
+       path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results    
 
                            
     - name: Run Splunk AppInspect
