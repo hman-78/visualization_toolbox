@@ -154,6 +154,7 @@ jobs:
       run: |
           cd .. 
           slim package --output-dir=/home/runner/work/visualization_toolbox/staging_AppPackaging-results/ visualization_toolbox/
+          ls /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
           
     - name: Upload artifacts - Packagingtoolkit results
       uses: actions/upload-artifact@v3
@@ -166,10 +167,11 @@ jobs:
       run: |
           pip install splunk-appinspect
           cd ..
-          splunk-appinspect inspect /home/runner/work/visualization_toolbox/staging_AppPackaging-results/Toolkit-Package.zip  
+          splunk-appinspect inspect /home/runner/work/visualization_toolbox/staging_AppPackaging-results/Toolkit-Package.zip \
           --mode test \
           --generate-feedback \
           --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
+          
 
     - name: Copy to staging directory
       run: |
