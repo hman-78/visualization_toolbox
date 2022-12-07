@@ -164,7 +164,7 @@ jobs:
           ls /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
           
           
-          
+          cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/
           tar_checksum=$(sha256sum $TARNAME_NO_WHITESPACE | awk '{print $1}')
           echo "Checksums:"
           find . -maxdepth 1 -type f -exec sha256sum {} \;
