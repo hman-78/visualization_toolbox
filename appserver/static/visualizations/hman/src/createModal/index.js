@@ -1,4 +1,4 @@
-function _createModal(splunk) {
+const _createModal = function(splunk) {
   var h2 = $("<h2>").text("Add Annotation");
   var xValueSpan = $("<span>").addClass("x-value");
   var yValueSpan = $("<span>").addClass("y-value");

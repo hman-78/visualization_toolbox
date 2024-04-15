@@ -1,4 +1,4 @@
-function _handleAnnotation(data, config, option, annotationsSeriesName, myChart) {
+const _handleAnnotation = function(data, config, option, annotationsSeriesName, myChart) {
 
   var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
   var configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
