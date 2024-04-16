@@ -2,7 +2,7 @@
 //  'data' will be the data object returned from formatData or from the search
 //  'config' will be the configuration property object
 const _updateView = function(data, config) {
-  _data = data;
+  this._data = data;
   if (!data || !data.rows || data.rows.length < 1) {
     return;
   }
@@ -13,12 +13,12 @@ const _updateView = function(data, config) {
 
   var configDataType = config[this.getPropertyNamespaceInfo().propertyNamespace + "dataType"];
 
-  var myChart = echarts.getInstanceByDom(this.el);
+  var myChart = this.echarts.getInstanceByDom(this.el);
   if (myChart != null && this.myRingChart1 != '' &&
     myChart != undefined) {
     myChart.dispose() //Solve the error reported by echarts dom already loaded
   }
-  myChart = echarts.init(this.el);
+  myChart = this.echarts.init(this.el);
   var option = {};
   if (configDataType == "Custom") {
     option = this._buildCustomOption(data, config);
@@ -60,8 +60,8 @@ const _updateView = function(data, config) {
 
   console.log(option);
   myChart.setOption(option);
-  _myChart = myChart;
-  _option = option;
+  this._myChart = myChart;
+  this._option = option;
 
   var splunk = this;
 

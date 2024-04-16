@@ -51,6 +51,8 @@ const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithRetur
 const _sendMQTTMessage = require('./sendMQTTMessage')
 const _updateView = require('./updateView');
 
+/*global define */
+
 define([
 	'jquery',
 	'underscore',

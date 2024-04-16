@@ -136,8 +136,8 @@ const _createModal = function(splunk) {
       }
       var isAnnotationAlreadyInData = false;
       var indexToBeDeleted = null;
-      for (var i = 0; i < _option.series[_annotationSeriesIndex].data.length; i++) {
-        var obj = _option.series[_annotationSeriesIndex].data[i];
+      for (var i = 0; i < this._option.series[_annotationSeriesIndex].data.length; i++) {
+        var obj = this._option.series[_annotationSeriesIndex].data[i];
         var x = obj[0];
         if (xAxisValue == x) {
           isAnnotationAlreadyInData = true;
@@ -145,7 +145,7 @@ const _createModal = function(splunk) {
             // remove data from series
             indexToBeDeleted = i;
             obj[2] = "";
-            _option.series[_annotationSeriesIndex].data.splice(i, 1);
+            this._option.series[_annotationSeriesIndex].data.splice(i, 1);
             // TODO remove empty data obj from array
           } else {
             // update new value
@@ -160,9 +160,9 @@ const _createModal = function(splunk) {
         obj.push(xAxisValue);
         obj.push(yValue);
         obj.push(description);
-        _option.series[_annotationSeriesIndex].data.push(obj);
+        this._option.series[_annotationSeriesIndex].data.push(obj);
       }
-      _myChart.setOption(_option);
+      this._myChart.setOption(this._option);
 
 
       // Hide the modal_annotation after saving

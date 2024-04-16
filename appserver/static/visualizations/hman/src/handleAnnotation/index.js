@@ -1,7 +1,7 @@
 const _handleAnnotation = function(data, config, option, annotationsSeriesName, myChart) {
 
-  var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
-  var configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
+  //var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
+  //var configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
   var opco = config[this.getPropertyNamespaceInfo().propertyNamespace + "opco"];
   // first index points to x, second to y and third to the index of the annotation
   var annotationSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "annotationSeriesDataIndexBinding"];
@@ -92,8 +92,8 @@ const _handleAnnotation = function(data, config, option, annotationsSeriesName, 
           descriptionInput.focus();
           descriptionInput.select();
 
-          for (var i = 0; i < _option.series[_annotationSeriesIndex].data.length; i++) {
-            var obj = _option.series[_annotationSeriesIndex].data[i];
+          for (var i = 0; i < this._option.series[_annotationSeriesIndex].data.length; i++) {
+            var obj = this._option.series[_annotationSeriesIndex].data[i];
             var x = obj[0];
             if (xAxisValue == x) {
               var description = obj[2];
