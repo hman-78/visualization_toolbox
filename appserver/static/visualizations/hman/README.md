@@ -1,1 +1,1 @@
-# Visualization Toolbox Template
+# Splunk Visualization App Template

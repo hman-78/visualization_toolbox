@@ -2,12 +2,11 @@ var webpack = require('webpack');
 var path = require('path');
 
 module.exports = {
-    entry: './src/visualization_source',
+    entry: `${__dirname}/src/visualization_source`,
     resolve: {
-        root: [
-            path.join(__dirname, 'src'),
-        ]
+        modules: [`${__dirname}/node_modules`]
     },
+    mode: 'production',
     output: {
         filename: 'visualization.js',
         libraryTarget: 'amd'
@@ -17,3 +16,4 @@ module.exports = {
         'api/SplunkVisualizationUtils'
     ]
 };
+

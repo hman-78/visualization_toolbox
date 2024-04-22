@@ -111,3 +111,6 @@ dist
 
 # builded visualization exclude
 appserver/static/visualizations/hman/visualization.js
+
+# winmerge backup files
+*.bak
