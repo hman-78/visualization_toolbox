@@ -1,8 +1,9 @@
 var webpack = require('webpack');
 var path = require('path');
+const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
-    entry: `${__dirname}/src/visualization_source`,
+    entry: `${__dirname}/src/visualization_source.js`,
     resolve: {
         modules: [`${__dirname}/node_modules`]
     },
@@ -14,7 +15,12 @@ module.exports = {
     },
     //Temporary flag until we test properly the changes
     optimization: {
-        minimize: false
+        minimize: true,
+        minimizer: [
+            new TerserPlugin({
+                extractComments: false,
+            }),
+        ],
     },
     externals: [
         'api/SplunkVisualizationBase',
