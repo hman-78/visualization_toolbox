@@ -15,7 +15,7 @@ module.exports = {
     },
     //Temporary flag until we test properly the changes
     optimization: {
-        minimize: true,
+        minimize: false,
         minimizer: [
             new TerserPlugin({
                 extractComments: false,
