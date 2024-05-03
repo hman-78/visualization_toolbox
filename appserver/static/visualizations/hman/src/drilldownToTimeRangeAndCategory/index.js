@@ -7,7 +7,7 @@
  * 
  *
 */
-const _drilldownToTimeRangeAndCategory = function(earliestTime, latestTime, categoryName, categoryValue, browserEvent) {
+const _drilldownToTimeRangeAndCategory = function (earliestTime, latestTime, categoryName, categoryValue, browserEvent) {
   var data = {};
   data[categoryName] = categoryValue;
   this.drilldown({

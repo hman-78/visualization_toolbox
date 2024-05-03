@@ -3,7 +3,7 @@
  * correct category names and values.
  *
  */
-const _drilldownToCategories = function(categoryNames, categoryValues, browserEvent) {
+const _drilldownToCategories = function (categoryNames, categoryValues, browserEvent) {
   var data = {};
   if (categoryNames != null) {
     for (var i = 0; i < categoryNames.length; i++) {

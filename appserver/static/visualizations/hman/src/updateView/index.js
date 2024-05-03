@@ -1,24 +1,25 @@
+const echarts = require('echarts');
 // Implement updateView to render a visualization.
 //  'data' will be the data object returned from formatData or from the search
 //  'config' will be the configuration property object
-const _updateView = function(data, config) {
-  this._data = data;
+const _updateView = function (data, config) {
+  _data = data;
   if (!data || !data.rows || data.rows.length < 1) {
     return;
   }
   this._initializeMQTT(data, config);
-
-  console.log(data);
-  console.log(JSON.stringify(data));
+  console.log('..._updateView OK...')
+  // console.log(data);
+  // console.log(JSON.stringify(data));
 
   var configDataType = config[this.getPropertyNamespaceInfo().propertyNamespace + "dataType"];
 
-  var myChart = this.echarts.getInstanceByDom(this.el);
+  var myChart = echarts.getInstanceByDom(this.el);
   if (myChart != null && this.myRingChart1 != '' &&
     myChart != undefined) {
     myChart.dispose() //Solve the error reported by echarts dom already loaded
   }
-  myChart = this.echarts.init(this.el);
+  myChart = echarts.init(this.el);
   var option = {};
   if (configDataType == "Custom") {
     option = this._buildCustomOption(data, config);
@@ -60,8 +61,8 @@ const _updateView = function(data, config) {
 
   console.log(option);
   myChart.setOption(option);
-  this._myChart = myChart;
-  this._option = option;
+  _myChart = myChart;
+  _option = option;
 
   var splunk = this;
 
