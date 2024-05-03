@@ -7,11 +7,12 @@ module.exports = {
     resolve: {
         modules: [`${__dirname}/node_modules`]
     },
-    mode: 'production',
+    mode: 'development',
     output: {
         path: `${__dirname}`,
         filename: 'visualization.js',
-        libraryTarget: 'amd'
+        libraryTarget: 'amd',
+        libraryExport: 'default'
     },
     //Temporary flag until we test properly the changes
     optimization: {
