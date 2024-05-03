@@ -22,6 +22,7 @@ module.exports = {
             }),
         ],
     },
+    //externalsType: "node-commonjs",
     externals: [
         'api/SplunkVisualizationBase',
         'api/SplunkVisualizationUtils'
