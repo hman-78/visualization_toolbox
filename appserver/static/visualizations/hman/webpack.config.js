@@ -12,7 +12,6 @@ module.exports = {
         path: `${__dirname}`,
         filename: 'visualization.js',
         libraryTarget: 'amd',
-        libraryExport: 'default'
     },
     //Temporary flag until we test properly the changes
     optimization: {
