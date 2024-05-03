@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node ./node_modules/webpack/bin/webpack.js",
     "devbuild": "node ./node_modules/webpack/bin/webpack.js --progress",
-    "watch": "node ./node_modules/webpack/bin/webpack.js -d --watch --progress",
+    "watch": "node ./node_modules/webpack/bin/webpack.js --watch --progress",
     "lint": "eslint \"src/**/*.{js,jsx,json}\""
   },
   "author": "Yunfeng Zhang, Björn Hamann, Octavian Cioaca",
