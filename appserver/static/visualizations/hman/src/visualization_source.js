@@ -50,6 +50,8 @@ const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
 const _updateView = require('./updateView');
+const privateVars = require('./privateVars');
+const PrivateVars = require('./privateVars');
 
 define([
 	'jquery',
@@ -67,10 +69,6 @@ define([
 		echarts,
 		mqtt
 	) {
-
-
-		var initialized = false;
-
 		/** TODO mqtt clean up. The implementation of sending annotation data via mqtt should be hidden
 			 *  behind a interface fassade. There might be other implementations of storing annotation data
 			 *  on a server, for example by calling a REST API.
@@ -101,17 +99,18 @@ define([
 		var _option = null;
 
 		// Extend from SplunkVisualizationBase
+		const scopedVariables = new PrivateVars();
 		return SplunkVisualizationBase.extend({
 
 
 
 			initialize: function () {
-				if (!initialized) {
+				if (!scopedVariables.initialized) {
 					SplunkVisualizationBase.prototype.initialize.apply(this, arguments);
 					this.$el = $(this.el);
 					var splunk = this;
 					this.createModal(splunk);
-					initialized = true;
+					scopedVariables.initialized = true;
 				}
 
 			},
