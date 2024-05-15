@@ -1,3 +1,4 @@
+const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
 // Search data params
 const _getInitialDataParams = function () {
   return ({

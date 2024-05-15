@@ -42,6 +42,7 @@ const _drilldownToTimeRangeAndCategory = require('./drilldownToTimeRangeAndCateg
 const _formatData = require('./formatData');
 const _getInitialDataParams = require('./getInitialDataParams');
 const _handleAnnotation = require('./handleAnnotation');
+const _initialize = require('./initialize');
 const _initializeMQTT = require('./initializeMQTT');
 const _parseIndex = require('./parseIndex');
 const _parseOption = require('./parseOption');
@@ -50,7 +51,6 @@ const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
 const _updateView = require('./updateView');
-
 define([
 	'jquery',
 	'underscore',
@@ -67,61 +67,26 @@ define([
 		echarts,
 		mqtt
 	) {
-		var initialized = false;
-		/** TODO mqtt clean up. The implementation of sending annotation data via mqtt should be hidden
-		 *  behind a interface fassade. There might be other implementations of storing annotation data
-		 *  on a server, for example by calling a REST API.
-		 *
-		 *  There should be an interface like AnnotationHandler that provides methods for initialization
-		 *  and sending data to the server. Developers should be able to extend this interface with a implementation
-		 *  like mqtt, REST etc.
-		 */
-		var mqttTopic = null;
-		var mqttOptions = null;
-		var mqttClient = null;
-		// cleanup interfacing the echart functionality.
-		// add MVC pattern to update the data of the chart
-		// add annotation functionality to the interface
-		// copy of data provided by updateView method
-		var _data = null;
-		// String of the config with the same name. Provides the index of the three columns with x, y and annotation data.
-		var _annotationSeriesDataIndex = null;
-		// index of the series visualizing the annotation data. option.series[_annotationSeriesIndex] has to point to the series.
-		var _annotationSeriesIndex = null;
-		// reference to the echart object
-		var _myChart = null;
-		// copy of the echart option that is currently visualized 
-		var _option = null;
-		// Extend from SplunkVisualizationBase
 		return SplunkVisualizationBase.extend({
-			initialize: function () {
-				if (!initialized) {
-					SplunkVisualizationBase.prototype.initialize.apply(this, arguments);
-					this.$el = $(this.el);
-					var splunk = this;
-					this.createModal(splunk);
-					initialized = true;
-				}
-
-			},
-			_buildBoxplotOption: _buildBoxplotOption.bind(this),
-			_buildCustomOption: _buildCustomOption.bind(this),
-			_buildSimpleBoxplotOption: _buildSimpleBoxplotOption.bind(this),
-			createModal: _createModal.bind(this),
-			drilldownToCategories: _drilldownToCategories.bind(this),
-			drilldownToCategory: _drilldownToCategory.bind(this),
-			drilldownToTimeRange: _drilldownToTimeRange.bind(this),
-			drilldownToTimeRangeAndCategory: _drilldownToTimeRangeAndCategory.bind(this),
-			formatData: _formatData.bind(this),
-			getInitialDataParams: _getInitialDataParams.bind(this),
-			_handleAnnotation: _handleAnnotation.bind(this),
-			_initializeMQTT: _initializeMQTT.bind(this),
-			_parseIndex: _parseIndex.bind(this),
-			_parseOption: _parseOption.bind(this),
-			reflow: _reflow.bind(this),
-			selfModifiyingOption: _selfModifiyingOption.bind(this),
-			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn.bind(this),
-			_sendMQTTMessage: _sendMQTTMessage.bind(this),
-			updateView: _updateView.bind(this)
+			_buildBoxplotOption: _buildBoxplotOption,
+			initialize: _initialize,
+			formatData: _formatData,
+			updateView: _updateView,
+			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
+			selfModifiyingOption: _selfModifiyingOption,
+			getInitialDataParams: _getInitialDataParams,
+			reflow: _reflow,
+			_buildCustomOption: _buildCustomOption,
+			_parseIndex: _parseIndex,
+			_buildSimpleBoxplotOption: _buildSimpleBoxplotOption,
+			_parseOption: _parseOption,
+			_sendMQTTMessage: _sendMQTTMessage,
+			_initializeMQTT: _initializeMQTT,
+			drilldownToTimeRange: _drilldownToTimeRange,
+			drilldownToCategory: _drilldownToCategory,
+			drilldownToTimeRangeAndCategory: _drilldownToTimeRangeAndCategory,
+			drilldownToCategories: _drilldownToCategories,
+			_handleAnnotation: _handleAnnotation,
+			createModal: _createModal
 		});
 	});

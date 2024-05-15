@@ -1,5 +1,5 @@
 const _initializeMQTT = function (data, config) {
-  const mqtt = __webpack_require__(11)
+  const mqtt = require('mqtt');
   var useMQTT = false;
   try {
     var configMqttUser = config[this.getPropertyNamespaceInfo().propertyNamespace + "mqttUser"];
