@@ -8,12 +8,7 @@ const _updateView = function (data, config) {
     return;
   }
   this._initializeMQTT(data, config);
-  console.log('..._updateView OK...')
-  // console.log(data);
-  // console.log(JSON.stringify(data));
-
   var configDataType = config[this.getPropertyNamespaceInfo().propertyNamespace + "dataType"];
-
   var myChart = echarts.getInstanceByDom(this.el);
   if (myChart != null && this.myRingChart1 != '' &&
     myChart != undefined) {

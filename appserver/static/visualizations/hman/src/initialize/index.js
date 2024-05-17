@@ -9,7 +9,6 @@ const _initialize = function () {
     var splunk = this;
     this.createModal(splunk);
     scopedVariables.initialized = true;
-    
   }
 }
 
