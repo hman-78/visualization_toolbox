@@ -6,6 +6,8 @@
  * Please note that tokens are strings within two $ characters.
  * Dollar character can be escaped by using $$.
  */
+const echarts = require('echarts');
+
 const _parseOption = function (configOption) {
   if (configOption == null || !configOption.hasOwnProperty('length')) {
     return null;
