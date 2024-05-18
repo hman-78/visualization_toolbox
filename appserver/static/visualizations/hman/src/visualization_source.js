@@ -51,6 +51,7 @@ const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
 const _updateView = require('./updateView');
+const PrivateVariables = require('./privateVars')
 
 define([
 	'jquery',
@@ -68,10 +69,9 @@ define([
 		echarts,
 		mqtt
 	) {
-		
-		//Make the private vars available in nested functions
-		// const scopedVariables = new PrivateVars();
+		const scopedVariables = new PrivateVariables();
 		return SplunkVisualizationBase.extend({
+			scopedVariables,
 			_buildBoxplotOption: _buildBoxplotOption,
 			_buildCustomOption: _buildCustomOption,
 			_buildSimpleBoxplotOption: _buildSimpleBoxplotOption,
@@ -80,17 +80,17 @@ define([
 			drilldownToCategory: _drilldownToCategory,
 			drilldownToTimeRange: _drilldownToTimeRange,
 			drilldownToTimeRangeAndCategory: _drilldownToTimeRangeAndCategory,
-			formatData: _formatData,
-			getInitialDataParams: _getInitialDataParams, // Indicates how the visualization framework fetches data for the visualization.
+			formatData: _formatData, // Interface method available in SplunkVisualizationBase.
+			getInitialDataParams: _getInitialDataParams, // Interface method available in SplunkVisualizationBase. Indicates how the visualization framework fetches data for the visualization.
 			_handleAnnotation: _handleAnnotation,
-			initialize: _initialize,
+			initialize: _initialize, // Interface method available in SplunkVisualizationBase.
 			_initializeMQTT: _initializeMQTT,
 			_parseIndex: _parseIndex,
 			_parseOption: _parseOption,
-			reflow: _reflow,
+			reflow: _reflow, // Interface method available in SplunkVisualizationBase. Implements visualization resizing logic.
 			selfModifiyingOption: _selfModifiyingOption,
 			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
 			_sendMQTTMessage: _sendMQTTMessage,
-			updateView: _updateView //Function called to render the visualization.
+			updateView: _updateView // Interface method available in SplunkVisualizationBase. Function called to render the visualization.
 		});
 	});

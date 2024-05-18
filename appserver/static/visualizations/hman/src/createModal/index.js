@@ -122,22 +122,22 @@ const _createModal = function (splunk) {
 
 
       splunk._sendMQTTMessage(JSON.stringify(msgJson));
-
-      for (var i = 0; i < _data.rows.length; i++) {
-        var x = _data.rows[i][_annotationSeriesDataIndex[0]];
-        var y = _data.rows[i][_annotationSeriesDataIndex[1]];
-        var annotation = _data.rows[i][_annotationSeriesDataIndex[2]];
+      for (var i = 0; i < this.scopedVariables['_data'].rows.length; i++) {
+        var x = this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][0]];
+        var y = this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][1]];
+        var annotation = this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][2]];
 
         // to avoid a refresh of the panel the annotation with the matching x value is updated with the new annoation
         if (xAxisValue == x) {
-          _data.rows[i][_annotationSeriesDataIndex[2]] = description;
+          this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][2]] = description;
         }
 
       }
       var isAnnotationAlreadyInData = false;
       var indexToBeDeleted = null;
-      for (var i = 0; i < _option.series[_annotationSeriesIndex].data.length; i++) {
-        var obj = _option.series[_annotationSeriesIndex].data[i];
+
+      for (var i = 0; i < this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.length; i++) {
+        var obj = this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data[i];
         var x = obj[0];
         if (xAxisValue == x) {
           isAnnotationAlreadyInData = true;
@@ -145,7 +145,7 @@ const _createModal = function (splunk) {
             // remove data from series
             indexToBeDeleted = i;
             obj[2] = "";
-            _option.series[_annotationSeriesIndex].data.splice(i, 1);
+            this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.splice(i, 1);
             // TODO remove empty data obj from array
           } else {
             // update new value
@@ -160,9 +160,9 @@ const _createModal = function (splunk) {
         obj.push(xAxisValue);
         obj.push(yValue);
         obj.push(description);
-        _option.series[_annotationSeriesIndex].data.push(obj);
+        this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.push(obj);
       }
-      _myChart.setOption(_option);
+      this.scopedVariables['_myChart'].setOption(this.scopedVariables['_option']);
 
 
       // Hide the modal_annotation after saving

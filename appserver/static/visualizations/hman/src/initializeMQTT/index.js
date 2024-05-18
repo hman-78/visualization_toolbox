@@ -15,7 +15,6 @@ const _initializeMQTT = function (data, config) {
 
   if (useMQTT) {
     var clientId = Math.random().toString(23);
-
     var options = {
       clientId: clientId,
       connectTimeout: 5000,
@@ -26,16 +25,15 @@ const _initializeMQTT = function (data, config) {
       username: configMqttUser,
       password: configMqttPassword
     }
-    mqttClient = mqtt.connect(options);
-    mqttClient.on('connect', () => {
+    this.scopedVariables['mqttClient'] = mqtt.connect(options);
+    this.scopedVariables['mqttClient'].on('connect', () => {
       console.log('Connected')
-
     })
   }
 
   // TODO cleanup mqtt
-  mqttTopic = configMqttUser + "/" + clientId + configMqttTopic;
-  mqttOptions = options;
+  this.scopedVariables['mqttTopic'] = configMqttUser + "/" + clientId + configMqttTopic;
+  this.scopedVariables['mqttOptions'] = options;
 
 }
 

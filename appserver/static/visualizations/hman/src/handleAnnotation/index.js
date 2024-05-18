@@ -8,7 +8,7 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
 
   var annotationSeriesDataIndex = [];
   annotationSeriesDataIndex = this._parseIndex(annotationSeriesDataIndexBinding);
-  _annotationSeriesDataIndex = annotationSeriesDataIndex;
+  this.scopedVariables['_annotationSeriesDataIndex'] = annotationSeriesDataIndex;
 
   if (annotationSeriesDataIndex.length != 3) {
     var error = "Please provide the configuration annotationSeriesDataIndexBinding. It has to be 3 numbers separated by a comma.\n"
@@ -91,9 +91,8 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
           var descriptionInput = document.getElementById("descriptionInput");
           descriptionInput.focus();
           descriptionInput.select();
-
-          for (var i = 0; i < _option.series[_annotationSeriesIndex].data.length; i++) {
-            var obj = _option.series[_annotationSeriesIndex].data[i];
+          for (var i = 0; i < this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.length; i++) {
+            var obj = this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data[i];
             var x = obj[0];
             if (xAxisValue == x) {
               var description = obj[2];
@@ -146,7 +145,7 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
         annotationSeries.data.push(annotationData);
       }
     }
-    _annotationSeriesIndex = option.series.length;
+    this.scopedVariables['_annotationSeriesIndex'] = option.series.length;
     option.series.push(annotationSeries);
   }
 

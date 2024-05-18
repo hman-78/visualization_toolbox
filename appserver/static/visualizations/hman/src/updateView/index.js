@@ -6,7 +6,7 @@ const echarts = require('echarts');
 // 'config' will be the configuration property object containing visualization format information.
 
 const _updateView = function (data, config) {
-  _data = data;
+  this.scopedVariables['_data'] = data;
   if (!data || !data.rows || data.rows.length < 1) {
     return;
   }
@@ -59,8 +59,8 @@ const _updateView = function (data, config) {
 
   console.log(option);
   myChart.setOption(option);
-  _myChart = myChart;
-  _option = option;
+  this.scopedVariables['_myChart'] = myChart;
+  this.scopedVariables['_option'] = option;
 
   var splunk = this;
 
