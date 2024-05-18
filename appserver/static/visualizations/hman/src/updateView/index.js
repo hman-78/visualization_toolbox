@@ -1,7 +1,10 @@
 const echarts = require('echarts');
+
 // Implement updateView to render a visualization.
-//  'data' will be the data object returned from formatData or from the search
-//  'config' will be the configuration property object
+// This function is called whenever search results are updated or the visualization format changes. It handles visualization rendering
+// 'data' will be the data object returned from formatData or from the search containing search result data
+// 'config' will be the configuration property object containing visualization format information.
+
 const _updateView = function (data, config) {
   _data = data;
   if (!data || !data.rows || data.rows.length < 1) {
@@ -65,7 +68,6 @@ const _updateView = function (data, config) {
   // Used to call the Javascript Code provided by the option clickHook to
   // set tokens for drill down
   function onChartClick(params) {
-    console.log(params);
     this.evalHook = eval("(function a(params, data, config, option, event, splunk) {" + clickHook + "})");
     this.evalHook(params, data, config, option, params.event, splunk);
   }

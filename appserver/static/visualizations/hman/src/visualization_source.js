@@ -51,6 +51,7 @@ const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
 const _updateView = require('./updateView');
+
 define([
 	'jquery',
 	'underscore',
@@ -67,26 +68,29 @@ define([
 		echarts,
 		mqtt
 	) {
+		
+		//Make the private vars available in nested functions
+		// const scopedVariables = new PrivateVars();
 		return SplunkVisualizationBase.extend({
 			_buildBoxplotOption: _buildBoxplotOption,
-			initialize: _initialize,
-			formatData: _formatData,
-			updateView: _updateView,
-			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
-			selfModifiyingOption: _selfModifiyingOption,
-			getInitialDataParams: _getInitialDataParams,
-			reflow: _reflow,
 			_buildCustomOption: _buildCustomOption,
-			_parseIndex: _parseIndex,
 			_buildSimpleBoxplotOption: _buildSimpleBoxplotOption,
-			_parseOption: _parseOption,
-			_sendMQTTMessage: _sendMQTTMessage,
-			_initializeMQTT: _initializeMQTT,
-			drilldownToTimeRange: _drilldownToTimeRange,
-			drilldownToCategory: _drilldownToCategory,
-			drilldownToTimeRangeAndCategory: _drilldownToTimeRangeAndCategory,
+			createModal: _createModal,
 			drilldownToCategories: _drilldownToCategories,
+			drilldownToCategory: _drilldownToCategory,
+			drilldownToTimeRange: _drilldownToTimeRange,
+			drilldownToTimeRangeAndCategory: _drilldownToTimeRangeAndCategory,
+			formatData: _formatData,
+			getInitialDataParams: _getInitialDataParams, // Indicates how the visualization framework fetches data for the visualization.
 			_handleAnnotation: _handleAnnotation,
-			createModal: _createModal
+			initialize: _initialize,
+			_initializeMQTT: _initializeMQTT,
+			_parseIndex: _parseIndex,
+			_parseOption: _parseOption,
+			reflow: _reflow,
+			selfModifiyingOption: _selfModifiyingOption,
+			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
+			_sendMQTTMessage: _sendMQTTMessage,
+			updateView: _updateView //Function called to render the visualization.
 		});
 	});
