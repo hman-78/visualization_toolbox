@@ -7,6 +7,7 @@
  * 
  *
 */
+/* global SplunkVisualizationBase */
 const _drilldownToTimeRangeAndCategory = function (earliestTime, latestTime, categoryName, categoryValue, browserEvent) {
   var data = {};
   data[categoryName] = categoryValue;

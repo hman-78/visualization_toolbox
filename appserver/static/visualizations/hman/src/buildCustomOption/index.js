@@ -100,7 +100,7 @@ const _buildCustomOption = function (data, config) {
     }
   }
   if (configXAxisDataIndexBinding != null) {
-    if (option.hasOwnProperty('xAxis')) {
+    if (Object.prototype.hasOwnProperty.call(option, "xAxis")) {
       option['xAxis'] = xAxisObjects;
     } else {
       option.xAxis = xAxisObjects;
@@ -209,7 +209,7 @@ const _buildCustomOption = function (data, config) {
     var optionErrorSeriesIndex = option.series.length - 1;
 
     // adding y-axis to map confidence from 0 to 1 over heigth of chart
-    let checkYAxisProperty = option.hasOwnProperty('yAxis');
+    let checkYAxisProperty = Object.prototype.hasOwnProperty.call(option, "yAxis");
     if (!checkYAxisProperty) {
       option["yAxis"] = [];
     }
@@ -234,7 +234,7 @@ const _buildCustomOption = function (data, config) {
 
     // determine color of errorSeries to color yAxis
     var colorString = "";
-    if (option.hasOwnProperty('color') && option.color.length >= optionErrorSeriesIndex) {
+    if (Object.prototype.hasOwnProperty.call(option, "color") && option.color.length >= optionErrorSeriesIndex) {
       colorString = option.color[optionErrorSeriesIndex];
       yAxisObj.axisLine.lineStyle.color = colorString;
       yAxisObj.axisLabel.color = colorString;

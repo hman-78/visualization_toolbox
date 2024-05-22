@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 const echarts = require('echarts');
 
 const _selfModifiyingOptionWithReturn = function (data, config, option, hook) {

@@ -22,29 +22,29 @@ const _buildBoxplotOption = function (data, config) {
 
   // data mapping xAxis
   option.xAxis.data = [];
-  for (var i = 0; i < numberOfGroups; i++) {
+  for (let i = 0; i < numberOfGroups; i++) {
     option.xAxis.data[i] = data.rows[6][i * numberOfCategories];
   }
 
   // initialization of series
   option.series = [];
-  for (var i = 0; i < numberOfCategories; i++) {
-    var serie = {};
+  for (let i = 0; i < numberOfCategories; i++) {
+    let tmpSerie = {};
     // Name of series is the category
-    serie["name"] = data.rows[5][i];
-    serie["type"] = 'boxplot';
-    serie["data"] = [];
-    for (var j = 0; j < numberOfGroups; j++) {
+    tmpSerie["name"] = data.rows[5][i];
+    tmpSerie["type"] = 'boxplot';
+    tmpSerie["data"] = [];
+    for (let j = 0; j < numberOfGroups; j++) {
       var column = (j * numberOfCategories) + i;
       var dataElement = {};
       dataElement["name"] = data.rows[6][column];
       dataElement["value"] = [];
-      for (var k = 0; k < 5; k++) {
+      for (let k = 0; k < 5; k++) {
         dataElement.value.push(data.rows[k][column]);
       }
-      serie.data.push(dataElement);
+      tmpSerie.data.push(dataElement);
     }
-    option.series.push(serie);
+    option.series.push(tmpSerie);
   }
   if (numberOfCategories == 1) {
     //make first series looking nice 

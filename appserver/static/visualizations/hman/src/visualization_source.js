@@ -65,9 +65,11 @@ define([
 		$,
 		_,
 		SplunkVisualizationBase,
+		/* eslint-disable */
 		SplunkVisualizationUtils,
 		echarts,
 		mqtt
+		/* eslint-enable */
 	) {
 		const scopedVariables = new PrivateVariables();
 		return SplunkVisualizationBase.extend({

@@ -10,6 +10,8 @@
  *
  * this.drilldownToCategory('State', 'Oregon', e);
  */
+
+/* global SplunkVisualizationBase */
 const _drilldownToCategory = function (categoryName, categoryFieldValue, browserEvent) {
   var data = {};
   data[categoryName] = categoryFieldValue;

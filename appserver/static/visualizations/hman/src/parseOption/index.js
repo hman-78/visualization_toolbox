@@ -6,10 +6,11 @@
  * Please note that tokens are strings within two $ characters.
  * Dollar character can be escaped by using $$.
  */
+// eslint-disable-next-line
 const echarts = require('echarts');
 
 const _parseOption = function (configOption) {
-  if (configOption == null || !configOption.hasOwnProperty('length')) {
+  if (configOption == null || !Object.prototype.hasOwnProperty.call(configOption, "length")) {
     return null;
   }
   var option = {};

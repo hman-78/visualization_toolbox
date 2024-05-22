@@ -4,7 +4,7 @@ const _reflow = function () {
   //console.log("refresh");
   var myChart = echarts.getInstanceByDom(this.el);
   if (myChart != null) {
-    let hasProperty = myChart.hasOwnProperty("resize");
+    let hasProperty = Object.prototype.hasOwnProperty.call(myChart, "resize");
     if (hasProperty) {
       // Resize chart
       myChart.resize();
