@@ -2,6 +2,7 @@ const _createModal = function (splunk) {
   var h2 = $("<h2>").text("Add Annotation");
   var xValueSpan = $("<span>").addClass("x-value");
   var yValueSpan = $("<span>").addClass("y-value");
+  //eslint-disable-next-line
   var modal_annotationContent = $("<div>").addClass("modal_annotation-content").append(header, body, footer);
 
   var opcoContainer = $("<div>").addClass("value-container").attr("id", "opcoContainer").css("display", "none");;
@@ -14,27 +15,19 @@ const _createModal = function (splunk) {
     .addClass("opco")
     .attr("id", "opcoContainer").css("display", "none");
 
-  //var xValueContainer = $("<span>")
   var xValueContainer = $("<div>")
-
     .addClass("x-value-container")
     .text("Current X Value: ")
-    //.append($("<span>").addClass("x-value")); // This span will hold the current x-axis value
-    //.append(xValueSpan);
     .append(xValueSpan)[0]; // Get the DOM element from jQuery object
-  //.attr("id", "xValueContainer"); // Add ID to the xValueContainer element
   xValueContainer.id = "xValueContainer"; // Add ID to the xValueContainer element
 
   var xValueElement = $("<div>").attr("id", "xValue").css("display", "none");;
   var xAxisValueElement = $("<div>").attr("id", "xAxisValue").css("display", "none");;
 
 
-  //var yValueContainer = $("<span>")
   var yValueContainer = $("<div>")
     .addClass("y-value-container")
     .text("Current Y Value: ")
-    //.append(yValueSpan);
-    //.attr("id", "yValueContainer"); // Add ID to the yValueContainer element
     .append(yValueSpan)[0]; // Get the DOM element from jQuery object
   yValueContainer.id = "yValueContainer"; // Add ID to the yValueContainer element
   var yValueElement = $("<div>").attr("id", "yValue").css("display", "none");;
@@ -63,17 +56,13 @@ const _createModal = function (splunk) {
     .attr("placeholder", "Enter Description").attr("id", "descriptionInput").attr("autocomplete", "off").attr("class", "wide-input");
 
 
-  // var body = $("<div>").addClass("modal_annotation-body").append(p, descriptionInput, keyLabel, keyInput);
   var body = $("<div>").addClass("modal_annotation-body").append(p, descriptionInput);
-
 
   var cancelButton = $("<button>")
     .attr("id", "cancelButton")
     .text("Cancel")
     .addClass("shadow-button")
     .click(clearModalData);
-
-
 
   var saveButton = $("<button>")
     .attr("id", "saveButton")
@@ -83,8 +72,6 @@ const _createModal = function (splunk) {
       "background-color": "#32CD32",
       "border-color": "#32CD32"
     });
-
-
 
   var footer = $("<div>").addClass("modal_annotation-footer").append(cancelButton, saveButton);
 
@@ -99,8 +86,6 @@ const _createModal = function (splunk) {
 
   document.getElementById("saveButton").addEventListener("click", function (splunk) {
     return function () {
-
-
       var descriptionInput = document.getElementById("descriptionInput");
       var description = descriptionInput.value;
       var annotationSeriesName = document.getElementById("annotationSeriesNameContainer").textContent;
@@ -108,7 +93,6 @@ const _createModal = function (splunk) {
       var xValue = document.getElementById("xValue").textContent;
       var xAxisValue = document.getElementById("xAxisValue").textContent;
       var yValue = document.getElementById("yValue").textContent;
-
 
       var msgJson = {
         "type": "annotation",
@@ -120,11 +104,12 @@ const _createModal = function (splunk) {
         "tags": ""
       };
 
-
       splunk._sendMQTTMessage(JSON.stringify(msgJson));
-      for (var i = 0; i < this.scopedVariables['_data'].rows.length; i++) {
+      for (let i = 0; i < this.scopedVariables['_data'].rows.length; i++) {
         var x = this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][0]];
+        //eslint-disable-next-line
         var y = this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][1]];
+        //eslint-disable-next-line
         var annotation = this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][2]];
 
         // to avoid a refresh of the panel the annotation with the matching x value is updated with the new annoation
@@ -136,13 +121,14 @@ const _createModal = function (splunk) {
       var isAnnotationAlreadyInData = false;
       var indexToBeDeleted = null;
 
-      for (var i = 0; i < this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.length; i++) {
-        var obj = this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data[i];
-        var x = obj[0];
+      for (let i = 0; i < this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.length; i++) {
+        let obj = this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data[i];
+        let x = obj[0];
         if (xAxisValue == x) {
           isAnnotationAlreadyInData = true;
           if ("" == description) {
             // remove data from series
+            //eslint-disable-next-line
             indexToBeDeleted = i;
             obj[2] = "";
             this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.splice(i, 1);

@@ -11,14 +11,14 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
   this.scopedVariables['_annotationSeriesDataIndex'] = annotationSeriesDataIndex;
 
   if (annotationSeriesDataIndex.length != 3) {
-    var error = "Please provide the configuration annotationSeriesDataIndexBinding. It has to be 3 numbers separated by a comma.\n"
-    var error = error + "1. Index of the column providing the x-value of the annotated series.\n"
-    var error = error + "2. Index of the column providing the y-value of the annotated series.\n"
-    var error = error + "3. Index of the column providing the annotation value.\n"
-    var error = error + "Example: 0,1,2\n"
-    var error = error + "0 indicates that the first column is used as the x-value of the annotation.\n"
-    var error = error + "1 indicates that the second column is used as the y-value of the annotation.\n"
-    var error = error + "2 indicates that the third column providing the value.\n"
+    let error = "Please provide the configuration annotationSeriesDataIndexBinding. It has to be 3 numbers separated by a comma.\n"
+    error += "1. Index of the column providing the x-value of the annotated series.\n"
+    error += "2. Index of the column providing the y-value of the annotated series.\n"
+    error += "3. Index of the column providing the annotation value.\n"
+    error += "Example: 0,1,2\n"
+    error += "0 indicates that the first column is used as the x-value of the annotation.\n"
+    error += "1 indicates that the second column is used as the y-value of the annotation.\n"
+    error += "2 indicates that the third column providing the value.\n"
 
     throw error
   }
@@ -52,7 +52,7 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
             // This is the reason why the user has to provide the unix time in the dimension "value"
             // of the x axis data.
             if (Array.isArray(params.dimensionNames) && params.dimensionNames.length > 0) {
-              for (var i = 0; i < params.dimensionNames.length; i++) {
+              for (let i = 0; i < params.dimensionNames.length; i++) {
                 if ("x" === params.dimensionNames[i]) {
                   xAxisValue = params.value[i];
                 } else if ("value" === params.dimensionNames[i]) {
@@ -66,7 +66,7 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
 
           } else if (option.xAxis[0].type === "value") {
             if (Array.isArray(params.dimensionNames) && params.dimensionNames.length > 0) {
-              for (var i = 0; i < params.dimensionNames.length; i++) {
+              for (let i = 0; i < params.dimensionNames.length; i++) {
                 if ("x" === params.dimensionNames[i]) {
                   xValue = params.value[i];
                   xAxisValue = xValue;
@@ -76,7 +76,7 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
           }
 
           if (Array.isArray(params.dimensionNames) && params.dimensionNames.length > 0) {
-            for (var i = 0; i < params.dimensionNames.length; i++) {
+            for (let i = 0; i < params.dimensionNames.length; i++) {
               if ("y" === params.dimensionNames[i]) {
                 yValue = params.value[i];
               }
@@ -91,7 +91,7 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
           var descriptionInput = document.getElementById("descriptionInput");
           descriptionInput.focus();
           descriptionInput.select();
-          for (var i = 0; i < this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.length; i++) {
+          for (let i = 0; i < this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.length; i++) {
             var obj = this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data[i];
             var x = obj[0];
             if (xAxisValue == x) {
@@ -135,7 +135,7 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
     };
     annotationSeries["data"] = [];
     annotationSeries["name"] = annotationsSeriesName + " annotation";
-    for (var i = 0; i < data.rows.length; i++) {
+    for (let i = 0; i < data.rows.length; i++) {
       var annotationValue = data.rows[i][annotationSeriesDataIndex[2]];
       if (annotationValue != null && "" != annotationValue && "'-'" != annotationValue) {
         var annotationData = [];

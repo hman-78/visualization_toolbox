@@ -48,9 +48,10 @@ const _buildCustomOption = function (data, config) {
 
   xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
   seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
+  //eslint-disable-next-line
   seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
-  for (var i = 0; i < seriesDataIndex.length; i++) {
+  for (let i = 0; i < seriesDataIndex.length; i++) {
     option.series[i].data = [];
     if (!option.series[i].name) {
       option.series[i].name = data.fields[seriesDataIndex[i]].name;
@@ -86,11 +87,11 @@ const _buildCustomOption = function (data, config) {
   }
 
   // mapping of xAxis values to xAxisObjects
-  for (var j = 0; j < xAxisDataIndex.length; j++) {
+  for (let j = 0; j < xAxisDataIndex.length; j++) {
     // mapping only applies if user has not specified static data as xAxis.data[...]
     if (!Array.isArray(xAxisObjects[j].data) || xAxisObjects[j].data.length == 0) {
       xAxisObjects[j].data = [];
-      for (var i = 0; i < data.rows.length; i++) {
+      for (let i = 0; i < data.rows.length; i++) {
         if (isNaN(xAxisDataIndex[j])) {
           throw "Wrong configuration of 'xAxisDataIndexBinding'. Please provide a number or a comma seperated list of numbers. 'xAxisDataIndexBinding': " + configXAxisDataIndexBinding;
         } else {
@@ -108,8 +109,8 @@ const _buildCustomOption = function (data, config) {
   }
 
 
-  for (var i = 0; i < data.rows.length; i++) {
-    for (var j = 0; j < seriesDataIndex.length; j++) {
+  for (let i = 0; i < data.rows.length; i++) {
+    for (let j = 0; j < seriesDataIndex.length; j++) {
       var dataObj = {
         value: 0,
 
@@ -119,7 +120,7 @@ const _buildCustomOption = function (data, config) {
         var mapping = [];
         var arrayData = [];
         mapping = seriesDataIndex[j];
-        for (var k = 0; k < mapping.length; k++) {
+        for (let k = 0; k < mapping.length; k++) {
           arrayData.push(data.rows[i][mapping[k]]);
         }
         dataObj.value = arrayData;
@@ -130,8 +131,10 @@ const _buildCustomOption = function (data, config) {
       // check if seriesColorDataIndexBinding is set
       // if yes map the color of the given row to the item style of the 
       // given series.data entry
+      //eslint-disable-next-line
       if (!isNaN(seriesColorDataIndexBinding)) {
         dataObj['itemStyle'] = {};
+        //eslint-disable-next-line
         dataObj.itemStyle.color = data.rows[i][seriesColorDataIndexBinding];
       }
       option.series[j].data.push(dataObj);
@@ -198,7 +201,7 @@ const _buildCustomOption = function (data, config) {
       z: 100
     };
     errorSeries["data"] = [];
-    for (var i = 0; i < data.rows.length; i++) {
+    for (let i = 0; i < data.rows.length; i++) {
       var errorData = [];
       errorData.push(i);
       errorData.push(data.rows[i][errorDataIndexSplit[0]]);

@@ -4,7 +4,7 @@ const _parseIndex = function (str) {
     return seriesDataIndex;
   }
   var seriesDataIndexSplit = str.split(",");
-  for (var i = 0; i < seriesDataIndexSplit.length; i++) {
+  for (let i = 0; i < seriesDataIndexSplit.length; i++) {
     if (isNaN(seriesDataIndexSplit[i])) {
       // mapping a list of rows to an array. This is usefull if series.data expects an array of data
       var seriesDataIndexOfIndexSplit = [];
@@ -12,7 +12,7 @@ const _parseIndex = function (str) {
       var mapping = String(seriesDataIndexSplit[i]);
       mapping = mapping.substring(1, mapping.length - 1);
       seriesDataIndexOfIndexSplit = mapping.split(";");
-      for (var j = 0; j < seriesDataIndexOfIndexSplit.length; j++) {
+      for (let j = 0; j < seriesDataIndexOfIndexSplit.length; j++) {
         arrayData[j] = Number(seriesDataIndexOfIndexSplit[j]);
       }
       seriesDataIndex[i] = arrayData;

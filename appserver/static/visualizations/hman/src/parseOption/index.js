@@ -15,7 +15,7 @@ const _parseOption = function (configOption) {
   }
   var option = {};
   // check if there is still a unreplaced $token$ in the config
-  for (var i = 0; i < configOption.length; i++) {
+  for (let i = 0; i < configOption.length; i++) {
     let character = configOption.charAt(i);
     if (character == '$' && !i !== configOption.length) {
       // there is a $ in the config and it is not escaped

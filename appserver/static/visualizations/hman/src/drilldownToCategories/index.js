@@ -8,7 +8,7 @@
 const _drilldownToCategories = function (categoryNames, categoryValues, browserEvent) {
   var data = {};
   if (categoryNames != null) {
-    for (var i = 0; i < categoryNames.length; i++) {
+    for (let i = 0; i < categoryNames.length; i++) {
       data[categoryNames[i]] = categoryValues[i];
     }
   }

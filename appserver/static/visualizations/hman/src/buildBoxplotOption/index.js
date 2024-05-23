@@ -58,8 +58,8 @@ const _buildBoxplotOption = function (data, config) {
     serie["name"] = 'Outlier';
     serie["type"] = 'scatter';
     serie["data"] = [];
-    for (var i = 0; i < numberOfOutliers; i++) {
-      for (var j = 0; j < numberOfGroups; j++) {
+    for (let i = 0; i < numberOfOutliers; i++) {
+      for (let j = 0; j < numberOfGroups; j++) {
         var dataValue = data.rows[i + 8][j];
         if ("'-'" != dataValue) {
 

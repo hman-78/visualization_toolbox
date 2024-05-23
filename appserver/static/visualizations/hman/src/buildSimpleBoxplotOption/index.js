@@ -25,7 +25,7 @@ const _buildSimpleBoxplotOption = function (data, config) {
   }
 
   // check data structure and throw error in case of wrong data
-  for (var i = 0; i < data.rows.length; i++) {
+  for (let i = 0; i < data.rows.length; i++) {
     if (data.rows[i].length < 6 || data.rows[i].length > 7) {
       var error = "Expected six or seven columns. Found ";
       error += data.rows[i].length + " columns in row .";
@@ -39,7 +39,7 @@ const _buildSimpleBoxplotOption = function (data, config) {
 
   // data mapping xAxis
   option.xAxis.data = [];
-  for (var i = 0; i < data.rows.length; i++) {
+  for (let i = 0; i < data.rows.length; i++) {
     option.xAxis.data[i] = data.rows[i][0];
   }
 
@@ -64,11 +64,11 @@ const _buildSimpleBoxplotOption = function (data, config) {
   serie["type"] = 'boxplot';
   serie["data"] = [];
 
-  for (var i = 0; i < data.rows.length; i++) {
+  for (let i = 0; i < data.rows.length; i++) {
     var dataElement = {};
     dataElement["name"] = data.rows[i][0];
     dataElement["value"] = [];
-    for (var j = 1; j < 7; j++) {
+    for (let j = 1; j < 7; j++) {
       dataElement.value.push(data.rows[i][j]);
     }
     serie.data.push(dataElement);
@@ -81,16 +81,16 @@ const _buildSimpleBoxplotOption = function (data, config) {
   var numberOfColumns = data.rows[0].length;
   if (numberOfBoxplots > 0 && numberOfColumns == 7) {
     // map data of outliers to serie 
-    var serie = {};
+    let serie = {};
     serie["name"] = 'Outlier';
     serie["type"] = 'scatter';
     serie["data"] = [];
-    for (var i = 0; i < data.rows.length; i++) {
+    for (let i = 0; i < data.rows.length; i++) {
 
       var outliersRawData = data.rows[i][6];
       if (outliersRawData != null) {
         var outliers = outliersRawData.split("|");
-        for (var j = 0; j < outliers.length; j++) {
+        for (let j = 0; j < outliers.length; j++) {
           var dataObj = [];
           // push name of boxplot / x-axis value
           dataObj.push(data.rows[i][0]);
