@@ -62,13 +62,9 @@ Sample Data can be found in the Lookups folder, add those data in Splunk and fol
 cd appserver/static/visualizations/hman
 
 npm ci
-
-cp -a node_modules_patch/* node_modules/
-
 npm run build
 
 rm -rf node_modules
-rm -rf node_modules_patch  
 ```
 
 ### Workflow for contribute to new app release
