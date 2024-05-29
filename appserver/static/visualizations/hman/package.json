@@ -12,17 +12,17 @@
   "author": "Björn Hamann, Octavian Cioaca",
   "license": "MIT",
   "devDependencies": {
-    "@eslint/js": "^9.0.0",
-    "eslint": "^8.57.0",
-    "globals": "^15.0.0",
-    "terser-webpack-plugin": "^5.3.10",
-    "webpack": "^5.91.0",
-    "webpack-cli": "^5.1.4"
+    "@eslint/js": "9.0.0",
+    "eslint": "8.57.0",
+    "globals": "15.0.0",
+    "terser-webpack-plugin": "5.3.10",
+    "webpack": "5.91.0",
+    "webpack-cli": "5.1.4"
   },
   "dependencies": {
-    "echarts": "^5.5.0",
-    "jquery": "^3.6.0",
-    "mqtt": "^5.3.5",
-    "underscore": "^1.8.3"
+    "echarts": "5.5.0",
+    "jquery": "3.7.1",
+    "mqtt": "5.7.0",
+    "underscore": "1.13.6"
   }
 }
