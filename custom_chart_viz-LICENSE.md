@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2020 bingyun(578210452@qq.com)
+Copyright (c) 2024 bingyun(visualization_toolbox@web.de)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
