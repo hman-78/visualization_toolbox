@@ -14,8 +14,8 @@ const _initializeMQTT = function (data, config) {
   }
 
   if (useMQTT) {
-    var clientId = Math.random().toString(23);
-    var options = {
+    let clientId = Math.random().toString(10) + Date.now(); //must not exceed 23 chars
+    let options = {
       clientId: clientId,
       connectTimeout: 5000,
       hostname: 'mqtt01.heraeus.com',
