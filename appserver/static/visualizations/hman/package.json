@@ -9,7 +9,7 @@
     "watch": "node ./node_modules/webpack/bin/webpack.js --watch --progress",
     "lint": "eslint \"src/**/*.{js,jsx,json}\""
   },
-  "author": "Yunfeng Zhang, Björn Hamann, Octavian Cioaca",
+  "author": "Björn Hamann, Octavian Cioaca",
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.0.0",
