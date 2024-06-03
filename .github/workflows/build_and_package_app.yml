@@ -60,12 +60,6 @@ jobs:
       run: |
            cd appserver/static/visualizations/hman
            npm install
-    
-    # Manual changes on node_modules. This must be resolved in future
-    - name: Patch Modules with own changes      
-      run: |
-          cd appserver/static/visualizations/hman
-          cp -a -v node_modules_patch/* node_modules/
           
     - name: NPM run build
       run: |
@@ -98,7 +92,6 @@ jobs:
       run: | 
         cd appserver/static/visualizations/hman
         rm -rfv node_modules
-        rm -rfv node_modules_patch  
 
     - name: Set build number app.conf
       run: |
@@ -139,15 +132,12 @@ jobs:
       uses: actions/setup-python@v2
       with: 
        python-version: '3.9'     
-       
+
     - name: install packaging toolkit CLI
       run: | 
        pip install splunk-packaging-toolkit-1.0.1.tar.gz 
-       pip --version 
-      
+       pip --version
 
-        
-      
     - name: package App
       id: package_app
       run: |
@@ -158,16 +148,13 @@ jobs:
           TARNAME_NO_WHITESPACE="$(echo -e "${TARNAME}" | tr -d '[:space:]')"
           echo "$TARNAME_NO_WHITESPACE"
           echo "::set-output name=slim_package_name::$TARNAME_NO_WHITESPACE"
-          ls /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
-          
-          
+          ls /home/runner/work/visualization_toolbox/staging_AppPackaging-results/
           cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/
           tar_checksum=$(sha256sum $TARNAME_NO_WHITESPACE | awk '{print $1}')
           echo "Checksums:"
           find . -maxdepth 1 -type f -exec sha256sum {} \;
           echo "::set-output name=tar_checksum::$tar_checksum"
-          sha256sum $TARNAME_NO_WHITESPACE > $TARNAME_NO_WHITESPACE.sha256  
-          
+          sha256sum $TARNAME_NO_WHITESPACE > $TARNAME_NO_WHITESPACE.sha256
           
     - name: Upload artifacts - Packagingtoolkit results
       uses: actions/upload-artifact@v3
@@ -175,12 +162,10 @@ jobs:
        name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
        path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results    
 
-
     - name: slim validate App
       run: |
           cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
           slim validate ${{ steps.package_app.outputs.slim_package_name }}
-
                            
     - name: Run Splunk AppInspect
       run: |
@@ -190,7 +175,6 @@ jobs:
           --mode test \
           --generate-feedback \
           --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
-          
 
     - name: Copy to staging directory
       run: |
@@ -204,8 +188,3 @@ jobs:
       with:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
        path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
-       
-
-          
-        
-        
