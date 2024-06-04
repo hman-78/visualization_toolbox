@@ -8,7 +8,6 @@ display.visualizations.custom.visualization_toolbox.hman.jsHook= <string>
 display.visualizations.custom.visualization_toolbox.hman.seriesColorDataIndexBinding= <string>
 display.visualizations.custom.visualization_toolbox.hman.clickHook = <string>
 display.visualizations.custom.visualization_toolbox.hman.annotationSeriesName = <string>
-display.visualizations.custom.visualization_toolbox.hman.yAxisDataHook = <string>
 display.visualizations.custom.visualization_toolbox.hman.errorDataIndexBinding = <string>
 display.visualizations.custom.visualization_toolbox.hman.configMqttPanelConnectionTimeout = <integer>
 display.visualizations.custom.visualization_toolbox.hman.configMqttPanelHostname = <string>
