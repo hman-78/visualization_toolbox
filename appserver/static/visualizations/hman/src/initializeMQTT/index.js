@@ -1,4 +1,5 @@
-const mqtt = require('mqtt');
+const mqttLib = require('mqtt/dist/mqtt.esm');
+const mqtt = mqttLib.default;
 
 const _initializeMQTT = function (data, config) {
   let useMQTT = false;
