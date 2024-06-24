@@ -105,24 +105,24 @@ const _createModal = function (splunk) {
       };
 
       splunk._sendMQTTMessage(JSON.stringify(msgJson));
-      for (let i = 0; i < this.scopedVariables['_data'].rows.length; i++) {
-        var x = this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][0]];
+      for (let i = 0; i < splunk.scopedVariables['_data'].rows.length; i++) {
+        var x = splunk.scopedVariables['_data'].rows[i][splunk.scopedVariables['_annotationSeriesDataIndex'][0]];
         //eslint-disable-next-line
-        var y = this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][1]];
+        var y = splunk.scopedVariables['_data'].rows[i][splunk.scopedVariables['_annotationSeriesDataIndex'][1]];
         //eslint-disable-next-line
-        var annotation = this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][2]];
+        var annotation = splunk.scopedVariables['_data'].rows[i][splunk.scopedVariables['_annotationSeriesDataIndex'][2]];
 
         // to avoid a refresh of the panel the annotation with the matching x value is updated with the new annoation
         if (xAxisValue == x) {
-          this.scopedVariables['_data'].rows[i][this.scopedVariables['_annotationSeriesDataIndex'][2]] = description;
+          splunk.scopedVariables['_data'].rows[i][splunk.scopedVariables['_annotationSeriesDataIndex'][2]] = description;
         }
 
       }
       var isAnnotationAlreadyInData = false;
       var indexToBeDeleted = null;
 
-      for (let i = 0; i < this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.length; i++) {
-        let obj = this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data[i];
+      for (let i = 0; i < splunk.scopedVariables['_option'].series[splunk.scopedVariables['_annotationSeriesIndex']].data.length; i++) {
+        let obj = splunk.scopedVariables['_option'].series[splunk.scopedVariables['_annotationSeriesIndex']].data[i];
         let x = obj[0];
         if (xAxisValue == x) {
           isAnnotationAlreadyInData = true;
@@ -131,7 +131,7 @@ const _createModal = function (splunk) {
             //eslint-disable-next-line
             indexToBeDeleted = i;
             obj[2] = "";
-            this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.splice(i, 1);
+            splunk.scopedVariables['_option'].series[splunk.scopedVariables['_annotationSeriesIndex']].data.splice(i, 1);
             // TODO remove empty data obj from array
           } else {
             // update new value
@@ -146,9 +146,9 @@ const _createModal = function (splunk) {
         obj.push(xAxisValue);
         obj.push(yValue);
         obj.push(description);
-        this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.push(obj);
+        splunk.scopedVariables['_option'].series[splunk.scopedVariables['_annotationSeriesIndex']].data.push(obj);
       }
-      this.scopedVariables['_myChart'].setOption(this.scopedVariables['_option']);
+      splunk.scopedVariables['_myChart'].setOption(splunk.scopedVariables['_option']);
 
 
       // Hide the modal_annotation after saving
