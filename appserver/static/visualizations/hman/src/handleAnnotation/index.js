@@ -27,11 +27,9 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
   document.getElementById("opcoContainer").textContent = opco;
 
   myChart.on('click', (function (option) {
+    const scopedVariables = this.scopedVariables;
     return function (params) {
-
       var annotationSeriesName = document.getElementById("annotationSeriesNameContainer").textContent;
-
-
       if (annotationSeriesName != null) {
         var xValue;
         var xAxisValue;
@@ -91,8 +89,8 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
           var descriptionInput = document.getElementById("descriptionInput");
           descriptionInput.focus();
           descriptionInput.select();
-          for (let i = 0; i < this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data.length; i++) {
-            var obj = this.scopedVariables['_option'].series[this.scopedVariables['_annotationSeriesIndex']].data[i];
+          for (let i = 0; i < scopedVariables['_option'].series[scopedVariables['_annotationSeriesIndex']].data.length; i++) {
+            var obj = scopedVariables['_option'].series[scopedVariables['_annotationSeriesIndex']].data[i];
             var x = obj[0];
             if (xAxisValue == x) {
               var description = obj[2];
@@ -108,7 +106,7 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
         }
       }
     }
-  })(option));
+  }).call(this, option));
 
   if (annotationSeriesDataIndexBinding == null) {
     var error = "Missing configuration. Please provide a config named 'annotationSeriesDataIndexBinding' with the index of the column that contains the annotation data.";
