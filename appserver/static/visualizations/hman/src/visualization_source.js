@@ -33,6 +33,7 @@ the MIT license. See custom_chart_viz-LICENSE.md for additional details.
 
 const _buildBoxplotOption = require('./buildBoxplotOption');
 const _buildCustomOption = require('./buildCustomOption');
+const _buildDynamicOption = require('./buildDynamicOption');
 const _buildSimpleBoxplotOption = require('./buildSimpleBoxplotOption');
 const _createModal = require('./createModal');
 const _drilldownToCategories = require('./drilldownToCategories');
@@ -51,7 +52,7 @@ const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
 const _updateView = require('./updateView');
-const PrivateVariables = require('./privateVars')
+const PrivateVariables = require('./privateVars');
 
 define([
 	'jquery',
@@ -76,6 +77,7 @@ define([
 			scopedVariables,
 			_buildBoxplotOption: _buildBoxplotOption,
 			_buildCustomOption: _buildCustomOption,
+			_buildDynamicOption: _buildDynamicOption,
 			_buildSimpleBoxplotOption: _buildSimpleBoxplotOption,
 			createModal: _createModal,
 			drilldownToCategories: _drilldownToCategories,
