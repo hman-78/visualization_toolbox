@@ -21,6 +21,8 @@ const _updateView = function (data, config) {
   var option = {};
   if (configDataType == "Custom") {
     option = this._buildCustomOption(data, config);
+  } else if (configDataType == "Dynamic") {
+    option = this._buildDynamicOption(data, config);
   } else if (configDataType == "Boxplot") {
     option = this._buildBoxplotOption(data, config);
   } else if (configDataType == "SimpleBoxplot") {
