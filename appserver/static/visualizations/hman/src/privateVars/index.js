@@ -9,6 +9,7 @@ class PrivateVars {
     this._annotationSeriesIndex = null;
     this._myChart = null;
     this._option = null;
+    this._echartsInstancesArray = [];
   }
 }
 

@@ -1,5 +1,4 @@
-const _handleAnnotation = function (data, config, option, annotationsSeriesName, myChart) {
-
+const _handleAnnotation = function (data, config, option, annotationsSeriesName, echartEnhancedInstance) {
   var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
   var configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
   var opco = config[this.getPropertyNamespaceInfo().propertyNamespace + "opco"];
@@ -23,13 +22,14 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
     throw error
   }
   // we use the DOM tree to store some values to make them available in the click listeners
-  document.getElementById("annotationSeriesNameContainer").textContent = annotationsSeriesName;
-  document.getElementById("opcoContainer").textContent = opco;
+  echartEnhancedInstance['annotationsSeriesName'] = annotationsSeriesName;
+  echartEnhancedInstance['opcoContainer'] = opco;
 
-  myChart.on('click', (function (option) {
+  echartEnhancedInstance.instanceAttachedToDomElement.on('click', (function (option) {
     const scopedVariables = this.scopedVariables;
     return function (params) {
-      var annotationSeriesName = document.getElementById("annotationSeriesNameContainer").textContent;
+      var annotationSeriesName = echartEnhancedInstance['annotationsSeriesName'];
+      document.getElementById("annotationSeriesNameContainer").textContent = annotationSeriesName;
       if (annotationSeriesName != null) {
         var xValue;
         var xAxisValue;
@@ -89,8 +89,8 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
           var descriptionInput = document.getElementById("descriptionInput");
           descriptionInput.focus();
           descriptionInput.select();
-          for (let i = 0; i < scopedVariables['_option'].series[scopedVariables['_annotationSeriesIndex']].data.length; i++) {
-            var obj = scopedVariables['_option'].series[scopedVariables['_annotationSeriesIndex']].data[i];
+          for (let i = 0; i < echartEnhancedInstance['_option'].series[scopedVariables['_annotationSeriesIndex']].data.length; i++) {
+            var obj = echartEnhancedInstance['_option'].series[scopedVariables['_annotationSeriesIndex']].data[i];
             var x = obj[0];
             if (xAxisValue == x) {
               var description = obj[2];

@@ -1,4 +1,5 @@
 const echarts = require('echarts');
+var _ = require('lodash');
 
 // Implement updateView to render a visualization.
 // This function is called whenever search results are updated or the visualization format changes. It handles visualization rendering
@@ -6,19 +7,32 @@ const echarts = require('echarts');
 // 'config' will be the configuration property object containing visualization format information.
 
 const _updateView = function (data, config) {
+  let tmpChart = null;
+  const uniqueAttribute = this.el.getAttribute('data-cid');
+  const tmpUniqueDomId = this.el.id + '_' + uniqueAttribute;
+  this.el.id = tmpUniqueDomId;
+  this.el.parentNode.id = tmpUniqueDomId;
+  this.el.parentNode.parentNode.parentNode.parentNode.id = tmpUniqueDomId;
   this.scopedVariables['_data'] = data;
   if (!data || !data.rows || data.rows.length < 1) {
     return;
   }
   this._initializeMQTT(data, config);
-  var configDataType = config[this.getPropertyNamespaceInfo().propertyNamespace + "dataType"];
-  var myChart = echarts.getInstanceByDom(this.el);
-  if (myChart != null && this.myRingChart1 != '' &&
-    myChart != undefined) {
-    myChart.dispose() //Solve the error reported by echarts dom already loaded
+  let configDataType = config[this.getPropertyNamespaceInfo().propertyNamespace + "dataType"];
+  tmpChart = _.find(this.scopedVariables['_echartsInstancesArray'], {domWrapperId: tmpUniqueDomId});
+  if(typeof tmpChart !== 'undefined') {
+    tmpChart.instanceAttachedToDomElement.dispose() //Solve the error reported by echarts dom already loaded
+  } else {
+    const tmpEchartsInstance = echarts.init(this.el);
+    this.scopedVariables['_echartsInstancesArray'].push({
+      id: tmpEchartsInstance.id,
+      domWrapperId: tmpUniqueDomId,
+      instanceAttachedToDomElement: tmpEchartsInstance
+    })
   }
-  myChart = echarts.init(this.el);
-  var option = {};
+  tmpChart = _.find(this.scopedVariables['_echartsInstancesArray'], {domWrapperId: tmpUniqueDomId});
+  console.log('tmpEchartsInstance', tmpChart.instanceAttachedToDomElement)
+  let option = {};
   if (configDataType == "Custom") {
     option = this._buildCustomOption(data, config);
   } else if (configDataType == "Boxplot") {
@@ -33,11 +47,11 @@ const _updateView = function (data, config) {
   if (option == null) {
     return;
   }
-  var xAxisDataHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataHook"];
-  var yAxisDataHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "yAxisDataHook"];
-  var jsHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "jsHook"];
-  var clickHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "clickHook"];
-  var annotationSeriesName = config[this.getPropertyNamespaceInfo().propertyNamespace + "annotationSeriesName"];
+  let xAxisDataHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataHook"];
+  let yAxisDataHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "yAxisDataHook"];
+  let jsHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "jsHook"];
+  let clickHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "clickHook"];
+  let annotationSeriesName = config[this.getPropertyNamespaceInfo().propertyNamespace + "annotationSeriesName"];
 
   if (xAxisDataHook != null) {
     option.xAxis.data = this.selfModifiyingOptionWithReturn(data, config, option, xAxisDataHook);
@@ -51,18 +65,18 @@ const _updateView = function (data, config) {
     this.selfModifiyingOption(data, config, option, jsHook);
   }
   if (clickHook != null) {
-    myChart.on('click', onChartClick);
+    tmpChart.instanceAttachedToDomElement.on('click', onChartClick);
   }
   if (annotationSeriesName != null) {
-    this._handleAnnotation(data, config, option, annotationSeriesName, myChart);
+    this._handleAnnotation(data, config, option, annotationSeriesName, tmpChart);
   }
 
   console.log(option);
-  myChart.setOption(option);
-  this.scopedVariables['_myChart'] = myChart;
-  this.scopedVariables['_option'] = option;
-
-  var splunk = this;
+  tmpChart.instanceAttachedToDomElement.setOption(option);
+  tmpChart['_myChart'] = tmpChart.instanceAttachedToDomElement;
+  tmpChart['_option'] = option;
+  console.log("this.scopedVariables['_echartsInstancesArray']", this.scopedVariables['_echartsInstancesArray']);
+  let splunk = this;
 
   // Function called by click on chart if option clickHook is enabled
   // Used to call the Javascript Code provided by the option clickHook to

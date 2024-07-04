@@ -22,6 +22,7 @@
   "dependencies": {
     "echarts": "5.5.0",
     "jquery": "3.7.1",
+    "lodash": "^4.17.21",
     "mqtt": "5.7.1",
     "underscore": "1.13.6"
   }
