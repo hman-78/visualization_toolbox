@@ -16,9 +16,10 @@ const _handleAnnotation = function (data, echartProps, option, dedicatedEchart) 
 
     throw error
   }
-  // we use the DOM tree to store some values to make them available in the click listeners
   dedicatedEchart["annotationSeriesNameContainer"] = echartProps.annotationSeriesName;
+  dedicatedEchart["annotationSeriesName"] = echartProps.annotationSeriesName;
   dedicatedEchart["opcoContainer"] = echartProps.opco;
+  dedicatedEchart["opco"] = echartProps.opco;
 
   dedicatedEchart['instanceByDom'].on('click', (function (option) {
     const scopedVariables = this.scopedVariables;
@@ -96,6 +97,7 @@ const _handleAnnotation = function (data, echartProps, option, dedicatedEchart) 
 
           $("#xValueContainer").text("X Value: " + xAxisValue); // Update X value in the modal_annotation
           $("#yValueContainer").text("Y Value: " + yValue); // Update Y value in the modal_annotation
+          $('#saveButton').attr('target_echart_id', dedicatedEchart.id);
           var modal_annotationElement = document.getElementById("myModal_annotation")
           modal_annotationElement.style.display = "block";
         }
@@ -127,7 +129,7 @@ const _handleAnnotation = function (data, echartProps, option, dedicatedEchart) 
       }
     };
     annotationSeries["data"] = [];
-    annotationSeries["name"] = echartProps.annotationsSeriesName + " annotation";
+    annotationSeries["name"] = echartProps.annotationSeriesName + " annotation";
     for (let i = 0; i < data.rows.length; i++) {
       var annotationValue = data.rows[i][annotationSeriesDataIndex[2]];
       if (annotationValue != null && "" != annotationValue && "'-'" != annotationValue) {

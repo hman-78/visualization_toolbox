@@ -1,6 +1,6 @@
 const _sendMQTTMessage = function (dedicatedMqttClient, dedicatedMqttTopic, message) {
   console.log(`_sendMQTTMessage: ${message}`);
-  dedicatedMqttClient.publish(dedicatedMqttTopic, message, { qos: 0, retain: false }, (error) => {
+  dedicatedMqttClient.publish(dedicatedMqttTopic, message, { qos: 0, retain: false }, (mqttPublishError) => {
     if (mqttPublishError) {
       console.error(`MqttClient id: ${dedicatedMqttClient} publishing error: ${mqttPublishError}`);
     } else {
