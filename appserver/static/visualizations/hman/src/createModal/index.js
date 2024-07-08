@@ -35,6 +35,7 @@ const _createModal = function (splunk) {
     document.getElementById("descriptionInput").value = "";
     document.getElementById("xValueContainer").textContent = "";
     document.getElementById("yValueContainer").textContent = "";
+    $('#saveButton').attr('target_echart_id', '');
   }
 
   let closeSpan = $("<span>")
@@ -85,66 +86,68 @@ const _createModal = function (splunk) {
 
   document.getElementById("saveButton").addEventListener("click", function (splunk) {
     return function () {
-      for (let k = 0; k < splunk.scopedVariables['_renderedEchartsArray'].length; k++) {
-        var description = splunk.scopedVariables['_renderedEchartsArray'][k]["description"];
-        var xAxisValue = splunk.scopedVariables['_renderedEchartsArray'][k]["xAxisValue"];
-        var yValue = splunk.scopedVariables['_renderedEchartsArray'][k]["yValue"];
-        var msgJson = {
-          "type": "annotation",
-          "action": "add",
-          "opco": splunk.scopedVariables['_renderedEchartsArray'][k]['opco'],
-          "name": splunk.scopedVariables['_renderedEchartsArray'][k]['annotationSeriesName'],
-          "x": splunk.scopedVariables['_renderedEchartsArray'][k]['xValue'],
-          "annotation": splunk.scopedVariables['_renderedEchartsArray'][k]['description'],
-          "tags": ""
-        };
-        splunk._sendMQTTMessage(splunk.scopedVariables['_renderedEchartsArray'][k]['mqttClient'], splunk.scopedVariables['_renderedEchartsArray'][k]['mqttTopic'], JSON.stringify(msgJson));
-        for (let i = 0; i < splunk.scopedVariables['_renderedEchartsArray'][k]['_data'].rows.length; i++) {
-          var x = splunk.scopedVariables['_renderedEchartsArray'][k]['_data'].rows[i][splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesDataIndex'][0]];
-          //eslint-disable-next-line
-          var y = splunk.scopedVariables['_renderedEchartsArray'][k]['_data'].rows[i][splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesDataIndex'][1]];
-          //eslint-disable-next-line
-          var annotation = splunk.scopedVariables['_renderedEchartsArray'][k]['_data'].rows[i][splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesDataIndex'][2]];
+      const target_echart_id = $('#saveButton').attr('target_echart_id');
+      const tmpEchartElement = splunk.scopedVariables['_renderedEchartsArray'].find(o => o.id == target_echart_id)
+      if(typeof tmpEchartElement === 'undefined') {
+        return;
+      }
+      var description = tmpEchartElement["description"];
+      var xAxisValue = tmpEchartElement["xAxisValue"];
+      var yValue = tmpEchartElement["yValue"];
+      var msgJson = {
+        "type": "annotation",
+        "action": "add",
+        "opco": tmpEchartElement['opco'],
+        "name": tmpEchartElement['annotationSeriesName'],
+        "x": tmpEchartElement['xValue'],
+        "annotation": tmpEchartElement['description'],
+        "tags": ""
+      };
+      splunk._sendMQTTMessage(tmpEchartElement['mqttClient'], tmpEchartElement['mqttTopic'], JSON.stringify(msgJson));
+      for (let i = 0; i < tmpEchartElement['_data'].rows.length; i++) {
+        var x = tmpEchartElement['_data'].rows[i][tmpEchartElement['_annotationSeriesDataIndex'][0]];
+        //eslint-disable-next-line
+        var y = tmpEchartElement['_data'].rows[i][tmpEchartElement['_annotationSeriesDataIndex'][1]];
+        //eslint-disable-next-line
+        var annotation = tmpEchartElement['_data'].rows[i][tmpEchartElement['_annotationSeriesDataIndex'][2]];
+
+        // to avoid a refresh of the panel the annotation with the matching x value is updated with the new annoation
+        if (xAxisValue == x) {
+          tmpEchartElement['_data'].rows[i][tmpEchartElement['_annotationSeriesDataIndex'][2]] = description;
+        }
+
+      }
+      var isAnnotationAlreadyInData = false;
+      var indexToBeDeleted = null;
   
-          // to avoid a refresh of the panel the annotation with the matching x value is updated with the new annoation
-          if (xAxisValue == x) {
-            splunk.scopedVariables['_renderedEchartsArray'][k]['_data'].rows[i][splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesDataIndex'][2]] = description;
+      for (let i = 0; i < tmpEchartElement['_option'].series[tmpEchartElement['_annotationSeriesIndex']].data.length; i++) {
+        let obj = tmpEchartElement['_option'].series[tmpEchartElement['_annotationSeriesIndex']].data[i];
+        let x = obj[0];
+        if (xAxisValue == x) {
+          isAnnotationAlreadyInData = true;
+          if ("" == description) {
+            // remove data from series
+            //eslint-disable-next-line
+            indexToBeDeleted = i;
+            obj[2] = "";
+            tmpEchartElement['_option'].series[tmpEchartElement['_annotationSeriesIndex']].data.splice(i, 1);
+            // TODO remove empty data obj from array
+          } else {
+            // update new value
+            obj[2] = description;
           }
-  
         }
-        var isAnnotationAlreadyInData = false;
-        var indexToBeDeleted = null;
-  
-        for (let i = 0; i < splunk.scopedVariables['_renderedEchartsArray'][k]['_option'].series[splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesIndex']].data.length; i++) {
-          let obj = splunk.scopedVariables['_renderedEchartsArray'][k]['_option'].series[splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesIndex']].data[i];
-          let x = obj[0];
-          if (xAxisValue == x) {
-            isAnnotationAlreadyInData = true;
-            if ("" == description) {
-              // remove data from series
-              //eslint-disable-next-line
-              indexToBeDeleted = i;
-              obj[2] = "";
-              splunk.scopedVariables['_renderedEchartsArray'][k]['_option'].series[splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesIndex']].data.splice(i, 1);
-              // TODO remove empty data obj from array
-            } else {
-              // update new value
-              obj[2] = description;
-            }
-          }
-  
-        }
-  
-        if (!isAnnotationAlreadyInData) {
-          var obj = [];
-          obj.push(xAxisValue);
-          obj.push(yValue);
-          obj.push(description);
-          splunk.scopedVariables['_renderedEchartsArray'][k]['_option'].series[splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesIndex']].data.push(obj);
-        }
-        splunk.scopedVariables['_renderedEchartsArray'][k]['instanceByDom'].setOption(splunk.scopedVariables['_renderedEchartsArray'][k]['_option']);
+
       }
 
+      if (!isAnnotationAlreadyInData) {
+        var obj = [];
+        obj.push(xAxisValue);
+        obj.push(yValue);
+        obj.push(description);
+        tmpEchartElement['_option'].series[tmpEchartElement['_annotationSeriesIndex']].data.push(obj);
+      }
+      tmpEchartElement['instanceByDom'].setOption(tmpEchartElement['_option']);
 
       // Hide the modal_annotation after saving
       $(".modal_annotation").css("display", "none");
@@ -152,7 +155,6 @@ const _createModal = function (splunk) {
       document.getElementById("descriptionInput").value = "";
       document.getElementById("xValueContainer").text = "";
       document.getElementById("yValueContainer").text = "";
-
 
     };
   }(splunk));
