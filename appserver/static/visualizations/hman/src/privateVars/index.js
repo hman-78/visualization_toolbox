@@ -1,14 +1,9 @@
 class PrivateVars {
   constructor() {
-    this.initialized = false;
-    this.mqttTopic = null;
-    this.mqttOptions = null;
-    this.mqttClient = null;
-    this._data = null;
+    this.initialized = false; // Global scoped variable
     this._annotationSeriesDataIndex = null;
     this._annotationSeriesIndex = null;
-    this._myChart = null;
-    this._option = null;
+    this._renderedEchartsArray = []; // Global scoped variable with nested echarts instances
   }
 }
 

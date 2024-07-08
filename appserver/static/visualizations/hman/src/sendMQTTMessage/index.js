@@ -1,10 +1,10 @@
-const _sendMQTTMessage = function (message) {
+const _sendMQTTMessage = function (dedicatedMqttClient, dedicatedMqttTopic, message) {
   console.log(`_sendMQTTMessage: ${message}`);
-  this.scopedVariables['mqttClient'].publish(this.scopedVariables['mqttTopic'], message, { qos: 0, retain: false }, (error) => {
-    if (error) {
-      console.error(error);
+  dedicatedMqttClient.publish(dedicatedMqttTopic, message, { qos: 0, retain: false }, (error) => {
+    if (mqttPublishError) {
+      console.error(`MqttClient id: ${dedicatedMqttClient} publishing error: ${mqttPublishError}`);
     } else {
-      console.log("message published: " + message);
+      console.log(`MqttClient id: ${dedicatedMqttClient} published message: ${message}`);
     }
   });
 }

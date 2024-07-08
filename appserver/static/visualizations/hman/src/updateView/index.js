@@ -6,24 +6,43 @@ const echarts = require('echarts');
 // 'config' will be the configuration property object containing visualization format information.
 
 const _updateView = function (data, config) {
-  this.scopedVariables['_data'] = data;
-  if (!data || !data.rows || data.rows.length < 1) {
-    return;
+  // If there is no data, do nothing
+  if (!data || !data.rows || data.rows.length < 1) { return; }
+
+  // Read echart properties
+  const echartProps = this._getEchartProps(config);
+
+  if(typeof echartProps.echartUniqueId === 'undefined' || echartProps.echartUniqueId === '') {
+    throw `Wrong configuration - echartUniqueId property not found! Please provide a unique echart id.`;
   }
-  this._initializeMQTT(data, config);
-  var configDataType = config[this.getPropertyNamespaceInfo().propertyNamespace + "dataType"];
-  var myChart = echarts.getInstanceByDom(this.el);
-  if (myChart != null && this.myRingChart1 != '' &&
-    myChart != undefined) {
-    myChart.dispose() //Solve the error reported by echarts dom already loaded
+
+  let tmpChart = {}
+  let currentChart = this.scopedVariables['_renderedEchartsArray'].find(o => o.id === echartProps.echartUniqueId);
+  if(typeof currentChart !== 'undefined') {
+    currentChart.instanceByDom.dispose()
+    this.scopedVariables['_renderedEchartsArray'] = this.scopedVariables['_renderedEchartsArray'].filter(o => o.id !== echartProps.echartUniqueId);
   }
-  myChart = echarts.init(this.el);
-  var option = {};
-  if (configDataType == "Custom") {
+  const dedicatedMqttClient = this._initializeMQTT(echartProps);
+  tmpChart['id'] = echartProps.echartUniqueId;
+  tmpChart['_data'] = data;
+  tmpChart['instanceByDom'] = echarts.init(this.el)
+  if(typeof dedicatedMqttClient !== 'undefined') {
+    tmpChart['mqttClient'] = dedicatedMqttClient.mqttClient;
+    tmpChart['mqttTopic'] = dedicatedMqttClient.mqttTopic;
+    tmpChart['mqttOptions'] = dedicatedMqttClient.mqttOptions;
+  } else {
+    tmpChart['mqttClient'] = '';
+    tmpChart['mqttTopic'] = '';
+    tmpChart['mqttOptions'] = '';
+  }
+  this.scopedVariables['_renderedEchartsArray'].push(tmpChart);
+
+  let option = {};
+  if (echartProps.dataType == "Custom") {
     option = this._buildCustomOption(data, config);
-  } else if (configDataType == "Boxplot") {
+  } else if (echartProps.dataType == "Boxplot") {
     option = this._buildBoxplotOption(data, config);
-  } else if (configDataType == "SimpleBoxplot") {
+  } else if (echartProps.dataType == "SimpleBoxplot") {
     option = this._buildSimpleBoxplotOption(data, config);
   }
   // tokens might not yet be replaced in the option. In this case we
@@ -33,34 +52,28 @@ const _updateView = function (data, config) {
   if (option == null) {
     return;
   }
-  var xAxisDataHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataHook"];
-  var yAxisDataHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "yAxisDataHook"];
-  var jsHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "jsHook"];
-  var clickHook = config[this.getPropertyNamespaceInfo().propertyNamespace + "clickHook"];
-  var annotationSeriesName = config[this.getPropertyNamespaceInfo().propertyNamespace + "annotationSeriesName"];
 
-  if (xAxisDataHook != null) {
-    option.xAxis.data = this.selfModifiyingOptionWithReturn(data, config, option, xAxisDataHook);
+  if (echartProps.xAxisDataHook != null) {
+    option.xAxis.data = this.selfModifiyingOptionWithReturn(data, config, option, echartProps.xAxisDataHook);
     console.log("Using option 'xAxisDataHook' is deprecated. Please use option 'jsHook' instead.")
   }
-  if (yAxisDataHook != null) {
-    option.yAxis.data = this.selfModifiyingOptionWithReturn(data, config, option, yAxisDataHook);
+  if (echartProps.yAxisDataHook != null) {
+    option.yAxis.data = this.selfModifiyingOptionWithReturn(data, config, option, echartProps.yAxisDataHook);
     console.log("Using option 'yAxisDataHook' is deprecated. Please use option 'jsHook' instead.")
   }
-  if (jsHook != null) {
-    this.selfModifiyingOption(data, config, option, jsHook);
+  if (echartProps.jsHook != null) {
+    this.selfModifiyingOption(data, config, option, echartProps.jsHook);
   }
-  if (clickHook != null) {
-    myChart.on('click', onChartClick);
+  if (echartProps.clickHook != null) {
+    tmpChart['instanceByDom'].on('click', onChartClick);
   }
-  if (annotationSeriesName != null) {
-    this._handleAnnotation(data, config, option, annotationSeriesName, myChart);
+  if (echartProps.annotationSeriesName != null) {
+    this._handleAnnotation(data, echartProps, option, tmpChart);
   }
 
   console.log(option);
-  myChart.setOption(option);
-  this.scopedVariables['_myChart'] = myChart;
-  this.scopedVariables['_option'] = option;
+  tmpChart['instanceByDom'].setOption(option);
+  tmpChart['_option'] = option;
 
   var splunk = this;
 
@@ -68,9 +81,10 @@ const _updateView = function (data, config) {
   // Used to call the Javascript Code provided by the option clickHook to
   // set tokens for drill down
   function onChartClick(params) {
-    this.evalHook = eval("(function a(params, data, config, option, event, splunk) {" + clickHook + "})");
+    this.evalHook = eval("(function a(params, data, config, option, event, splunk) {" + echartProps.clickHook + "})");
     this.evalHook(params, data, config, option, params.event, splunk);
   }
+  console.log("this.scopedVariables", this.scopedVariables);
 }
 
 module.exports = _updateView;

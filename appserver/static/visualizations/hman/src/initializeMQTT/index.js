@@ -1,16 +1,17 @@
 const mqttLib = require('mqtt/dist/mqtt.esm');
 const mqtt = mqttLib.default;
 
-const _initializeMQTT = function (data, config) {
+const _initializeMQTT = function (echartProps) {
+  let clientId, tmpMqttOptions, tmpMqttTopic, tmpMqttClient;
   let useMQTT = false;
-  let configMqttUser = config[this.getPropertyNamespaceInfo().propertyNamespace + "mqttUser"];
-  let configMqttPassword = config[this.getPropertyNamespaceInfo().propertyNamespace + "mqttPassword"];
-  let configMqttTopic = config[this.getPropertyNamespaceInfo().propertyNamespace + "mqttTopic"];
-  let configMqttPanelConnectionTimeout = config[this.getPropertyNamespaceInfo().propertyNamespace + "configMqttPanelConnectionTimeout"] || 5000;
-  let configMqttPanelHostname = config[this.getPropertyNamespaceInfo().propertyNamespace + "configMqttPanelHostname"];
-  let configMqttPanelProtocol = config[this.getPropertyNamespaceInfo().propertyNamespace + "configMqttPanelProtocol"] || 'wss';
-  let configMqttPanelPath = config[this.getPropertyNamespaceInfo().propertyNamespace + "configMqttPanelPath"] || '/mqtt';
-  let configMqttPanelPort = config[this.getPropertyNamespaceInfo().propertyNamespace + "configMqttPanelPort"] || 8443;
+  let configMqttUser = echartProps.mqttUser;
+  let configMqttPassword = echartProps.mqttPassword;
+  let configMqttTopic = echartProps.mqttTopic;
+  let configMqttPanelConnectionTimeout = echartProps.configMqttPanelConnectionTimeout || 5000;
+  let configMqttPanelHostname = echartProps.configMqttPanelHostname;
+  let configMqttPanelProtocol = echartProps.configMqttPanelProtocol || 'wss';
+  let configMqttPanelPath = echartProps.configMqttPanelPath || '/mqtt';
+  let configMqttPanelPort = echartProps.configMqttPanelPort || 8443;
   try {
     if (configMqttUser != null && configMqttPassword != null && configMqttTopic != null) {
       useMQTT = true;
@@ -20,9 +21,9 @@ const _initializeMQTT = function (data, config) {
   }
 
   if (useMQTT) {
-    let clientId = Math.random().toString(10) + Date.now();
+    clientId = Math.random().toString(10) + Date.now();
     clientId.substring(0, 23); //returns part of this clientId string from the 0 index up to and excluding the 23 index because clientId must not exceed 23 chars
-    let options = {
+    tmpMqttOptions = {
       clientId: clientId,
       connectTimeout: configMqttPanelConnectionTimeout,
       hostname: configMqttPanelHostname,
@@ -32,12 +33,19 @@ const _initializeMQTT = function (data, config) {
       username: configMqttUser,
       password: configMqttPassword
     }
-    this.scopedVariables['mqttClient'] = mqtt.connect(options);
-    this.scopedVariables['mqttClient'].on('connect', () => {
-      console.log('Connected')
+    tmpMqttTopic = configMqttUser + "/" + clientId + configMqttTopic;
+    tmpMqttClient = mqtt.connect(tmpMqttOptions);
+    tmpMqttClient.on('connect', () => {
+      console.log(`mqtt client id: ${clientId} connected successfully!`);
     })
-    this.scopedVariables['mqttTopic'] = configMqttUser + "/" + clientId + configMqttTopic;
-    this.scopedVariables['mqttOptions'] = options;
+    tmpMqttClient.on('error', () => {
+      console.log(`mqtt client id: ${clientId} encountered an error!`);
+    })
+    return {
+      mqttClient: tmpMqttClient,
+      mqttTopic: tmpMqttTopic,
+      mqttOptions: tmpMqttOptions
+    }
   }
 }
 

@@ -1,14 +1,8 @@
-const _handleAnnotation = function (data, config, option, annotationsSeriesName, myChart) {
-
-  var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
-  var configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
-  var opco = config[this.getPropertyNamespaceInfo().propertyNamespace + "opco"];
+const _handleAnnotation = function (data, echartProps, option, dedicatedEchart) {
   // first index points to x, second to y and third to the index of the annotation
-  var annotationSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "annotationSeriesDataIndexBinding"];
-
-  var annotationSeriesDataIndex = [];
-  annotationSeriesDataIndex = this._parseIndex(annotationSeriesDataIndexBinding);
-  this.scopedVariables['_annotationSeriesDataIndex'] = annotationSeriesDataIndex;
+  let annotationSeriesDataIndexBinding = echartProps.annotationSeriesDataIndexBinding;
+  let annotationSeriesDataIndex = this._parseIndex(annotationSeriesDataIndexBinding);;
+  dedicatedEchart['_annotationSeriesDataIndex'] = annotationSeriesDataIndex;
 
   if (annotationSeriesDataIndex.length != 3) {
     let error = "Please provide the configuration annotationSeriesDataIndexBinding. It has to be 3 numbers separated by a comma.\n"
@@ -23,13 +17,13 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
     throw error
   }
   // we use the DOM tree to store some values to make them available in the click listeners
-  document.getElementById("annotationSeriesNameContainer").textContent = annotationsSeriesName;
-  document.getElementById("opcoContainer").textContent = opco;
+  dedicatedEchart["annotationSeriesNameContainer"] = echartProps.annotationSeriesName;
+  dedicatedEchart["opcoContainer"] = echartProps.opco;
 
-  myChart.on('click', (function (option) {
+  dedicatedEchart['instanceByDom'].on('click', (function (option) {
     const scopedVariables = this.scopedVariables;
     return function (params) {
-      var annotationSeriesName = document.getElementById("annotationSeriesNameContainer").textContent;
+      var annotationSeriesName = echartProps.annotationSeriesName;
       if (annotationSeriesName != null) {
         var xValue;
         var xAxisValue;
@@ -82,19 +76,20 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
           }
 
           // store hidden values in the DOM tree
-          document.getElementById("xValue").textContent = xValue;
-          document.getElementById("xAxisValue").textContent = xAxisValue;
-          document.getElementById("yValue").textContent = yValue;
+          dedicatedEchart["xValue"] = xValue;
+          dedicatedEchart["xAxisValue"] = xAxisValue;
+          dedicatedEchart["yValue"] = yValue;
 
           var descriptionInput = document.getElementById("descriptionInput");
           descriptionInput.focus();
           descriptionInput.select();
-          for (let i = 0; i < scopedVariables['_option'].series[scopedVariables['_annotationSeriesIndex']].data.length; i++) {
-            var obj = scopedVariables['_option'].series[scopedVariables['_annotationSeriesIndex']].data[i];
+          for (let i = 0; i < dedicatedEchart['_option'].series[dedicatedEchart['_annotationSeriesIndex']].data.length; i++) {
+            var obj = dedicatedEchart['_option'].series[dedicatedEchart['_annotationSeriesIndex']].data[i];
             var x = obj[0];
             if (xAxisValue == x) {
               var description = obj[2];
               descriptionInput.value = description;
+              dedicatedEchart['descriptionInput'] = description
             }
 
           }
@@ -132,7 +127,7 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
       }
     };
     annotationSeries["data"] = [];
-    annotationSeries["name"] = annotationsSeriesName + " annotation";
+    annotationSeries["name"] = echartProps.annotationsSeriesName + " annotation";
     for (let i = 0; i < data.rows.length; i++) {
       var annotationValue = data.rows[i][annotationSeriesDataIndex[2]];
       if (annotationValue != null && "" != annotationValue && "'-'" != annotationValue) {
@@ -143,7 +138,7 @@ const _handleAnnotation = function (data, config, option, annotationsSeriesName,
         annotationSeries.data.push(annotationData);
       }
     }
-    this.scopedVariables['_annotationSeriesIndex'] = option.series.length;
+    dedicatedEchart['_annotationSeriesIndex'] = option.series.length;
     option.series.push(annotationSeries);
   }
 
