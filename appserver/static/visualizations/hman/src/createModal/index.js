@@ -1,37 +1,33 @@
 const _createModal = function (splunk) {
-  var h2 = $("<h2>").text("Add Annotation");
-  var xValueSpan = $("<span>").addClass("x-value");
-  var yValueSpan = $("<span>").addClass("y-value");
-  //eslint-disable-next-line
-  var modal_annotationContent = $("<div>").addClass("modal_annotation-content").append(header, body, footer);
+  let h2 = $("<h2>").text("Add Annotation");
+  let xValueSpan = $("<span>").addClass("x-value");
+  let yValueSpan = $("<span>").addClass("y-value");
 
-  var opcoContainer = $("<div>").addClass("value-container").attr("id", "opcoContainer").css("display", "none");;
+  let opcoContainer = $("<div>").addClass("value-container").attr("id", "opcoContainer").css("display", "none");;
   $(".modal_annotation-content").append(opcoContainer);
 
-  var annotationSeriesName = $("<div>").addClass("annotation-series-name").attr("id", "annotationSeriesNameContainer").css("display", "none");
+  let annotationSeriesName = $("<div>").addClass("annotation-series-name").attr("id", "annotationSeriesNameContainer").css("display", "none");
   $(".modal_annotation-content").append(annotationSeriesName);
 
-  var opcoElement = $("<div>")
+  let opcoElement = $("<div>")
     .addClass("opco")
     .attr("id", "opcoContainer").css("display", "none");
 
-  var xValueContainer = $("<div>")
+  let xValueContainer = $("<div>")
     .addClass("x-value-container")
     .text("Current X Value: ")
     .append(xValueSpan)[0]; // Get the DOM element from jQuery object
   xValueContainer.id = "xValueContainer"; // Add ID to the xValueContainer element
 
-  var xValueElement = $("<div>").attr("id", "xValue").css("display", "none");;
-  var xAxisValueElement = $("<div>").attr("id", "xAxisValue").css("display", "none");;
+  let xValueElement = $("<div>").attr("id", "xValue").css("display", "none");;
+  let xAxisValueElement = $("<div>").attr("id", "xAxisValue").css("display", "none");;
 
-
-  var yValueContainer = $("<div>")
+  let yValueContainer = $("<div>")
     .addClass("y-value-container")
     .text("Current Y Value: ")
     .append(yValueSpan)[0]; // Get the DOM element from jQuery object
   yValueContainer.id = "yValueContainer"; // Add ID to the yValueContainer element
-  var yValueElement = $("<div>").attr("id", "yValue").css("display", "none");;
-
+  let yValueElement = $("<div>").attr("id", "yValue").css("display", "none");;
 
   function clearModalData() {
     descriptionInput.val("");
@@ -41,30 +37,30 @@ const _createModal = function (splunk) {
     document.getElementById("yValueContainer").textContent = "";
   }
 
-  var closeSpan = $("<span>")
+  let closeSpan = $("<span>")
     .addClass("close")
     .click(clearModalData);
 
-  var header = $("<div>")
+  let header = $("<div>")
     .addClass("write-the-discription")
     .append(closeSpan, h2, xValueContainer, yValueContainer, opcoElement, annotationSeriesName, xValueElement, xAxisValueElement, yValueElement);
 
 
-  var p = $("<p>").text("Description");
-  var descriptionInput = $("<input>")
+  let p = $("<p>").text("Description");
+  let descriptionInput = $("<input>")
     .attr("type", "text")
     .attr("placeholder", "Enter Description").attr("id", "descriptionInput").attr("autocomplete", "off").attr("class", "wide-input");
 
 
-  var body = $("<div>").addClass("modal_annotation-body").append(p, descriptionInput);
+  let body = $("<div>").addClass("modal_annotation-body").append(p, descriptionInput);
 
-  var cancelButton = $("<button>")
+  let cancelButton = $("<button>")
     .attr("id", "cancelButton")
     .text("Cancel")
     .addClass("shadow-button")
     .click(clearModalData);
 
-  var saveButton = $("<button>")
+  let saveButton = $("<button>")
     .attr("id", "saveButton")
     .text("Save")
     .addClass("shadow-button")
@@ -73,10 +69,13 @@ const _createModal = function (splunk) {
       "border-color": "#32CD32"
     });
 
-  var footer = $("<div>").addClass("modal_annotation-footer").append(cancelButton, saveButton);
+  let footer = $("<div>").addClass("modal_annotation-footer").append(cancelButton, saveButton);
 
-  var content = $("<div>").addClass("modal_annotation-content").append(header, body, footer);
-  var modal_annotation = $("<div>")
+  //eslint-disable-next-line
+  let modal_annotationContent = $("<div>").addClass("modal_annotation-content").append(header, body, footer);
+
+  let content = $("<div>").addClass("modal_annotation-content").append(header, body, footer);
+  let modal_annotation = $("<div>")
     .addClass("modal_annotation")
     .attr("id", "myModal_annotation")
     .css("display", "none")
@@ -86,69 +85,65 @@ const _createModal = function (splunk) {
 
   document.getElementById("saveButton").addEventListener("click", function (splunk) {
     return function () {
-      var descriptionInput = document.getElementById("descriptionInput");
-      var description = descriptionInput.value;
-      var annotationSeriesName = document.getElementById("annotationSeriesNameContainer").textContent;
-      var opco = document.getElementById("opcoContainer").textContent;
-      var xValue = document.getElementById("xValue").textContent;
-      var xAxisValue = document.getElementById("xAxisValue").textContent;
-      var yValue = document.getElementById("yValue").textContent;
-
-      var msgJson = {
-        "type": "annotation",
-        "action": "add",
-        "opco": opco,
-        "name": annotationSeriesName,
-        "x": xValue,
-        "annotation": description,
-        "tags": ""
-      };
-
-      splunk._sendMQTTMessage(JSON.stringify(msgJson));
-      for (let i = 0; i < splunk.scopedVariables['_data'].rows.length; i++) {
-        var x = splunk.scopedVariables['_data'].rows[i][splunk.scopedVariables['_annotationSeriesDataIndex'][0]];
-        //eslint-disable-next-line
-        var y = splunk.scopedVariables['_data'].rows[i][splunk.scopedVariables['_annotationSeriesDataIndex'][1]];
-        //eslint-disable-next-line
-        var annotation = splunk.scopedVariables['_data'].rows[i][splunk.scopedVariables['_annotationSeriesDataIndex'][2]];
-
-        // to avoid a refresh of the panel the annotation with the matching x value is updated with the new annoation
-        if (xAxisValue == x) {
-          splunk.scopedVariables['_data'].rows[i][splunk.scopedVariables['_annotationSeriesDataIndex'][2]] = description;
-        }
-
-      }
-      var isAnnotationAlreadyInData = false;
-      var indexToBeDeleted = null;
-
-      for (let i = 0; i < splunk.scopedVariables['_option'].series[splunk.scopedVariables['_annotationSeriesIndex']].data.length; i++) {
-        let obj = splunk.scopedVariables['_option'].series[splunk.scopedVariables['_annotationSeriesIndex']].data[i];
-        let x = obj[0];
-        if (xAxisValue == x) {
-          isAnnotationAlreadyInData = true;
-          if ("" == description) {
-            // remove data from series
-            //eslint-disable-next-line
-            indexToBeDeleted = i;
-            obj[2] = "";
-            splunk.scopedVariables['_option'].series[splunk.scopedVariables['_annotationSeriesIndex']].data.splice(i, 1);
-            // TODO remove empty data obj from array
-          } else {
-            // update new value
-            obj[2] = description;
+      for (let k = 0; k < splunk.scopedVariables['_renderedEchartsArray'].length; k++) {
+        var description = splunk.scopedVariables['_renderedEchartsArray'][k]["description"];
+        var xAxisValue = splunk.scopedVariables['_renderedEchartsArray'][k]["xAxisValue"];
+        var yValue = splunk.scopedVariables['_renderedEchartsArray'][k]["yValue"];
+        var msgJson = {
+          "type": "annotation",
+          "action": "add",
+          "opco": splunk.scopedVariables['_renderedEchartsArray'][k]['opco'],
+          "name": splunk.scopedVariables['_renderedEchartsArray'][k]['annotationSeriesName'],
+          "x": splunk.scopedVariables['_renderedEchartsArray'][k]['xValue'],
+          "annotation": splunk.scopedVariables['_renderedEchartsArray'][k]['description'],
+          "tags": ""
+        };
+        splunk._sendMQTTMessage(splunk.scopedVariables['_renderedEchartsArray'][k]['mqttClient'], splunk.scopedVariables['_renderedEchartsArray'][k]['mqttTopic'], JSON.stringify(msgJson));
+        for (let i = 0; i < splunk.scopedVariables['_renderedEchartsArray'][k]['_data'].rows.length; i++) {
+          var x = splunk.scopedVariables['_renderedEchartsArray'][k]['_data'].rows[i][splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesDataIndex'][0]];
+          //eslint-disable-next-line
+          var y = splunk.scopedVariables['_renderedEchartsArray'][k]['_data'].rows[i][splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesDataIndex'][1]];
+          //eslint-disable-next-line
+          var annotation = splunk.scopedVariables['_renderedEchartsArray'][k]['_data'].rows[i][splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesDataIndex'][2]];
+  
+          // to avoid a refresh of the panel the annotation with the matching x value is updated with the new annoation
+          if (xAxisValue == x) {
+            splunk.scopedVariables['_renderedEchartsArray'][k]['_data'].rows[i][splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesDataIndex'][2]] = description;
           }
+  
         }
-
+        var isAnnotationAlreadyInData = false;
+        var indexToBeDeleted = null;
+  
+        for (let i = 0; i < splunk.scopedVariables['_renderedEchartsArray'][k]['_option'].series[splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesIndex']].data.length; i++) {
+          let obj = splunk.scopedVariables['_renderedEchartsArray'][k]['_option'].series[splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesIndex']].data[i];
+          let x = obj[0];
+          if (xAxisValue == x) {
+            isAnnotationAlreadyInData = true;
+            if ("" == description) {
+              // remove data from series
+              //eslint-disable-next-line
+              indexToBeDeleted = i;
+              obj[2] = "";
+              splunk.scopedVariables['_renderedEchartsArray'][k]['_option'].series[splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesIndex']].data.splice(i, 1);
+              // TODO remove empty data obj from array
+            } else {
+              // update new value
+              obj[2] = description;
+            }
+          }
+  
+        }
+  
+        if (!isAnnotationAlreadyInData) {
+          var obj = [];
+          obj.push(xAxisValue);
+          obj.push(yValue);
+          obj.push(description);
+          splunk.scopedVariables['_renderedEchartsArray'][k]['_option'].series[splunk.scopedVariables['_renderedEchartsArray'][k]['_annotationSeriesIndex']].data.push(obj);
+        }
+        splunk.scopedVariables['_renderedEchartsArray'][k]['instanceByDom'].setOption(splunk.scopedVariables['_renderedEchartsArray'][k]['_option']);
       }
-
-      if (!isAnnotationAlreadyInData) {
-        var obj = [];
-        obj.push(xAxisValue);
-        obj.push(yValue);
-        obj.push(description);
-        splunk.scopedVariables['_option'].series[splunk.scopedVariables['_annotationSeriesIndex']].data.push(obj);
-      }
-      splunk.scopedVariables['_myChart'].setOption(splunk.scopedVariables['_option']);
 
 
       // Hide the modal_annotation after saving

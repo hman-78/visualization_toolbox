@@ -1,14 +1,7 @@
 class PrivateVars {
   constructor() {
-    this.initialized = false;
-    this.mqttTopic = null;
-    this.mqttOptions = null;
-    this.mqttClient = null;
-    this._data = null;
-    this._annotationSeriesDataIndex = null;
-    this._annotationSeriesIndex = null;
-    this._myChart = null;
-    this._option = null;
+    this.initialized = false; // Global scoped variable keeping track of the SplunkVisualizationBase.initialize call
+    this._renderedEchartsArray = []; // Global scoped variable with multiple echarts instances
   }
 }
 

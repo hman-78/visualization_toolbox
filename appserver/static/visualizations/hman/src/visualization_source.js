@@ -40,6 +40,7 @@ const _drilldownToCategory = require('./drilldownToCategory');
 const _drilldownToTimeRange = require('./drilldownToTimeRange');
 const _drilldownToTimeRangeAndCategory = require('./drilldownToTimeRangeAndCategory');
 const _formatData = require('./formatData');
+const _getEchartProps = require('./getEchartProps');
 const _getInitialDataParams = require('./getInitialDataParams');
 const _handleAnnotation = require('./handleAnnotation');
 const _initialize = require('./initialize');
@@ -83,6 +84,7 @@ define([
 			drilldownToTimeRange: _drilldownToTimeRange,
 			drilldownToTimeRangeAndCategory: _drilldownToTimeRangeAndCategory,
 			formatData: _formatData, // Interface method available in SplunkVisualizationBase.
+			_getEchartProps: _getEchartProps,
 			getInitialDataParams: _getInitialDataParams, // Interface method available in SplunkVisualizationBase. Indicates how the visualization framework fetches data for the visualization.
 			_handleAnnotation: _handleAnnotation,
 			initialize: _initialize, // Interface method available in SplunkVisualizationBase.

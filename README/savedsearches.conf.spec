@@ -1,5 +1,6 @@
 [visualization_toolbox_default]
 # Declare properties here
+display.visualizations.custom.visualization_toolbox.hman.echartUniqueId = <string>
 display.visualizations.custom.visualization_toolbox.hman.dataType = <string>
 display.visualizations.custom.visualization_toolbox.hman.option = <string>
 display.visualizations.custom.visualization_toolbox.hman.xAxisDataIndexBinding = <string>
