@@ -1,9 +1,7 @@
 class PrivateVars {
   constructor() {
-    this.initialized = false; // Global scoped variable
-    this._annotationSeriesDataIndex = null;
-    this._annotationSeriesIndex = null;
-    this._renderedEchartsArray = []; // Global scoped variable with nested echarts instances
+    this.initialized = false; // Global scoped variable keeping track of the SplunkVisualizationBase.initialize call
+    this._renderedEchartsArray = []; // Global scoped variable with multiple echarts instances
   }
 }
 

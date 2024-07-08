@@ -85,19 +85,14 @@ const _createModal = function (splunk) {
 
   document.getElementById("saveButton").addEventListener("click", function (splunk) {
     return function () {
-      
       for (let k = 0; k < splunk.scopedVariables['_renderedEchartsArray'].length; k++) {
-        var descriptionInput = splunk.scopedVariables['_renderedEchartsArray'][k]["descriptionInput"];
-        var description = splunk.scopedVariables['_renderedEchartsArray'][k]["descriptionInput"];
-        var annotationSeriesName = document.getElementById("annotationSeriesNameContainer").textContent;
-        var opco = splunk.scopedVariables['_renderedEchartsArray'][k]['opco'];
-        var xValue = document.getElementById("xValue").textContent;
-        var xAxisValue = document.getElementById("xAxisValue").textContent;
-        var yValue = document.getElementById("yValue").textContent;
+        var description = splunk.scopedVariables['_renderedEchartsArray'][k]["description"];
+        var xAxisValue = splunk.scopedVariables['_renderedEchartsArray'][k]["xAxisValue"];
+        var yValue = splunk.scopedVariables['_renderedEchartsArray'][k]["yValue"];
         var msgJson = {
           "type": "annotation",
           "action": "add",
-          "opco": opco,
+          "opco": splunk.scopedVariables['_renderedEchartsArray'][k]['opco'],
           "name": splunk.scopedVariables['_renderedEchartsArray'][k]['annotationSeriesName'],
           "x": splunk.scopedVariables['_renderedEchartsArray'][k]['xValue'],
           "annotation": splunk.scopedVariables['_renderedEchartsArray'][k]['description'],
