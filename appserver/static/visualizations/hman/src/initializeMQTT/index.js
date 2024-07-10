@@ -7,11 +7,11 @@ const _initializeMQTT = function (echartProps) {
   let configMqttUser = echartProps.mqttUser;
   let configMqttPassword = echartProps.mqttPassword;
   let configMqttTopic = echartProps.mqttTopic;
-  let configMqttPanelConnectionTimeout = echartProps.configMqttPanelConnectionTimeout || 5000;
+  let configMqttPanelConnectionTimeout = parseInt(echartProps.configMqttPanelConnectionTimeout) || 5000;
   let configMqttPanelHostname = echartProps.configMqttPanelHostname;
   let configMqttPanelProtocol = echartProps.configMqttPanelProtocol || 'wss';
   let configMqttPanelPath = echartProps.configMqttPanelPath || '/mqtt';
-  let configMqttPanelPort = echartProps.configMqttPanelPort || 8443;
+  let configMqttPanelPort = parseInt(echartProps.configMqttPanelPort) || 8443;
   try {
     if (configMqttUser != null && configMqttPassword != null && configMqttTopic != null) {
       useMQTT = true;

@@ -2,9 +2,9 @@ const _sendMQTTMessage = function (dedicatedMqttClient, dedicatedMqttTopic, mess
   console.log(`_sendMQTTMessage: ${message}`);
   dedicatedMqttClient.publish(dedicatedMqttTopic, message, { qos: 0, retain: false }, (mqttPublishError) => {
     if (mqttPublishError) {
-      console.error(`MqttClient id: ${dedicatedMqttClient} publishing error: ${mqttPublishError}`);
+      console.error(`MqttClient id: ${dedicatedMqttClient.options.clientId} publishing error: ${mqttPublishError}`);
     } else {
-      console.log(`MqttClient id: ${dedicatedMqttClient} published message: ${message}`);
+      console.log(`MqttClient id: ${dedicatedMqttClient.options.clientId} published message: ${message}`);
     }
   });
 }
