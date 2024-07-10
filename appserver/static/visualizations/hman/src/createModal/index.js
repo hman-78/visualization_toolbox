@@ -91,7 +91,8 @@ const _createModal = function (splunk) {
       if(typeof tmpEchartElement === 'undefined') {
         return;
       }
-      var description = tmpEchartElement["description"];
+      var descriptionInput = document.getElementById("descriptionInput");
+      var description = descriptionInput.value;
       var xAxisValue = tmpEchartElement["xAxisValue"];
       var yValue = tmpEchartElement["yValue"];
       var msgJson = {
@@ -100,7 +101,7 @@ const _createModal = function (splunk) {
         "opco": tmpEchartElement['opco'],
         "name": tmpEchartElement['annotationSeriesName'],
         "x": tmpEchartElement['xValue'],
-        "annotation": tmpEchartElement['description'],
+        "annotation": description,
         "tags": ""
       };
       splunk._sendMQTTMessage(tmpEchartElement['mqttClient'], tmpEchartElement['mqttTopic'], JSON.stringify(msgJson));
