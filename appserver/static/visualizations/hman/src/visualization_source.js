@@ -89,6 +89,7 @@ define([
 			_handleAnnotation: _handleAnnotation,
 			initialize: _initialize, // Interface method available in SplunkVisualizationBase.
 			_initializeMQTT: _initializeMQTT,
+			_parseDynamicIndex: _parseDynamicIndex,
 			_parseIndex: _parseIndex,
 			_parseOption: _parseOption,
 			reflow: _reflow, // Interface method available in SplunkVisualizationBase. Implements visualization resizing logic.
