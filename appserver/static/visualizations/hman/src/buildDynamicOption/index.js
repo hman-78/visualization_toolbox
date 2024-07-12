@@ -110,17 +110,17 @@ const _buildDynamicOption = function(data, config) {
   
     // dynamic series generation
     if(seriesDataIndex.startIndex != -1) {
-        var dynamicTemplate = option.series[seriesDataIndex.fixedCount];
-        option.series.length = option.series.length - 1;
+        var dynamicTemplate = option.series[seriesDataIndex.fixedCount]; // save last series as template
+        option.series.length = option.series.length - 1; // remove series used as template from total series
         var startNameCounter = 1;
         for (var i = seriesDataIndex.startIndex; i < data.fields.length; i++) {
-          var newSeriesConfig = JSON.parse(JSON.stringify(dynamicTemplate));
+          var newSeriesConfig = JSON.parse(JSON.stringify(dynamicTemplate)); // create exact copy of template
           newSeriesConfig.name = dynamicTemplate.name + ' ' + (startNameCounter++);
           newSeriesConfig.data = [];
           for (var j = 0; j < data.rows.length; j++) {
               newSeriesConfig.data.push([
-                  data.rows[j][xAxisDataIndex[0]],  // x-value
-                  data.rows[j][i]  // y-value
+                  data.rows[j][xAxisDataIndex[0]],
+                  data.rows[j][i] 
               ]);
           }
           option.series.push(newSeriesConfig);
