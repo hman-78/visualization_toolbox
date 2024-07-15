@@ -104,7 +104,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
        name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}_app-package
-       path: /home/runner/work/visualization_toolbox/_node_v${{ matrix.node-version }}_staging_AppPackaging-results
+       path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results
     - name: slim validate App
       run: |
           cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
@@ -127,4 +127,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}_AppInspect-results
-       path: /home/runner/work/visualization_toolbox/_node_v${{ matrix.node-version }}_staging_AppInspect-results/
+       path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
