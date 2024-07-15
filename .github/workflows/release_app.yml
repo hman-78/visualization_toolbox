@@ -105,7 +105,7 @@ jobs:
       with:
        name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_${{ matrix.runs-on }}_app-package
        path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results
-       overwrite: true
+       merge-multiple: true
     - name: slim validate App
       run: |
           cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
@@ -129,4 +129,4 @@ jobs:
       with:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_${{ matrix.runs-on }}_AppInspect-results
        path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
-       overwrite: true
+       merge-multiple: true
