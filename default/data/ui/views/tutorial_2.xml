@@ -48,7 +48,6 @@
 | eval _time = _time - (count*86400) 
 | eval myday = strftime(_time, "%A")</query>
     </search>
-    <option name="visualization_toolbox.hman.echartUniqueId">unique_echart_id_1</option>
     <option name="visualization_toolbox.hman.dataType">Custom</option>
     <option name="visualization_toolbox.hman.option">
 option = {
@@ -97,7 +96,6 @@ option = {
 | eval _time = _time - (count*86400) 
 | eval myday = strftime(_time, "%A")</query>
     </search>
-    <option name="visualization_toolbox.hman.echartUniqueId">unique_echart_id_1</option>
     <option name="visualization_toolbox.hman.dataType">Custom</option>
     <option name="visualization_toolbox.hman.option">
 option = {
@@ -201,7 +199,6 @@ the 2nd column is mapped to the first series, 3rd to the seconds series and 4th 
 | eval count1 = count + 1, count2 = count1 + 1
 </query>
     </search>
-    <option name="visualization_toolbox.hman.echartUniqueId">unique_echart_id_1</option>
     <option name="visualization_toolbox.hman.dataType">Custom</option>
     <option name="visualization_toolbox.hman.option">
 option = {

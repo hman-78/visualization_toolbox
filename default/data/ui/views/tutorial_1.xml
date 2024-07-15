@@ -39,7 +39,6 @@
       <earliest>$earliest$</earliest>
       <latest>$latest$</latest>
     </search>
-    <option name="visualization_toolbox.hman.echartUniqueId">unique_echart_id_1</option>
     <option name="visualization_toolbox.hman.dataType">Custom</option>
     <option name="visualization_toolbox.hman.option">
     </option>
@@ -57,7 +56,6 @@
       <earliest>$earliest$</earliest>
       <latest>$latest$</latest>
     </search>
-    <option name="visualization_toolbox.hman.echartUniqueId">unique_echart_id_1</option>
     <option name="visualization_toolbox.hman.dataType">Custom</option>
     <option name="visualization_toolbox.hman.option">option = {
   xAxis: {
@@ -88,7 +86,7 @@
     <search>
       <query>| makeresults</query>
     </search>
-    <option name="visualization_toolbox.hman.echartUniqueId">unique_echart_id_1</option>
+    
     <option name="visualization_toolbox.hman.dataType">Custom</option>
     <option name="visualization_toolbox.hman.option">option = {
   xAxis: {
@@ -204,7 +202,6 @@ You can also export the chart as an image by clicking on the save icon in the to
     <search>
       <query>| makeresults</query>
     </search>
-    <option name="visualization_toolbox.hman.echartUniqueId">unique_echart_id_1</option>
     <option name="visualization_toolbox.hman.dataType">Custom</option>
     <option name="visualization_toolbox.hman.option">
 option = {
