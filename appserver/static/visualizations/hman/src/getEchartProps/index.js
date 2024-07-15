@@ -2,7 +2,7 @@
 
 const _getEchartProps = function (config) {
   return {
-    echartUniqueId: config[this.getPropertyNamespaceInfo().propertyNamespace + "echartUniqueId"],
+    echartUniqueId: config['display.visualizations.custom.visualization_toolbox.hman.echartUniqueId'],
     dataType: config[this.getPropertyNamespaceInfo().propertyNamespace + "dataType"],
     option: config[this.getPropertyNamespaceInfo().propertyNamespace + "option"],
     xAxisDataIndexBinding: config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"],

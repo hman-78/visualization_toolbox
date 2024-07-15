@@ -7,7 +7,6 @@
       <query>| inputlookup tut_3_2.csv
 | table Month,Temperature,Precipitation</query>
     </search>
-    <option name="visualization_toolbox.hman.echartUniqueId ">unique_echart_id_1</option>
     <option name="visualization_toolbox.hman.dataType">Custom</option>
     <option name="visualization_toolbox.hman.option">
 option = {

@@ -71,7 +71,6 @@ const _updateView = function (data, config) {
     this._handleAnnotation(data, echartProps, option, tmpChart);
   }
 
-  console.log(option);
   tmpChart['instanceByDom'].setOption(option);
   tmpChart['_option'] = option;
 

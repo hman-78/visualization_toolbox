@@ -51,6 +51,7 @@ const _reflow = require('./reflow');
 const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
+const _setupView = require('./setupView')
 const _updateView = require('./updateView');
 const PrivateVariables = require('./privateVars')
 
@@ -95,6 +96,7 @@ define([
 			selfModifiyingOption: _selfModifiyingOption,
 			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
 			_sendMQTTMessage: _sendMQTTMessage,
+			setupView: _setupView,
 			updateView: _updateView // Interface method available in SplunkVisualizationBase. Function called to render the visualization.
 		});
 	});
