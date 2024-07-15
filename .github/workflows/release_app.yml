@@ -1,7 +1,6 @@
 name: ReleaseApp
 on:
-  push:
-    branches: [ "feature/add-github-release-workflow" ]
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
