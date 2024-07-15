@@ -101,10 +101,13 @@ jobs:
           echo "tar_checksum=$tar_checksum" >> $GITHUB_OUTPUT
           sha256sum $TARNAME_NO_WHITESPACE > $TARNAME_NO_WHITESPACE.sha256
     - name: Upload artifacts - Packagingtoolkit results
+      id: upload_app
       uses: actions/upload-artifact@v4
       with:
        name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}
        path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results
+       run: |
+           echo "artifact_full_file_name= ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}" >> $GITHUB_OUTPUT
     - name: slim validate App
       run: |
           cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
@@ -117,3 +120,14 @@ jobs:
           --mode test \
           --generate-feedback \
           --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
+    - name: Deploy to GitHub Releases for Stable Version 🚀
+      id: create_release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: "test1"
+        name: "test122"
+        token: ${{ secrets.GITHUB_TOKEN }}
+        files: |
+          /home/runner/work/visualization_toolbox/staging_AppPackaging-results/${{ steps.upload_app.artifact_full_file_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
