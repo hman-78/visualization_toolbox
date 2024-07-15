@@ -128,6 +128,6 @@ jobs:
         name: "v${{ steps.version_information.outputs.app_version }}"
         token: ${{ secrets.GITHUB_TOKEN }}
         files: |
-          /home/runner/work/visualization_toolbox/staging_AppPackaging-results
+          /home/runner/work/visualization_toolbox/staging_AppPackaging-results/${{ steps.version_information.outputs.tar_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
