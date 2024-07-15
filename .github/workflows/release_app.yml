@@ -35,10 +35,10 @@ jobs:
            echo "Build number: $build_number"
            echo "build_number=$build_number" >> $GITHUB_OUTPUT
            app_version_short=$(echo $app_version | sed 's/\.//g')
-           artifact_name_prefix="visualization_toolbox_${app_version_short}_${build_number}"
+           artifact_name_prefix="visualization_toolbox-${app_version}"
            echo "Artifact name: $artifact_name_prefix"
            echo "artifact_name_prefix=$artifact_name_prefix" >> $GITHUB_OUTPUT
-           tar_name="visualization_toolbox_$app_version_short.tar.gz"
+           tar_name="visualization_toolbox-$app_version.tar.gz"
            echo "Tar.gz name: $tar_name"
            echo "tar_name=$tar_name" >> $GITHUB_OUTPUT
     - name: NPM install 
@@ -103,7 +103,7 @@ jobs:
     - name: Upload artifacts - Packagingtoolkit results
       uses: actions/upload-artifact@v4
       with:
-       name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}_app-package
+       name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}
        path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results
     - name: slim validate App
       run: |
@@ -117,14 +117,3 @@ jobs:
           --mode test \
           --generate-feedback \
           --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
-    - name: Copy to staging directory
-      run: |
-          cd ..
-          mkdir staging_AppInspect-results
-          cp -v ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json staging_AppInspect-results//
-          cp -v inspect.yml staging_AppInspect-results//
-    - name: Upload artifacts - AppInspect results
-      uses: actions/upload-artifact@v4
-      with:
-       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}_AppInspect-results
-       path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
