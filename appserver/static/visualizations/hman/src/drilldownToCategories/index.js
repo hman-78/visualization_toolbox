@@ -1,3 +1,5 @@
+const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
+
 /**
  * To be called from the visualization's click handler, after computing the
  * correct category names and values.
