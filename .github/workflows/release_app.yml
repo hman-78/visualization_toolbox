@@ -87,14 +87,14 @@ jobs:
       id: package_app
       run: |
           cd .. 
-          slim package --output-dir=/home/runner/work/visualization_toolbox/staging_AppPackaging-results/ visualization_toolbox/
+          slim package --output-dir=/home/runner/work/visualization_toolbox/${{ matrix.runs-on }}_staging_AppPackaging-results/ visualization_toolbox/
           echo ${{ steps.version_information.outputs.app_version }}
           TARNAME='visualization_toolbox-${{ steps.version_information.outputs.app_version }}.tar.gz'
           TARNAME_NO_WHITESPACE="$(echo -e "${TARNAME}" | tr -d '[:space:]')"
           echo "$TARNAME_NO_WHITESPACE"
           echo "slim_package_name=$TARNAME_NO_WHITESPACE" >> $GITHUB_OUTPUT
-          ls /home/runner/work/visualization_toolbox/staging_AppPackaging-results/
-          cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/
+          ls /home/runner/work/visualization_toolbox/${{ matrix.runs-on }}_staging_AppPackaging-results/
+          cd /home/runner/work/visualization_toolbox/${{ matrix.runs-on }}_staging_AppPackaging-results/
           tar_checksum=$(sha256sum $TARNAME_NO_WHITESPACE | awk '{print $1}')
           echo "Checksums:"
           find . -maxdepth 1 -type f -exec sha256sum {} \;
@@ -104,17 +104,16 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
        name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_${{ matrix.runs-on }}_app-package
-       path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results
-       merge-multiple: true
+       path: /home/runner/work/visualization_toolbox/${{ matrix.runs-on }}_staging_AppPackaging-results
     - name: slim validate App
       run: |
-          cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
+          cd /home/runner/work/visualization_toolbox/${{ matrix.runs-on }}_staging_AppPackaging-results/ 
           slim validate ${{ steps.package_app.outputs.slim_package_name }}
     - name: Run Splunk AppInspect
       run: |
           pip install splunk-appinspect
           cd ..
-          splunk-appinspect inspect /home/runner/work/visualization_toolbox/staging_AppPackaging-results/${{ steps.package_app.outputs.slim_package_name }}  \
+          splunk-appinspect inspect /home/runner/work/visualization_toolbox/${{ matrix.runs-on }}_staging_AppPackaging-results/${{ steps.package_app.outputs.slim_package_name }}  \
           --mode test \
           --generate-feedback \
           --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
@@ -128,5 +127,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
        name: ${{ steps.version_information.outputs.artifact_name_prefix }}_${{ matrix.runs-on }}_AppInspect-results
-       path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
-       merge-multiple: true
+       path: /home/runner/work/visualization_toolbox/${{ matrix.runs-on }}_staging_AppInspect-results/
