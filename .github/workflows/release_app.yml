@@ -124,10 +124,10 @@ jobs:
       id: create_release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: "test1"
-        name: "test122"
+        tag_name: "v${{ steps.version_information.outputs.app_version }}"
+        name: "v${{ steps.version_information.outputs.app_version }}"
         token: ${{ secrets.GITHUB_TOKEN }}
         files: |
-          /home/runner/work/visualization_toolbox/staging_AppPackaging-results/${{ steps.upload_app.artifact_full_file_name }}
+          /home/runner/work/visualization_toolbox/staging_AppPackaging-results/${{ steps.upload_app.outputs.artifact_full_file_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
