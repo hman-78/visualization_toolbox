@@ -20,16 +20,16 @@ jobs:
       app_version: ${{ steps.version_information.outputs.app_version }}
       build_number: ${{ steps.version_information.outputs.build_number }}
       artifact_name_prefix: ${{ steps.version_information.outputs.artifact_name_prefix }}
-    #  tar_name: ${{ steps.version_information.outputs.tar_name }}
+      # tar_name: ${{ steps.version_information.outputs.tar_name }}
       tar_sha256: ${{ steps.package_app.outputs.tar_name }}
       slim_package_name: ${{ steps.package_app.outputs.slim_package_name }}
       
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
@@ -41,20 +41,20 @@ jobs:
       run: |
            app_version=$(cat default/app.conf | grep -o 'version =.*' | head -1 |cut -f2- -d=)
            echo "App version: " $app_version
-           echo "::set-output name=app_version::$app_version"
+           echo "app_version=$app_version" >> $GITHUB_OUTPUT
 
            build_number="${{ github.run_id }}-${{ github.run_attempt }}"
            echo "Build number: $build_number"
-           echo "::set-output name=build_number::$build_number"
+           echo "build_number=$build_number" >> $GITHUB_OUTPUT
 
            app_version_short=$(echo $app_version | sed 's/\.//g')
            artifact_name_prefix="visualization_toolbox_${app_version_short}_${build_number}"
            echo "Artifact name: $artifact_name_prefix"
-           echo "::set-output name=artifact_name_prefix::$artifact_name_prefix"
+           echo "artifact_name_prefix=$artifact_name_prefix" >> $GITHUB_OUTPUT
 
            tar_name="visualization_toolbox_$app_version_short.tar.gz"
            echo "Tar.gz name: $tar_name"
-           echo "::set-output name=tar_name::$tar_name"
+           echo "tar_name=$tar_name" >> $GITHUB_OUTPUT
         
     - name: NPM install 
       run: |
@@ -147,19 +147,19 @@ jobs:
           TARNAME='visualization_toolbox-${{ steps.version_information.outputs.app_version }}.tar.gz'
           TARNAME_NO_WHITESPACE="$(echo -e "${TARNAME}" | tr -d '[:space:]')"
           echo "$TARNAME_NO_WHITESPACE"
-          echo "::set-output name=slim_package_name::$TARNAME_NO_WHITESPACE"
+          echo "slim_package_name=$TARNAME_NO_WHITESPACE" >> $GITHUB_OUTPUT
           ls /home/runner/work/visualization_toolbox/staging_AppPackaging-results/
           cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/
           tar_checksum=$(sha256sum $TARNAME_NO_WHITESPACE | awk '{print $1}')
           echo "Checksums:"
           find . -maxdepth 1 -type f -exec sha256sum {} \;
-          echo "::set-output name=tar_checksum::$tar_checksum"
+          echo "tar_checksum=$tar_checksum" >> $GITHUB_OUTPUT
           sha256sum $TARNAME_NO_WHITESPACE > $TARNAME_NO_WHITESPACE.sha256
           
     - name: Upload artifacts - Packagingtoolkit results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-       name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_app-package
+       name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}_app-package
        path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results    
 
     - name: slim validate App
@@ -184,7 +184,7 @@ jobs:
           cp -v inspect.yml staging_AppInspect-results//
 
     - name: Upload artifacts - AppInspect results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results
+       name: ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}_AppInspect-results
        path: /home/runner/work/visualization_toolbox/staging_AppInspect-results/
