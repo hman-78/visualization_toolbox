@@ -67,11 +67,10 @@ npm run build
 rm -rf node_modules
 ```
 
-### Workflow for contribute to new app release
-* Create pull request to merge your new code to `test` branch and request review
-* Test the build app on a splunk instance
-* run the manual Appinspect tests
-* Create pull request to `main` branch and request review
+### Workflow for releasing a new app version
+* Modify the ```app.manifest``` and ```./default/app.conf``` files with the new desired version number
+* Navigate to ```https://github.com/hman-78/visualization_toolbox/actions```, select the ```ReleaseApp``` workflow and run it.
+* The github workflow will automatically create a new release and a new tag and they will be available in ```https://github.com/hman-78/visualization_toolbox/releases```
 
 
 ## Version support

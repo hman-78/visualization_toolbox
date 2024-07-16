@@ -105,8 +105,6 @@ jobs:
       with:
        name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}
        path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results
-       run: |
-           echo "artifact_full_file_name= ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}" >> $GITHUB_OUTPUT
     - name: slim validate App
       run: |
           cd /home/runner/work/visualization_toolbox/staging_AppPackaging-results/ 
