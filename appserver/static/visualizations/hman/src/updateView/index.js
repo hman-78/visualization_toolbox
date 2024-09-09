@@ -1,4 +1,5 @@
 const echarts = require('echarts');
+const SplunkVisualizationUtils = require('api/SplunkVisualizationUtils');
 
 // Implement updateView to render a visualization.
 // This function is called whenever search results are updated or the visualization format changes. It handles visualization rendering
@@ -25,7 +26,9 @@ const _updateView = function (data, config) {
   const dedicatedMqttClient = this._initializeMQTT(echartProps);
   tmpChart['id'] = echartProps.echartUniqueId;
   tmpChart['_data'] = data;
-  tmpChart['instanceByDom'] = echarts.init(this.el)
+
+  const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
+  tmpChart['instanceByDom'] = echarts.init(this.el, currentTheme)
   if(typeof dedicatedMqttClient !== 'undefined') {
     tmpChart['mqttClient'] = dedicatedMqttClient.mqttClient;
     tmpChart['mqttTopic'] = dedicatedMqttClient.mqttTopic;
