@@ -1,10 +1,4 @@
 const _buildBoxplotOption = function (data, config) {
-  const originalDataRows = data.rows;
-  const originalDataFields = data.fields;
-  console.log('Enter the boxplot option!');
-  console.log(data.rows)
-  console.log(`originalDataRows: ${originalDataRows}`)
-  console.log(`originalDataFields: ${JSON.stringify(originalDataFields)}`)
   var configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
 
   var option = {};
