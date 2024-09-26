@@ -1,7 +1,5 @@
 const _buildBoxplotOption = function (data, config) {
   var configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-  var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
-  var configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
 
   var option = {};
   option = this._parseOption(configOption);
@@ -10,7 +8,6 @@ const _buildBoxplotOption = function (data, config) {
   }
 
   // initialize numbers
-
   var numberOfBoxplots = data.rows[0].length;
   var numberOfCategories = Number(data.rows[7][0]);
   var numberOfGroups = Number(numberOfBoxplots / numberOfCategories);
@@ -19,33 +16,49 @@ const _buildBoxplotOption = function (data, config) {
     numberOfOutliers = data.rows.length - 8;
   }
 
-
   // data mapping xAxis
   option.xAxis.data = [];
-  for (let i = 0; i < numberOfGroups; i++) {
-    option.xAxis.data[i] = data.rows[6][i * numberOfCategories];
+  let deduplicatedXaxisData = [...new Set(data.rows[6])].sort();
+  for (let i = 0; i < deduplicatedXaxisData.length; i++) {
+    option.xAxis.data[i] = deduplicatedXaxisData[i];
+  }
+
+  // data mapping dynamic categories
+  let deduplicatedCategories = [...new Set(data.rows[5])].sort();
+
+  let extractedColumnsArray = [];
+  for (let i = 0; i < data.rows[0].length; i++) {
+    var temporaryColumn = data.rows.map(d => d[i]);
+    extractedColumnsArray.push(temporaryColumn);
   }
 
   // initialization of series
   option.series = [];
-  for (let i = 0; i < numberOfCategories; i++) {
-    let tmpSerie = {};
-    // Name of series is the category
-    tmpSerie["name"] = data.rows[5][i];
-    tmpSerie["type"] = 'boxplot';
-    tmpSerie["data"] = [];
-    for (let j = 0; j < numberOfGroups; j++) {
-      var column = (j * numberOfCategories) + i;
-      var dataElement = {};
-      dataElement["name"] = data.rows[6][column];
-      dataElement["value"] = [];
-      for (let k = 0; k < 5; k++) {
-        dataElement.value.push(data.rows[k][column]);
-      }
-      tmpSerie.data.push(dataElement);
+  for(let i = 0; i < deduplicatedCategories.length; i++) {
+    let tmpCategory = {
+      name: deduplicatedCategories[i],
+      type: 'boxplot',
+      itemStyle: `rgb(${10+3*i}, ${23+5*i}, ${45+1*1})`,
+      data: new Array(option.xAxis.data.length).fill([]).map(()=>new Array(option.xAxis.data.length).fill([]))
     }
-    option.series.push(tmpSerie);
+    let tmpFilteredItems = extractedColumnsArray.filter(x => x[5] == deduplicatedCategories[i]);
+    for (let z = 0; z < tmpFilteredItems.length; z++) {
+      if(tmpFilteredItems[z][5] === deduplicatedCategories[i]) {
+        const tmpNameIdx = option.xAxis.data.findIndex(el => el == tmpFilteredItems[z][6]);
+        if (tmpNameIdx >= 0) {
+          tmpCategory.data[tmpNameIdx] = [
+            tmpFilteredItems[z][0],
+            tmpFilteredItems[z][1],
+            tmpFilteredItems[z][2],
+            tmpFilteredItems[z][3],
+            tmpFilteredItems[z][4]
+          ]
+        }
+      }
+    }
+    option.series.push(tmpCategory);
   }
+
   if (numberOfCategories == 1) {
     //make first series looking nice 
     option.series[0]["itemStyle"] = {};
@@ -62,7 +75,6 @@ const _buildBoxplotOption = function (data, config) {
       for (let j = 0; j < numberOfGroups; j++) {
         var dataValue = data.rows[i + 8][j];
         if ("'-'" != dataValue) {
-
           var oData = [];
           oData.push(data.rows[6][j]);
           oData.push(dataValue);

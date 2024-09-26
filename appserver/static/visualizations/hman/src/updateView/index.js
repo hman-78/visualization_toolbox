@@ -87,6 +87,7 @@ const _updateView = function (data, config) {
     this.evalHook(params, data, config, option, params.event, splunk);
   }
   console.log("this.scopedVariables", this.scopedVariables);
+  console.log(`applied config object: ${JSON.stringify(config)}`);
 }
 
 module.exports = _updateView;
