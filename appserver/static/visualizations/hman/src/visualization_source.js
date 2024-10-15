@@ -33,6 +33,7 @@ the MIT license. See custom_chart_viz-LICENSE.md for additional details.
 
 const _buildBoxplotOption = require('./buildBoxplotOption');
 const _buildCustomOption = require('./buildCustomOption');
+const _buildDynamicOption = require('./buildDynamicOption');
 const _buildSimpleBoxplotOption = require('./buildSimpleBoxplotOption');
 const _createModal = require('./createModal');
 const _drilldownToCategories = require('./drilldownToCategories');
@@ -45,6 +46,7 @@ const _getInitialDataParams = require('./getInitialDataParams');
 const _handleAnnotation = require('./handleAnnotation');
 const _initialize = require('./initialize');
 const _initializeMQTT = require('./initializeMQTT');
+const _parseDynamicIndex = require('./parseDynamicIndex');
 const _parseIndex = require('./parseIndex');
 const _parseOption = require('./parseOption');
 const _reflow = require('./reflow');
@@ -78,6 +80,7 @@ define([
 			scopedVariables,
 			_buildBoxplotOption: _buildBoxplotOption,
 			_buildCustomOption: _buildCustomOption,
+			_buildDynamicOption: _buildDynamicOption,
 			_buildSimpleBoxplotOption: _buildSimpleBoxplotOption,
 			createModal: _createModal,
 			drilldownToCategories: _drilldownToCategories,
@@ -90,6 +93,7 @@ define([
 			_handleAnnotation: _handleAnnotation,
 			initialize: _initialize, // Interface method available in SplunkVisualizationBase.
 			_initializeMQTT: _initializeMQTT,
+			_parseDynamicIndex: _parseDynamicIndex,
 			_parseIndex: _parseIndex,
 			_parseOption: _parseOption,
 			reflow: _reflow, // Interface method available in SplunkVisualizationBase. Implements visualization resizing logic.

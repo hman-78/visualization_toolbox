@@ -41,6 +41,9 @@ const _buildCustomOption = function (data, config) {
     return null;
   }
 
+  // Read echart properties
+  const echartProps = this._getEchartProps(config);
+
   // array with list of comma separated values provided in configXAxisDataIndexBinding
   var xAxisDataIndex = [];
   // array with list of comma separated values provided in configXAxisDataIndexBinding
@@ -48,8 +51,7 @@ const _buildCustomOption = function (data, config) {
 
   xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
   seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
-  //eslint-disable-next-line
-  seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
+  echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
   for (let i = 0; i < seriesDataIndex.length; i++) {
     option.series[i].data = [];
@@ -131,11 +133,9 @@ const _buildCustomOption = function (data, config) {
       // check if seriesColorDataIndexBinding is set
       // if yes map the color of the given row to the item style of the 
       // given series.data entry
-      //eslint-disable-next-line
-      if (!isNaN(seriesColorDataIndexBinding)) {
+      if (!isNaN(echartProps.seriesColorDataIndexBinding)) {
         dataObj['itemStyle'] = {};
-        //eslint-disable-next-line
-        dataObj.itemStyle.color = data.rows[i][seriesColorDataIndexBinding];
+        dataObj.itemStyle.color = data.rows[i][echartProps.seriesColorDataIndexBinding];
       }
       option.series[j].data.push(dataObj);
     }
