@@ -1,3 +1,5 @@
+/*eslint no-unused-vars: "error"*/
+/* exported SplunkVisualizationBase */
 const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
 
 /**

@@ -43,6 +43,8 @@ const _updateView = function (data, config) {
   let option = {};
   if (echartProps.dataType == "Custom") {
     option = this._buildCustomOption(data, config);
+  } else if (echartProps.dataType == "Dynamic") {
+    option = this._buildDynamicOption(data, config);
   } else if (echartProps.dataType == "Boxplot") {
     option = this._buildBoxplotOption(data, config);
   } else if (echartProps.dataType == "SimpleBoxplot") {
