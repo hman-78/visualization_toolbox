@@ -1,4 +1,57 @@
-const _handleAnnotation = function (data, echartProps, option, dedicatedEchart) {
+const _handleAnnotation = function (data, echartProps, option, dedicatedEchart, config) {
+  let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
+  let parsedConfigOption = this._parseOption(configOption);
+  
+  let annotationStyle = {
+    type: 'scatter',
+    symbol: 'pin',
+    symbolSize: 15,
+    itemStyle: {
+      color: '#ff6600', // Set the color of the annotation symbols
+      opacity: 1, // Adjust the opacity of the annotation symbols
+      borderColor: '#000', // Set the border color of the annotation symbols
+      borderWidth: 1 // Set the border width of the annotation symbols
+    },
+    label: {
+      show: true, // Display the annotation text
+      formatter: function (param) {
+        return param.value[2]; // Show the annotation text
+      },
+      position: 'top' // Position the annotation text above the symbols
+    }
+  }
+
+  let annotationSeries = {
+    data: [],
+    name: echartProps.annotationSeriesName + " annotation",
+    type: annotationStyle.type,
+    symbol: annotationStyle.symbol,
+    symbolSize: annotationStyle.symbolSize,
+    itemStyle: annotationStyle.itemStyle,
+    label: annotationStyle.label
+  };
+
+  // https://echarts.apache.org/en/option.html#series
+  const otherSeriesStyleOptions = [
+    "lineStyle",
+    "areaStyle",
+    "emphasis",
+    "cursor",
+    "markPoint"
+  ];
+  
+  if (parsedConfigOption != null && parsedConfigOption.constructor.name === "Object" && typeof parsedConfigOption.annotationStyleTemplate !== 'undefined') {
+    for (const [key, value] of Object.entries(parsedConfigOption.annotationStyleTemplate)) {
+      if(key in annotationStyle) {
+        annotationStyle.key = value;
+      } else {
+        // Add other styling options to the series
+        if(otherSeriesStyleOptions.includes(key)) {
+          annotationSeries[key] = value;
+        }
+      }
+    }
+  }
   // first index points to x, second to y and third to the index of the annotation
   let annotationSeriesDataIndexBinding = echartProps.annotationSeriesDataIndexBinding;
   let annotationSeriesDataIndex = this._parseIndex(annotationSeriesDataIndexBinding);;
@@ -105,34 +158,13 @@ const _handleAnnotation = function (data, echartProps, option, dedicatedEchart) 
   }).call(this, option));
 
   if (annotationSeriesDataIndexBinding == null) {
-    var error = "Missing configuration. Please provide a config named 'annotationSeriesDataIndexBinding' with the index of the column that contains the annotation data.";
+    let error = "Missing configuration. Please provide a config named 'annotationSeriesDataIndexBinding' with the index of the column that contains the annotation data.";
     throw error;
   } else {
-    var annotationSeries = {
-      type: 'scatter',
-      symbol: 'pin',
-      symbolSize: 15,
-      data: [],
-      itemStyle: {
-        color: '#ff6600', // Set the color of the annotation symbols
-        opacity: 1, // Adjust the opacity of the annotation symbols
-        borderColor: '#000', // Set the border color of the annotation symbols
-        borderWidth: 1 // Set the border width of the annotation symbols
-      },
-      label: {
-        show: true, // Display the annotation text
-        formatter: function (param) {
-          return param.value[2]; // Show the annotation text
-        },
-        position: 'top' // Position the annotation text above the symbols
-      }
-    };
-    annotationSeries["data"] = [];
-    annotationSeries["name"] = echartProps.annotationSeriesName + " annotation";
     for (let i = 0; i < data.rows.length; i++) {
-      var annotationValue = data.rows[i][annotationSeriesDataIndex[2]];
+      let annotationValue = data.rows[i][annotationSeriesDataIndex[2]];
       if (annotationValue != null && "" != annotationValue && "'-'" != annotationValue) {
-        var annotationData = [];
+        let annotationData = [];
         annotationData.push(data.rows[i][annotationSeriesDataIndex[0]]);
         annotationData.push(data.rows[i][annotationSeriesDataIndex[1]]);
         annotationData.push(data.rows[i][annotationSeriesDataIndex[2]]);
