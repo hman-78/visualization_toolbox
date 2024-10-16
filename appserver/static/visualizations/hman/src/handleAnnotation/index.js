@@ -30,28 +30,20 @@ const _handleAnnotation = function (data, echartProps, option, dedicatedEchart, 
     itemStyle: annotationStyle.itemStyle,
     label: annotationStyle.label
   };
-
-  // https://echarts.apache.org/en/option.html#series
-  const otherSeriesStyleOptions = [
-    "lineStyle",
-    "areaStyle",
-    "emphasis",
-    "cursor",
-    "markPoint"
-  ];
   
+  // https://echarts.apache.org/en/option.html#series Accepted key to annotationSeries 
   if (parsedConfigOption != null && parsedConfigOption.constructor.name === "Object" && typeof parsedConfigOption.annotationStyleTemplate !== 'undefined') {
     for (const [key, value] of Object.entries(parsedConfigOption.annotationStyleTemplate)) {
-      if(key in annotationStyle) {
-        annotationStyle.key = value;
-      } else {
-        // Add other styling options to the series
-        if(otherSeriesStyleOptions.includes(key)) {
-          annotationSeries[key] = value;
+      annotationSeries[key] = value;
+      if(key === 'label') {
+        // Fallback to preserve annotation label formatter function
+        annotationSeries['label']['formatter'] = function (param) {
+          return param.value[2]; // Show the annotation text
         }
       }
     }
   }
+
   // first index points to x, second to y and third to the index of the annotation
   let annotationSeriesDataIndexBinding = echartProps.annotationSeriesDataIndexBinding;
   let annotationSeriesDataIndex = this._parseIndex(annotationSeriesDataIndexBinding);;
