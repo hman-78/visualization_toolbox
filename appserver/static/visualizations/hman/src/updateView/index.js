@@ -71,7 +71,7 @@ const _updateView = function (data, config) {
     tmpChart['instanceByDom'].on('click', onChartClick);
   }
   if (echartProps.annotationSeriesName != null) {
-    this._handleAnnotation(data, echartProps, option, tmpChart);
+    this._handleAnnotation(data, echartProps, option, tmpChart, config);
   }
 
   tmpChart['instanceByDom'].setOption(option);
