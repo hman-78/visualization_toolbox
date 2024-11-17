@@ -29,34 +29,89 @@
  *      
  */
 const _buildCustomOption = function (data, config) {
+  let tmpDynamicSeriesEnabled = false;
   var configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
   var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
   var configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
   var configErrorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "errorDataIndexBinding"];
   var configSeriesColorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesColorDataIndexBinding"];
-
+  
+  // Read echart properties
+  const echartProps = this._getEchartProps(config);
+  
   var option = {};
   option = this._parseOption(configOption);
   if (option == null) {
     return null;
   }
 
+  if(typeof option.dynamicSeriesEnabled !== 'undefined' && option.dynamicSeriesEnabled) {
+    tmpDynamicSeriesEnabled = true;
+  }
+
   // array with list of comma separated values provided in configXAxisDataIndexBinding
-  var xAxisDataIndex = [];
-  // array with list of comma separated values provided in configXAxisDataIndexBinding
+  var xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
+  // array with list of comma separated values provided in configSeriesDataIndexBinding
   var seriesDataIndex = [];
+  var tmpProcessedDynamicSeries = {};
 
-  xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
-  seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
-  //eslint-disable-next-line
-  seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
+  echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
-  for (let i = 0; i < seriesDataIndex.length; i++) {
-    option.series[i].data = [];
-    if (!option.series[i].name) {
-      option.series[i].name = data.fields[seriesDataIndex[i]].name;
+  if(tmpDynamicSeriesEnabled) {
+    tmpProcessedDynamicSeries = this._extractDynamicSeries(configSeriesDataIndexBinding);
+    
+    // Adding the static defined series
+    for (let i = 0; i < tmpProcessedDynamicSeries.staticSeries.length; i++) {
+      option.series[i].data = [];
+      if (!option.series[i].name) {
+        option.series[i].name = data.fields[tmpProcessedDynamicSeries.staticSeries[i]].name;
+      }
+    }
+    for (let i = 0; i < data.rows.length; i++) {
+      for(let j = 0; j < tmpProcessedDynamicSeries.staticSeries.length; j++) {
+        option.series[j].data.push([
+          data.rows[i][0],
+          data.rows[i][tmpProcessedDynamicSeries.staticSeries[j]]
+        ]);
+      }
     }
 
+    // Adding the dynamic defined series
+    let tmpIterationLowerLimit = 0;
+    let tmpIterationUpperLimit = 0;
+    if(tmpProcessedDynamicSeries.dynamicSeries.length === 1 && tmpProcessedDynamicSeries.dynamicSeries[0] === '*') {
+      // We have used * dynamic binding
+      let lastStaticSerieElement = parseInt(tmpProcessedDynamicSeries.staticSeries[tmpProcessedDynamicSeries.staticSeries.length - 1]) + 1;
+      tmpIterationLowerLimit = lastStaticSerieElement;
+      tmpIterationUpperLimit = data.fields.length;
+    } else if(tmpProcessedDynamicSeries.dynamicSeries.length === 2){
+      // We have used tupple dynamic binding
+      tmpIterationLowerLimit = parseInt(tmpProcessedDynamicSeries.dynamicSeries[0]);
+      tmpIterationUpperLimit = parseInt(tmpProcessedDynamicSeries.dynamicSeries[1]) + 1;
+    }
+    for(let j = tmpIterationLowerLimit; j < tmpIterationUpperLimit; j++) {
+      let tmpSerieObj = {
+        name: `${option.dynamicTemplate.name} ${j}`,
+        type: option.dynamicTemplate.type,
+        smooth: option.dynamicTemplate.smooth,
+        data: []
+      };
+      for (let i = 0; i < data.rows.length; i++) {
+        tmpSerieObj.data.push([
+          data.rows[i][0],
+          data.rows[i][j]
+        ])
+      }
+      option.series.push(tmpSerieObj);
+    }
+  } else {
+    seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
+    for (let i = 0; i < seriesDataIndex.length; i++) {
+      option.series[i].data = [];
+      if (!option.series[i].name) {
+        option.series[i].name = data.fields[seriesDataIndex[i]].name;
+      }
+    }
   }
 
   // xAxis can be configured as option.xAxis instance or as option.xAxis[] array
@@ -108,36 +163,35 @@ const _buildCustomOption = function (data, config) {
     }
   }
 
-
-  for (let i = 0; i < data.rows.length; i++) {
-    for (let j = 0; j < seriesDataIndex.length; j++) {
-      var dataObj = {
-        value: 0,
-
-      };
-      if (isNaN(seriesDataIndex[j])) {
-        // map list of rows to an array
-        var mapping = [];
-        var arrayData = [];
-        mapping = seriesDataIndex[j];
-        for (let k = 0; k < mapping.length; k++) {
-          arrayData.push(data.rows[i][mapping[k]]);
+  if(!tmpDynamicSeriesEnabled) {
+    for (let i = 0; i < data.rows.length; i++) {
+      for (let j = 0; j < seriesDataIndex.length; j++) {
+        var dataObj = {
+          value: 0
+        };
+        if (isNaN(seriesDataIndex[j])) {
+          // map list of rows to an array
+          var mapping = [];
+          var arrayData = [];
+          mapping = seriesDataIndex[j];
+          for (let k = 0; k < mapping.length; k++) {
+            arrayData.push(data.rows[i][mapping[k]]);
+          }
+          dataObj.value = arrayData;
+        } else {
+          // map to a single row
+          dataObj.value = data.rows[i][seriesDataIndex[j]];
         }
-        dataObj.value = arrayData;
-      } else {
-        // map to a single row
-        dataObj.value = data.rows[i][seriesDataIndex[j]];
-      }
-      // check if seriesColorDataIndexBinding is set
-      // if yes map the color of the given row to the item style of the 
-      // given series.data entry
-      //eslint-disable-next-line
-      if (!isNaN(seriesColorDataIndexBinding)) {
-        dataObj['itemStyle'] = {};
+        // check if seriesColorDataIndexBinding is set
+        // if yes map the color of the given row to the item style of the 
+        // given series.data entry
         //eslint-disable-next-line
-        dataObj.itemStyle.color = data.rows[i][seriesColorDataIndexBinding];
+        if (!isNaN(echartProps.seriesColorDataIndexBinding)) {
+          dataObj['itemStyle'] = {};
+          dataObj.itemStyle.color = data.rows[i][echartProps.seriesColorDataIndexBinding];
+        }
+        option.series[j].data.push(dataObj);
       }
-      option.series[j].data.push(dataObj);
     }
   }
 
@@ -247,7 +301,6 @@ const _buildCustomOption = function (data, config) {
     // adding value of yAxisIndex to errorSeries
     option.series[option.series.length - 1]["yAxisIndex"] = option.yAxis.length - 1;
   }
-
   return option;
 }
 

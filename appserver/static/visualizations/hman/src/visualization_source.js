@@ -39,6 +39,7 @@ const _drilldownToCategories = require('./drilldownToCategories');
 const _drilldownToCategory = require('./drilldownToCategory');
 const _drilldownToTimeRange = require('./drilldownToTimeRange');
 const _drilldownToTimeRangeAndCategory = require('./drilldownToTimeRangeAndCategory');
+const _extractDynamicSeries = require('./extractDynamicSeries');
 const _formatData = require('./formatData');
 const _getEchartProps = require('./getEchartProps');
 const _getInitialDataParams = require('./getInitialDataParams');
@@ -53,7 +54,7 @@ const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithRetur
 const _sendMQTTMessage = require('./sendMQTTMessage')
 const _setupView = require('./setupView')
 const _updateView = require('./updateView');
-const PrivateVariables = require('./privateVars')
+const PrivateVariables = require('./privateVars');
 
 define([
 	'jquery',
@@ -84,6 +85,7 @@ define([
 			drilldownToCategory: _drilldownToCategory,
 			drilldownToTimeRange: _drilldownToTimeRange,
 			drilldownToTimeRangeAndCategory: _drilldownToTimeRangeAndCategory,
+			_extractDynamicSeries: _extractDynamicSeries,
 			formatData: _formatData, // Interface method available in SplunkVisualizationBase.
 			_getEchartProps: _getEchartProps,
 			getInitialDataParams: _getInitialDataParams, // Interface method available in SplunkVisualizationBase. Indicates how the visualization framework fetches data for the visualization.

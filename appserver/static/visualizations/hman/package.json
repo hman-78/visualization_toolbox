@@ -20,7 +20,7 @@
     "webpack-cli": "5.1.4"
   },
   "dependencies": {
-    "echarts": "5.5.0",
+    "echarts": "5.5.1",
     "jquery": "3.7.1",
     "mqtt": "5.7.1",
     "underscore": "1.13.6"
