@@ -45,6 +45,7 @@ const _getInitialDataParams = require('./getInitialDataParams');
 const _handleAnnotation = require('./handleAnnotation');
 const _initialize = require('./initialize');
 const _initializeMQTT = require('./initializeMQTT');
+const _parseDynamicIndexInput = require('./parseDynamicIndexInput');
 const _parseIndex = require('./parseIndex');
 const _parseOption = require('./parseOption');
 const _reflow = require('./reflow');
@@ -90,6 +91,7 @@ define([
 			_handleAnnotation: _handleAnnotation,
 			initialize: _initialize, // Interface method available in SplunkVisualizationBase.
 			_initializeMQTT: _initializeMQTT,
+			_parseDynamicIndexInput: _parseDynamicIndexInput,
 			_parseIndex: _parseIndex,
 			_parseOption: _parseOption,
 			reflow: _reflow, // Interface method available in SplunkVisualizationBase. Implements visualization resizing logic.

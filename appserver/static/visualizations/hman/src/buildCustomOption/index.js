@@ -28,6 +28,11 @@
  *        of the options
  *      
  */
+
+function generateSeriesData(values, indices) {
+  return indices.filter(index => index >= 0 && index < values.length).map(index => values[index]);
+}
+
 const _buildCustomOption = function (data, config) {
   var configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
   var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
@@ -50,16 +55,52 @@ const _buildCustomOption = function (data, config) {
   var seriesDataIndex = [];
 
   xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
+  console.log('--Before debugging--');
+  console.log('configSeriesDataIndexBinding', configSeriesDataIndexBinding);
   seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
+  const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, data.fields.length);
+  console.log(`theProcessedSeries: ${JSON.stringify(theProcessedSeries)}`);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
-  for (let i = 0; i < seriesDataIndex.length; i++) {
-    option.series[i].data = [];
-    if (!option.series[i].name) {
-      option.series[i].name = data.fields[seriesDataIndex[i]].name;
-    }
+  // Get the last series and remove it from the original option.series array
+  const dynamicSeriesTemplate = option.series.pop();
 
+  // Clone the option.series object by value using structuredClone() into staticSeriesTemplates
+  const staticSeriesTemplates = structuredClone(option.series);
+  
+  // Reinitialize option.series
+  option.series = [];
+
+  for (let i = 0; i < theProcessedSeries.length; i++) {
+    let tmpSeriesObj = {};
+    if(typeof staticSeriesTemplates[i] !== 'undefined') {
+      // Clone the staticSeriesTemplates[i] object by value using structuredClone() into tmpSeriesObj
+      tmpSeriesObj = structuredClone(staticSeriesTemplates[i]);
+    } else {
+      // Clone the dynamicSeriesTemplate object by value using structuredClone() into tmpSeriesObj
+      tmpSeriesObj = structuredClone(dynamicSeriesTemplate);
+    }
+    if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '' || tmpSeriesObj.name === dynamicSeriesTemplate.name) {
+      tmpSeriesObj.name = `${dynamicSeriesTemplate.name}_${i}`;
+    }
+    console.log('Before inserting the data...');
+    for (let j = 0; j < data.rows.length; j++) {
+      const dataRow = data.rows[j];
+      const indexMap = theProcessedSeries[i];
+      if (Array.isArray(indexMap)) {
+        const tmpGeneratedData = generateSeriesData(dataRow, indexMap);
+        tmpSeriesObj.data.push(...tmpGeneratedData);
+      } else if (Number.isInteger(indexMap)) {
+        tmpSeriesObj.data.push(dataRow[indexMap]);
+      } else {
+        throw `The indexMap has an expected value: ${indexMap}. Check configSeriesDataIndexBinding definition!`;
+      }
+    }
+    console.log("Almost there...")
+    option.series.push(tmpSeriesObj);
   }
+
+  console.log('Option.series after...');
 
   // xAxis can be configured as option.xAxis instance or as option.xAxis[] array
   // we map the xAxis option to the array xAxisObjects to make it easier for 
@@ -107,38 +148,6 @@ const _buildCustomOption = function (data, config) {
       option['xAxis'] = xAxisObjects;
     } else {
       option.xAxis = xAxisObjects;
-    }
-  }
-
-
-  for (let i = 0; i < data.rows.length; i++) {
-    for (let j = 0; j < seriesDataIndex.length; j++) {
-      var dataObj = {
-        value: 0,
-
-      };
-      if (isNaN(seriesDataIndex[j])) {
-        // map list of rows to an array
-        var mapping = [];
-        var arrayData = [];
-        mapping = seriesDataIndex[j];
-        for (let k = 0; k < mapping.length; k++) {
-          arrayData.push(data.rows[i][mapping[k]]);
-        }
-        dataObj.value = arrayData;
-      } else {
-        // map to a single row
-        dataObj.value = data.rows[i][seriesDataIndex[j]];
-      }
-      // check if seriesColorDataIndexBinding is set
-      // if yes map the color of the given row to the item style of the 
-      // given series.data entry
-      if (!isNaN(echartProps.seriesColorDataIndexBinding)) {
-        dataObj['itemStyle'] = {};
-        //eslint-disable-next-line
-        dataObj.itemStyle.color = data.rows[i][echartProps.seriesColorDataIndexBinding];
-      }
-      option.series[j].data.push(dataObj);
     }
   }
 
@@ -248,7 +257,7 @@ const _buildCustomOption = function (data, config) {
     // adding value of yAxisIndex to errorSeries
     option.series[option.series.length - 1]["yAxisIndex"] = option.yAxis.length - 1;
   }
-
+  console.log('--Here we should have a debugger point--');
   return option;
 }
 
