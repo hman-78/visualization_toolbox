@@ -62,7 +62,6 @@ function generateCombinations(input, maxValue) {
 }
 
 const _parseDynamicIndexInput = function (input, dataFieldsLength) {
-    console.log('dataFieldsLength', dataFieldsLength);
     if(typeof dataFieldsLength === 'undefined') {
         throw `data.fields.length is undefined!`
     }
@@ -80,7 +79,7 @@ const _parseDynamicIndexInput = function (input, dataFieldsLength) {
                 fixedNrBase = processedFixedNr
             }
         } else if (/^\[(.*?)\]$/.test(segment)) {
-            // Tuple-like pattern [x;y;...]
+            // Tuple-like pattern [x;y;...] // [5;5*;0] [0;5*] [0;5*;6*]
             const tupleContent = segment.match(/^\[(.*?)\]$/)[1];
             const elements = tupleContent.split(';');
             const dynamicTupleElements = generateCombinations(elements, dataFieldsLength);

@@ -55,11 +55,8 @@ const _buildCustomOption = function (data, config) {
   var seriesDataIndex = [];
 
   xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
-  console.log('--Before debugging--');
-  console.log('configSeriesDataIndexBinding', configSeriesDataIndexBinding);
   seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, data.fields.length);
-  console.log(`theProcessedSeries: ${JSON.stringify(theProcessedSeries)}`);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
   // Get the last series and remove it from the original option.series array
@@ -83,7 +80,6 @@ const _buildCustomOption = function (data, config) {
     if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '' || tmpSeriesObj.name === dynamicSeriesTemplate.name) {
       tmpSeriesObj.name = `${dynamicSeriesTemplate.name}_${i}`;
     }
-    console.log('Before inserting the data...');
     for (let j = 0; j < data.rows.length; j++) {
       const dataRow = data.rows[j];
       const indexMap = theProcessedSeries[i];
@@ -96,11 +92,8 @@ const _buildCustomOption = function (data, config) {
         throw `The indexMap has an expected value: ${indexMap}. Check configSeriesDataIndexBinding definition!`;
       }
     }
-    console.log("Almost there...")
     option.series.push(tmpSeriesObj);
   }
-
-  console.log('Option.series after...');
 
   // xAxis can be configured as option.xAxis instance or as option.xAxis[] array
   // we map the xAxis option to the array xAxisObjects to make it easier for 
@@ -257,7 +250,6 @@ const _buildCustomOption = function (data, config) {
     // adding value of yAxisIndex to errorSeries
     option.series[option.series.length - 1]["yAxisIndex"] = option.yAxis.length - 1;
   }
-  console.log('--Here we should have a debugger point--');
   return option;
 }
 
