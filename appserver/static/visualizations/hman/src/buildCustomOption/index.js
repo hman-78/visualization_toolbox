@@ -56,7 +56,8 @@ const _buildCustomOption = function (data, config) {
 
   xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
   seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
-  const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, data.fields.length);
+  const maxIndexNrForDataFields = data.fields.length - 1;
+  const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
   // Get the last series and remove it from the original option.series array

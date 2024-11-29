@@ -61,8 +61,8 @@ function generateCombinations(input, maxValue) {
     return result;
 }
 
-const _parseDynamicIndexInput = function (input, dataFieldsLength) {
-    if(typeof dataFieldsLength === 'undefined') {
+const _parseDynamicIndexInput = function (input, maxIndexNrForDataFields) {
+    if(typeof maxIndexNrForDataFields === 'undefined') {
         throw `data.fields.length is undefined!`
     }
     const result = [];
@@ -82,18 +82,24 @@ const _parseDynamicIndexInput = function (input, dataFieldsLength) {
             // Tuple-like pattern [x;y;...] // [5;5*;0] [0;5*] [0;5*;6*]
             const tupleContent = segment.match(/^\[(.*?)\]$/)[1];
             const elements = tupleContent.split(';');
-            const dynamicTupleElements = generateCombinations(elements, dataFieldsLength);
+            const dynamicTupleElements = generateCombinations(elements, maxIndexNrForDataFields);
             result.push(...dynamicTupleElements);
-        } else if (/^\*$/.test(segment)) {
-            // Handle `*` wildcard
-            const fixedNrRangeLimit = dataFieldsLength; // Adjust range limit as needed
-            for (let i = 1; i <= fixedNrRangeLimit; i++) {
-                let tmpFixedNr = fixedNrBase + i
+        } else if (/^(\d+)\*$/.test(segment)) {
+            // Integer with '*', expand as [n, n+1, n+2, ..., n + 3 (arbitrary extra terms)]
+            const fixedNrRangeLimit = maxIndexNrForDataFields; // Adjust range limit as needed
+            const startingWildcardBase = parseInt(segment.match(/^(\d+)\*$/)[1], 10);
+            let tmpWildcardBase = startingWildcardBase
+            for (let i = 1; i <= fixedNrRangeLimit, tmpWildcardBase <= fixedNrRangeLimit; i++) {
+                let tmpFixedNr = tmpWildcardBase;
                 tmpFixedNr = parseInt(tmpFixedNr, 10);
-                if(tmpFixedNr <= dataFieldsLength) {
+                if(tmpFixedNr <= maxIndexNrForDataFields) {
                     result.push(tmpFixedNr);
                 }
+                tmpWildcardBase++;
             }
+        } else if (/^\*$/.test(segment)) {
+            // Handle `*` wildcard
+            throw `Wildcard * must be prefixed by an integer! Please correct the seriesDataIndexBinding definition!`;
         }
     }
 
