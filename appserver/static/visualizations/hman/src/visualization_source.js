@@ -53,6 +53,7 @@ const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
 const _setupView = require('./setupView')
+const _sharedFunctions = require('./sharedFunctions')
 const _updateView = require('./updateView');
 const PrivateVariables = require('./privateVars')
 
@@ -99,6 +100,7 @@ define([
 			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
 			_sendMQTTMessage: _sendMQTTMessage,
 			setupView: _setupView,
+      _sharedFunctions: _sharedFunctions,
 			updateView: _updateView // Interface method available in SplunkVisualizationBase. Function called to render the visualization.
 		});
 	});

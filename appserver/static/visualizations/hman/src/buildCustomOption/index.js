@@ -29,10 +29,6 @@
  *      
  */
 
-function generateSeriesData(values, indices) {
-  return indices.filter(index => index >= 0 && index < values.length).map(index => values[index]);
-}
-
 const _buildCustomOption = function (data, config) {
   var configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
   var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
@@ -51,11 +47,8 @@ const _buildCustomOption = function (data, config) {
 
   // array with list of comma separated values provided in configXAxisDataIndexBinding
   var xAxisDataIndex = [];
-  // array with list of comma separated values provided in configXAxisDataIndexBinding
-  var seriesDataIndex = [];
 
   xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
-  seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
   const maxIndexNrForDataFields = data.fields.length - 1;
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
@@ -69,6 +62,7 @@ const _buildCustomOption = function (data, config) {
   // Reinitialize option.series
   option.series = [];
 
+  let tmpNameIterator = 0;
   for (let i = 0; i < theProcessedSeries.length; i++) {
     let tmpSeriesObj = {};
     if(typeof staticSeriesTemplates[i] !== 'undefined') {
@@ -77,20 +71,30 @@ const _buildCustomOption = function (data, config) {
     } else {
       // Clone the dynamicSeriesTemplate object by value using structuredClone() into tmpSeriesObj
       tmpSeriesObj = structuredClone(dynamicSeriesTemplate);
+      tmpNameIterator += 1;
     }
-    if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '' || tmpSeriesObj.name === dynamicSeriesTemplate.name) {
-      tmpSeriesObj.name = `${dynamicSeriesTemplate.name}_${i}`;
+    if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
+      tmpSeriesObj.name = `DynamicSeries ${tmpNameIterator}`;
+    } else {
+      tmpSeriesObj.name += ` ${tmpNameIterator}`;
     }
     for (let j = 0; j < data.rows.length; j++) {
       const dataRow = data.rows[j];
       const indexMap = theProcessedSeries[i];
       if (Array.isArray(indexMap)) {
-        const tmpGeneratedData = generateSeriesData(dataRow, indexMap);
+        const tmpGeneratedData = this._sharedFunctions.extractElementsFromArray(dataRow, indexMap);
         tmpSeriesObj.data.push(...tmpGeneratedData);
       } else if (Number.isInteger(indexMap)) {
         tmpSeriesObj.data.push(dataRow[indexMap]);
       } else {
         throw `The indexMap has an expected value: ${indexMap}. Check configSeriesDataIndexBinding definition!`;
+      }
+      // check if seriesColorDataIndexBinding is set
+      // if yes map the color of the given row to the item style of the 
+      // given series.data entry
+      if (!isNaN(echartProps.seriesColorDataIndexBinding)) {
+        tmpSeriesObj['itemStyle'] = {};
+        tmpSeriesObj.itemStyle.color = data.rows[i][echartProps.seriesColorDataIndexBinding];
       }
     }
     option.series.push(tmpSeriesObj);
