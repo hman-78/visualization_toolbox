@@ -1,3 +1,5 @@
+/*eslint no-unused-vars: "error"*/
+/* exported SplunkVisualizationBase */
 const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
 /**
  * To be called from the visualization's click handler, after computing the
@@ -8,7 +10,6 @@ const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
  * 
  *
 */
-/* global SplunkVisualizationBase */
 const _drilldownToTimeRangeAndCategory = function (earliestTime, latestTime, categoryName, categoryValue, browserEvent) {
   var data = {};
   data[categoryName] = categoryValue;

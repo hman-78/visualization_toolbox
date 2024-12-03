@@ -1,3 +1,5 @@
+/*eslint no-unused-vars: "error"*/
+/* exported SplunkVisualizationBase */
 const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
 
 /**
@@ -5,8 +7,6 @@ const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
  * correct category names and values.
  *
  */
-
-/* global SplunkVisualizationBase */
 const _drilldownToCategories = function (categoryNames, categoryValues, browserEvent) {
   var data = {};
   if (categoryNames != null) {

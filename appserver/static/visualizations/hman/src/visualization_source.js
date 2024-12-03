@@ -45,6 +45,7 @@ const _getInitialDataParams = require('./getInitialDataParams');
 const _handleAnnotation = require('./handleAnnotation');
 const _initialize = require('./initialize');
 const _initializeMQTT = require('./initializeMQTT');
+const _parseDynamicIndexInput = require('./parseDynamicIndexInput');
 const _parseIndex = require('./parseIndex');
 const _parseOption = require('./parseOption');
 const _reflow = require('./reflow');
@@ -52,6 +53,7 @@ const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
 const _setupView = require('./setupView')
+const _sharedFunctions = require('./sharedFunctions')
 const _updateView = require('./updateView');
 const PrivateVariables = require('./privateVars')
 
@@ -90,6 +92,7 @@ define([
 			_handleAnnotation: _handleAnnotation,
 			initialize: _initialize, // Interface method available in SplunkVisualizationBase.
 			_initializeMQTT: _initializeMQTT,
+			_parseDynamicIndexInput: _parseDynamicIndexInput,
 			_parseIndex: _parseIndex,
 			_parseOption: _parseOption,
 			reflow: _reflow, // Interface method available in SplunkVisualizationBase. Implements visualization resizing logic.
@@ -97,6 +100,7 @@ define([
 			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
 			_sendMQTTMessage: _sendMQTTMessage,
 			setupView: _setupView,
+      _sharedFunctions: _sharedFunctions,
 			updateView: _updateView // Interface method available in SplunkVisualizationBase. Function called to render the visualization.
 		});
 	});
