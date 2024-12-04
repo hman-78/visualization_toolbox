@@ -35,7 +35,15 @@ const _buildCustomOption = function (data, config) {
   var configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
   var configErrorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "errorDataIndexBinding"];
   var configSeriesColorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesColorDataIndexBinding"];
+  let echartHasDynamicSeries = false;
 
+  if(typeof configSeriesDataIndexBinding !== 'undefined') {
+    echartHasDynamicSeries = true;
+  }
+  
+  // array with list of comma separated values provided in configXAxisDataIndexBinding
+  let seriesDataIndex = [];
+  
   // Read echart properties
   const echartProps = this._getEchartProps(config);
 
@@ -45,12 +53,16 @@ const _buildCustomOption = function (data, config) {
     return null;
   }
 
+  seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
+  console.log(`...seriesDataIndex...`, seriesDataIndex);
+
   // array with list of comma separated values provided in configXAxisDataIndexBinding
   var xAxisDataIndex = [];
 
   xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
   const maxIndexNrForDataFields = data.fields.length - 1;
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
+  console.log(`....theProcessedSeries...`, theProcessedSeries);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
   // Get the last series and remove it from the original option.series array
