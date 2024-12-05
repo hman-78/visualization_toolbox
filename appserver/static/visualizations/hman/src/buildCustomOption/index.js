@@ -36,19 +36,23 @@ const _buildCustomOption = function (data, config) {
   let configErrorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "errorDataIndexBinding"];
   let configSeriesColorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesColorDataIndexBinding"];
   let echartHasDynamicSeries = false;
-
+  let dynamicSeriesTemplate = [];
   if(typeof configSeriesDataIndexBinding !== 'undefined') {
     echartHasDynamicSeries = true;
   }
   
   // Read echart properties
   const echartProps = this._getEchartProps(config);
+  const seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
+  console.log('...seriesDataIndex', seriesDataIndex);
 
   let option = {};
   option = this._parseOption(configOption);
   if (option == null) {
     return null;
   }
+
+  console.log('...option...', option);
 
   // array with list of comma separated values provided in configXAxisDataIndexBinding
   let xAxisDataIndex = [];
@@ -57,8 +61,10 @@ const _buildCustomOption = function (data, config) {
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
-  // Get the last series and remove it from the original option.series array
-  const dynamicSeriesTemplate = option.series.pop();
+  if(echartHasDynamicSeries) {
+    // Get the last series and remove it from the original option.series array
+    dynamicSeriesTemplate = option.series.pop();
+  }
 
   // Clone the option.series object by value using structuredClone() into staticSeriesTemplates
   const staticSeriesTemplates = structuredClone(option.series);
