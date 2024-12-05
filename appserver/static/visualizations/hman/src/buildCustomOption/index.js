@@ -59,6 +59,9 @@ const _buildCustomOption = function (data, config) {
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
+  // Clone the option.series object by value using structuredClone() into staticSeriesTemplates
+  const staticSeriesTemplates = structuredClone(option.series);
+
   if(echartHasDynamicSeries) {
     // Get the last series and remove it from the original option.series array
     dynamicSeriesTemplate = option.series.pop();
@@ -66,11 +69,6 @@ const _buildCustomOption = function (data, config) {
     // Reinitialize option.series
     option.series = [];
   }
-
-  // Clone the option.series object by value using structuredClone() into staticSeriesTemplates
-  const staticSeriesTemplates = structuredClone(option.series);
-
-  console.log('Before the iteration...');
 
   let tmpNameIterator = 0;
   for (let i = 0; i < theProcessedSeries.length; i++) {
