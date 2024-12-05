@@ -61,6 +61,13 @@ const _sharedFunctions = {
         console.error("Error:", error.message);
         throw error; // Rethrow the error for handling elsewhere if needed
     }
+  },
+  hasValidConfiguration: function(str) {
+    // Regular expression to match the correct pattern: numbers or tuples separated by commas
+    const validPattern = /^(?:\d+|\[\d+(?:;\d+)*\])(, *(?:\d+|\[\d+(?:;\d+)*\]))*$/;
+
+    // Test the input against the pattern
+    return validPattern.test(str);
   }
 };
 

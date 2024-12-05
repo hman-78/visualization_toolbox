@@ -37,6 +37,11 @@ const _buildCustomOption = function (data, config) {
   let configSeriesColorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesColorDataIndexBinding"];
   let echartHasDynamicSeries = false;
   let dynamicSeriesTemplate = [];
+
+  if (!this._sharedFunctions.hasValidConfiguration(configSeriesDataIndexBinding)) {
+    throw "Error: wrong configuration for seriesDataIndexBinding! Please check the dashboard source code!"
+  }
+
   if(typeof configSeriesDataIndexBinding !== 'undefined' && this._sharedFunctions.hasDynamicSeries(configSeriesDataIndexBinding)) {
     echartHasDynamicSeries = true;
   }
