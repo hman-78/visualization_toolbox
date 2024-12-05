@@ -39,6 +39,26 @@ const _sharedFunctions = {
       return eval(`(${match[1]})`);
     }
     throw new Error("Invalid input string");
+  },
+  hasDynamicSeries: function(str) {
+    try {
+      // Split the string input into segments by commas
+      const segments = str.split(',');
+      if (segments.length === 0) {
+          throw new Error("Wrong configuration - string input cannot be split into segments by commas!");
+      }
+      // Regex to detect patterns like "5*," "[5;5*;0]" or any wildcard prefixed by an integer
+      const dynamicRangeRegex = /^\d+\*$/;
+      const wildcardTupleRegex = /^\[\d+(;\d+\*?)*\]$/;
+      // Check if any segment matches the patterns
+      const hasDynamicRangeOrWildcard = segments.some(segment => 
+          dynamicRangeRegex.test(segment) || wildcardTupleRegex.test(segment)
+      );
+      return hasDynamicRangeOrWildcard;
+    } catch (error) {
+        console.error("Error:", error.message);
+        throw error; // Rethrow the error for handling elsewhere if needed
+    }
   }
 };
 

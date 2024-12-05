@@ -70,6 +70,11 @@ const _parseDynamicIndexInput = function (input, maxIndexNrForDataFields) {
         return result;
     }
     const segments = input.split(','); // Split input by commas
+
+    if (segments.length === 0) {
+        throw new Error("Wrong configuration - option seriesDataIndexBinding cannot be split into segments by commas!");
+    }
+
     let fixedNrBase = 0;
     for (let segment of segments) {
         segment = segment.trim(); // Remove extra whitespace
