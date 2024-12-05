@@ -1,3 +1,5 @@
+const echarts = require('echarts');
+
 // File with utility functions for shared use across components in the visualization_toolbpx application.
 
 /**
@@ -38,7 +40,7 @@ const _sharedFunctions = {
       // Parse the extracted string into a JavaScript object
       return eval(`(${match[1]})`);
     }
-    throw new Error("Invalid input string");
+    throw new Error("Invalid option input string. Check the dashboard source configuration!");
   },
   hasDynamicSeries: function(str) {
     try {
