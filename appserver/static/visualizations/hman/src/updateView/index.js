@@ -88,19 +88,9 @@ const _updateView = function (data, config) {
   }
   console.log("this.scopedVariables", this.scopedVariables);
 
-  const extractObject = (str) => {
-    // Match everything inside the outermost curly braces
-    const match = str.match(/option\s*=\s*(\{[\s\S]*\});?/);
-    if (match) {
-      // Parse the extracted string into a JavaScript object
-      return eval(`(${match[1]})`);
-    }
-    throw new Error("Invalid input string");
-  };
-
   try {
     const tmpOptionObj = config['display.visualizations.custom.visualization_toolbox.hman.option'];
-    const outputConfigObject = extractObject(tmpOptionObj);
+    const outputConfigObject = this._sharedFunctions.extractObjectFromString(tmpOptionObj);
     console.log('The passed option to visualisation_toolbox is: ', outputConfigObject)
     console.log(outputConfigObject);
   } catch (error) {

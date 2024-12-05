@@ -100,7 +100,7 @@ define([
 			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
 			_sendMQTTMessage: _sendMQTTMessage,
 			setupView: _setupView,
-      _sharedFunctions: _sharedFunctions,
+      		_sharedFunctions: _sharedFunctions,
 			updateView: _updateView // Interface method available in SplunkVisualizationBase. Function called to render the visualization.
 		});
 	});
