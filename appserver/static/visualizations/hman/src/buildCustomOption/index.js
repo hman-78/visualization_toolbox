@@ -30,39 +30,31 @@
  */
 
 const _buildCustomOption = function (data, config) {
-  var configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-  var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
-  var configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
-  var configErrorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "errorDataIndexBinding"];
-  var configSeriesColorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesColorDataIndexBinding"];
+  let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
+  let configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
+  let configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
+  let configErrorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "errorDataIndexBinding"];
+  let configSeriesColorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesColorDataIndexBinding"];
   let echartHasDynamicSeries = false;
 
   if(typeof configSeriesDataIndexBinding !== 'undefined') {
     echartHasDynamicSeries = true;
   }
   
-  // array with list of comma separated values provided in configXAxisDataIndexBinding
-  let seriesDataIndex = [];
-  
   // Read echart properties
   const echartProps = this._getEchartProps(config);
 
-  var option = {};
+  let option = {};
   option = this._parseOption(configOption);
   if (option == null) {
     return null;
   }
 
-  seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
-  console.log(`...seriesDataIndex...`, seriesDataIndex);
-
   // array with list of comma separated values provided in configXAxisDataIndexBinding
-  var xAxisDataIndex = [];
-
+  let xAxisDataIndex = [];
   xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
   const maxIndexNrForDataFields = data.fields.length - 1;
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
-  console.log(`....theProcessedSeries...`, theProcessedSeries);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
   // Get the last series and remove it from the original option.series array
@@ -71,8 +63,10 @@ const _buildCustomOption = function (data, config) {
   // Clone the option.series object by value using structuredClone() into staticSeriesTemplates
   const staticSeriesTemplates = structuredClone(option.series);
   
-  // Reinitialize option.series
-  option.series = [];
+  if(echartHasDynamicSeries) {
+    // Reinitialize option.series
+    option.series = [];
+  }
 
   let tmpNameIterator = 0;
   for (let i = 0; i < theProcessedSeries.length; i++) {
