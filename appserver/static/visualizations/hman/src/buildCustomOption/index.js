@@ -48,8 +48,6 @@ const _buildCustomOption = function (data, config) {
   
   // Read echart properties
   const echartProps = this._getEchartProps(config);
-  const seriesDataIndex = this._parseIndex(configSeriesDataIndexBinding);
-  console.log('...seriesDataIndex', seriesDataIndex);
 
   let option = {};
   option = this._parseOption(configOption);
@@ -85,11 +83,11 @@ const _buildCustomOption = function (data, config) {
       // Clone the dynamicSeriesTemplate object by value using structuredClone() into tmpSeriesObj
       tmpSeriesObj = structuredClone(dynamicSeriesTemplate);
       tmpNameIterator += 1;
-    }
-    if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
-      tmpSeriesObj.name = `DynamicSeries ${tmpNameIterator}`;
-    } else {
-      tmpSeriesObj.name += ` ${tmpNameIterator}`;
+      if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
+        tmpSeriesObj.name = `DynamicSeries ${tmpNameIterator}`;
+      } else {
+        tmpSeriesObj.name += ` ${tmpNameIterator}`;
+      }
     }
     if(typeof tmpSeriesObj.data === 'undefined') {
       tmpSeriesObj.data = [];
