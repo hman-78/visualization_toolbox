@@ -63,6 +63,9 @@ const _sharedFunctions = {
     }
   },
   hasValidConfiguration: function(str) {
+    if(typeof str === 'undefined' || str === '') {
+      return true;
+    }
     // Regular expression to match the correct pattern: numbers or tuples separated by commas
     const validPattern = /^(?:\d+|\[\d+(?:;\d+)*\])(, *(?:\d+|\[\d+(?:;\d+)*\]))*$/;
 
