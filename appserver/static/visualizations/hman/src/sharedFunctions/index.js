@@ -79,7 +79,9 @@ const _sharedFunctions = {
   },
   hasValidConfiguration: function (input) {
 
-    console.log(`input: `, input);
+    if(typeof input !== 'undefined' || input === '') {
+      return true;
+    }
     // Helper functions
     const isInteger = s => /^\d+$/.test(s);
     const isFixedTuple = s => /^\[\d+(;\d+)*\]$/.test(s);
