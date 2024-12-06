@@ -39,6 +39,12 @@ const echarts = require('echarts');
  * Segments with invalid syntax or disallowed combinations (e.g., [0;2][5;6],[7;8*]) are marked as invalid.
  */
 
+// Helper functions
+const isInteger = s => /^\d+$/.test(s);
+const isFixedTuple = s => /^\[\d+(;\d+)*\]$/.test(s);
+const isDynamicRangeTuple = s => /^\[(\d+|\d+\*)(;(\d+|\d+\*))*\]$/.test(s);
+const isWildcardInteger = s => /^\d+\*$/.test(s);
+
 const _sharedFunctions = {
   // Step 1: Filter the `indicesArray` array to include only valid indicesArray.
   // Valid indicesArray are non-negative and less than the length of `arrayToProcess`.
@@ -78,15 +84,10 @@ const _sharedFunctions = {
     }
   },
   hasValidConfiguration: function (input) {
-
-    if(typeof input !== 'undefined' || input === '') {
+    console.log('The input is ', input);
+    if (typeof input === 'undefined' || input === '') {
       return true;
     }
-    // Helper functions
-    const isInteger = s => /^\d+$/.test(s);
-    const isFixedTuple = s => /^\[\d+(;\d+)*\]$/.test(s);
-    const isDynamicRangeTuple = s => /^\[(\d+|\d+\*)(;(\d+|\d+\*))*\]$/.test(s);
-    const isWildcardInteger = s => /^\d+\*$/.test(s);
 
     // Split the input by commas
     const parts = input.split(',');
