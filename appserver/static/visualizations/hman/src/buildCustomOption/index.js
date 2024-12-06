@@ -30,37 +30,48 @@
  */
 
 const _buildCustomOption = function (data, config) {
-  var configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-  var configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
-  var configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
-  var configErrorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "errorDataIndexBinding"];
-  var configSeriesColorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesColorDataIndexBinding"];
+  let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
+  let configXAxisDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"];
+  let configSeriesDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"];
+  let configErrorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "errorDataIndexBinding"];
+  let configSeriesColorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesColorDataIndexBinding"];
+  let echartHasDynamicSeries = false;
+  let dynamicSeriesTemplate = [];
 
+  if (!this._sharedFunctions.hasValidConfiguration(configSeriesDataIndexBinding)) {
+    throw "Error: wrong configuration for seriesDataIndexBinding! Please check the dashboard source code!"
+  }
+
+  if(typeof configSeriesDataIndexBinding !== 'undefined' && this._sharedFunctions.hasDynamicSeries(configSeriesDataIndexBinding)) {
+    echartHasDynamicSeries = true;
+  }
+  
   // Read echart properties
   const echartProps = this._getEchartProps(config);
 
-  var option = {};
+  let option = {};
   option = this._parseOption(configOption);
   if (option == null) {
     return null;
   }
 
   // array with list of comma separated values provided in configXAxisDataIndexBinding
-  var xAxisDataIndex = [];
-
+  let xAxisDataIndex = [];
   xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
   const maxIndexNrForDataFields = data.fields.length - 1;
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
-  // Get the last series and remove it from the original option.series array
-  const dynamicSeriesTemplate = option.series.pop();
-
   // Clone the option.series object by value using structuredClone() into staticSeriesTemplates
   const staticSeriesTemplates = structuredClone(option.series);
-  
-  // Reinitialize option.series
-  option.series = [];
+
+  if(echartHasDynamicSeries) {
+    // Get the last series and remove it from the original option.series array
+    dynamicSeriesTemplate = option.series.pop();
+
+    // Reinitialize option.series
+    option.series = [];
+  }
 
   let tmpNameIterator = 0;
   for (let i = 0; i < theProcessedSeries.length; i++) {
@@ -72,11 +83,14 @@ const _buildCustomOption = function (data, config) {
       // Clone the dynamicSeriesTemplate object by value using structuredClone() into tmpSeriesObj
       tmpSeriesObj = structuredClone(dynamicSeriesTemplate);
       tmpNameIterator += 1;
+      if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
+        tmpSeriesObj.name = `DynamicSeries ${tmpNameIterator}`;
+      } else {
+        tmpSeriesObj.name += ` ${tmpNameIterator}`;
+      }
     }
-    if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
-      tmpSeriesObj.name = `DynamicSeries ${tmpNameIterator}`;
-    } else {
-      tmpSeriesObj.name += ` ${tmpNameIterator}`;
+    if(typeof tmpSeriesObj.data === 'undefined') {
+      tmpSeriesObj.data = [];
     }
     for (let j = 0; j < data.rows.length; j++) {
       const dataRow = data.rows[j];

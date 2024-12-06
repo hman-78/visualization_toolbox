@@ -87,7 +87,14 @@ const _updateView = function (data, config) {
     this.evalHook(params, data, config, option, params.event, splunk);
   }
   console.log("this.scopedVariables", this.scopedVariables);
-  console.log(`applied config object: ${JSON.stringify(config)}`);
+
+  try {
+    const tmpOptionObj = config['display.visualizations.custom.visualization_toolbox.hman.option'];
+    const outputConfigObject = this._sharedFunctions.extractObjectFromString(tmpOptionObj);
+    console.log('The passed option to visualisation_toolbox is: ', outputConfigObject)
+  } catch (error) {
+    console.error(error.message);
+  }
 }
 
 module.exports = _updateView;
