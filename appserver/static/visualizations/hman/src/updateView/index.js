@@ -92,7 +92,6 @@ const _updateView = function (data, config) {
     const tmpOptionObj = config['display.visualizations.custom.visualization_toolbox.hman.option'];
     const outputConfigObject = this._sharedFunctions.extractObjectFromString(tmpOptionObj);
     console.log('The passed option to visualisation_toolbox is: ', outputConfigObject)
-    console.log(outputConfigObject);
   } catch (error) {
     console.error(error.message);
   }
