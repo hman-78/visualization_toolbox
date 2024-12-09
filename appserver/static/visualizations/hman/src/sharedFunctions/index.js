@@ -54,15 +54,6 @@ const _sharedFunctions = {
       // Step 2: Map the valid indicesArray to their corresponding elements in the `arrayToProcess` array.
       .map(index => arrayToProcess[index]);
   },
-  extractObjectFromString: function (str) {
-    // Match everything inside the outermost curly braces
-    const match = str.match(/option\s*=\s*(\{[\s\S]*\});?/);
-    if (match) {
-      // Parse the extracted string into a JavaScript object
-      return eval(`(${match[1]})`);
-    }
-    throw new Error("Invalid option input string. Check the dashboard source configuration!");
-  },
   hasDynamicSeries: function (str) {
     try {
       // Split the string input into segments by commas
