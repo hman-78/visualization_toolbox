@@ -1,5 +1,3 @@
-const echarts = require('echarts');
-
 // File with utility functions for shared use across components in the visualization_toolbpx application.
 
 /**
