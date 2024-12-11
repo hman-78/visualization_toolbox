@@ -87,11 +87,6 @@ const _updateView = function (data, config) {
     this.evalHook(params, data, config, option, params.event, splunk);
   }
   console.log("this.scopedVariables", this.scopedVariables);
-  try {
-    console.log('The passed option to visualisation_toolbox is: ', this._parseOption(config[this.getPropertyNamespaceInfo().propertyNamespace + "option"]));
-  } catch (error) {
-    console.log('The passed option to visualisation_toolbox is: ', config[this.getPropertyNamespaceInfo().propertyNamespace + "option"]);
-  }
 }
 
 module.exports = _updateView;

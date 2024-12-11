@@ -72,10 +72,12 @@ const _buildCustomOption = function (data, config) {
     // Reinitialize option.series
     option.series = [];
   }
+  
 
   let tmpNameIterator = 0;
   for (let i = 0; i < theProcessedSeries.length; i++) {
     let tmpSeriesObj = {};
+
     if(typeof staticSeriesTemplates[i] !== 'undefined') {
       // Clone the staticSeriesTemplates[i] object by value using structuredClone() into tmpSeriesObj
       tmpSeriesObj = structuredClone(staticSeriesTemplates[i]);
@@ -89,9 +91,15 @@ const _buildCustomOption = function (data, config) {
         tmpSeriesObj.name += ` ${tmpNameIterator}`;
       }
     }
+
     if(typeof tmpSeriesObj.data === 'undefined') {
       tmpSeriesObj.data = [];
     }
+    
+    if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
+      tmpSeriesObj.name = data.fields[theProcessedSeries[i]].name || `Series ${tmpNameIterator}`;
+    }
+
     for (let j = 0; j < data.rows.length; j++) {
       const dataRow = data.rows[j];
       const indexMap = theProcessedSeries[i];
@@ -111,7 +119,12 @@ const _buildCustomOption = function (data, config) {
         tmpSeriesObj.itemStyle.color = data.rows[i][echartProps.seriesColorDataIndexBinding];
       }
     }
-    option.series.push(tmpSeriesObj);
+    
+    if(echartHasDynamicSeries) {
+      option.series.push(tmpSeriesObj);
+    } else {
+      option.series[i] = structuredClone(tmpSeriesObj);
+    }
   }
 
   // xAxis can be configured as option.xAxis instance or as option.xAxis[] array
@@ -269,6 +282,7 @@ const _buildCustomOption = function (data, config) {
     // adding value of yAxisIndex to errorSeries
     option.series[option.series.length - 1]["yAxisIndex"] = option.yAxis.length - 1;
   }
+  console.log('Applied option to the visualisation toolbox', option);
   return option;
 }
 
