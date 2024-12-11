@@ -1,3 +1,4 @@
+const cloneDeep = require('lodash.clonedeep');
 /**
  *  Method to map the search data from Splunk to the eChart instance for 'custom' charts. 
  *  
@@ -62,8 +63,8 @@ const _buildCustomOption = function (data, config) {
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
-  // Clone the option.series object by value using structuredClone() into staticSeriesTemplates
-  const staticSeriesTemplates = structuredClone(option.series);
+  // Clone the option.series object by value using cloneDeep() into staticSeriesTemplates
+  const staticSeriesTemplates = cloneDeep(option.series);
 
   if(echartHasDynamicSeries) {
     // Get the last series and remove it from the original option.series array
@@ -79,11 +80,11 @@ const _buildCustomOption = function (data, config) {
     let tmpSeriesObj = {};
 
     if(typeof staticSeriesTemplates[i] !== 'undefined') {
-      // Clone the staticSeriesTemplates[i] object by value using structuredClone() into tmpSeriesObj
-      tmpSeriesObj = structuredClone(staticSeriesTemplates[i]);
+      // Clone the staticSeriesTemplates[i] object by value using cloneDeep() into tmpSeriesObj
+      tmpSeriesObj = cloneDeep(staticSeriesTemplates[i]);
     } else {
-      // Clone the dynamicSeriesTemplate object by value using structuredClone() into tmpSeriesObj
-      tmpSeriesObj = structuredClone(dynamicSeriesTemplate);
+      // Clone the dynamicSeriesTemplate object by value using cloneDeep() into tmpSeriesObj
+      tmpSeriesObj = cloneDeep(dynamicSeriesTemplate);
       tmpNameIterator += 1;
       if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
         tmpSeriesObj.name = `DynamicSeries ${tmpNameIterator}`;
@@ -123,7 +124,7 @@ const _buildCustomOption = function (data, config) {
     if(echartHasDynamicSeries) {
       option.series.push(tmpSeriesObj);
     } else {
-      option.series[i] = structuredClone(tmpSeriesObj);
+      option.series[i] = cloneDeep(tmpSeriesObj);
     }
   }
 
