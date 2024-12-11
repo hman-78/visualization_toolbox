@@ -87,6 +87,7 @@ const _updateView = function (data, config) {
     this.evalHook(params, data, config, option, params.event, splunk);
   }
   console.log("this.scopedVariables", this.scopedVariables);
+  console.log('Applied option on echart instance ', option);
 }
 
 module.exports = _updateView;

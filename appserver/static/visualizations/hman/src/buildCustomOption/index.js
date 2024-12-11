@@ -282,7 +282,6 @@ const _buildCustomOption = function (data, config) {
     // adding value of yAxisIndex to errorSeries
     option.series[option.series.length - 1]["yAxisIndex"] = option.yAxis.length - 1;
   }
-  console.log('Applied option to the visualisation toolbox', option);
   return option;
 }
 
