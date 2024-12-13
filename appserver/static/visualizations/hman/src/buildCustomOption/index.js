@@ -104,7 +104,6 @@ const _buildCustomOption = function (data, config) {
     for (let j = 0; j < data.rows.length; j++) {
       const dataRow = data.rows[j];
       const indexMap = theProcessedSeries[i];
-      const tmpDataObj = {value: 0};
       if (Array.isArray(indexMap)) {
         const tmpGeneratedData = this._sharedFunctions.extractElementsFromArray(dataRow, indexMap);
         tmpSeriesObj.data.push({value: tmpGeneratedData});
