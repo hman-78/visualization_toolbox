@@ -1,3 +1,4 @@
+const cloneDeep = require('lodash.clonedeep');
 /**
  *  Method to map the search data from Splunk to the eChart instance for 'custom' charts. 
  *  
@@ -62,8 +63,8 @@ const _buildCustomOption = function (data, config) {
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
   echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
 
-  // Clone the option.series object by value using structuredClone() into staticSeriesTemplates
-  const staticSeriesTemplates = structuredClone(option.series);
+  // Clone the option.series object by value using cloneDeep() into staticSeriesTemplates
+  const staticSeriesTemplates = cloneDeep(option.series);
 
   if(echartHasDynamicSeries) {
     // Get the last series and remove it from the original option.series array
@@ -72,16 +73,18 @@ const _buildCustomOption = function (data, config) {
     // Reinitialize option.series
     option.series = [];
   }
+  
 
   let tmpNameIterator = 0;
   for (let i = 0; i < theProcessedSeries.length; i++) {
     let tmpSeriesObj = {};
+
     if(typeof staticSeriesTemplates[i] !== 'undefined') {
-      // Clone the staticSeriesTemplates[i] object by value using structuredClone() into tmpSeriesObj
-      tmpSeriesObj = structuredClone(staticSeriesTemplates[i]);
+      // Clone the staticSeriesTemplates[i] object by value using cloneDeep() into tmpSeriesObj
+      tmpSeriesObj = cloneDeep(staticSeriesTemplates[i]);
     } else {
-      // Clone the dynamicSeriesTemplate object by value using structuredClone() into tmpSeriesObj
-      tmpSeriesObj = structuredClone(dynamicSeriesTemplate);
+      // Clone the dynamicSeriesTemplate object by value using cloneDeep() into tmpSeriesObj
+      tmpSeriesObj = cloneDeep(dynamicSeriesTemplate);
       tmpNameIterator += 1;
       if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
         tmpSeriesObj.name = `DynamicSeries ${tmpNameIterator}`;
@@ -89,17 +92,25 @@ const _buildCustomOption = function (data, config) {
         tmpSeriesObj.name += ` ${tmpNameIterator}`;
       }
     }
+
     if(typeof tmpSeriesObj.data === 'undefined') {
       tmpSeriesObj.data = [];
     }
+    
+    if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
+      tmpSeriesObj.name = data.fields[theProcessedSeries[i]].name || `Series ${tmpNameIterator}`;
+    }
+
     for (let j = 0; j < data.rows.length; j++) {
       const dataRow = data.rows[j];
       const indexMap = theProcessedSeries[i];
       if (Array.isArray(indexMap)) {
         const tmpGeneratedData = this._sharedFunctions.extractElementsFromArray(dataRow, indexMap);
-        tmpSeriesObj.data.push(...tmpGeneratedData);
+        tmpSeriesObj.data.push({value: tmpGeneratedData});
       } else if (Number.isInteger(indexMap)) {
-        tmpSeriesObj.data.push(dataRow[indexMap]);
+        tmpSeriesObj.data.push({
+          value: dataRow[indexMap]
+        });
       } else {
         throw `The indexMap has an expected value: ${indexMap}. Check configSeriesDataIndexBinding definition!`;
       }
@@ -111,7 +122,12 @@ const _buildCustomOption = function (data, config) {
         tmpSeriesObj.itemStyle.color = data.rows[i][echartProps.seriesColorDataIndexBinding];
       }
     }
-    option.series.push(tmpSeriesObj);
+    
+    if(echartHasDynamicSeries) {
+      option.series.push(tmpSeriesObj);
+    } else {
+      option.series[i] = cloneDeep(tmpSeriesObj);
+    }
   }
 
   // xAxis can be configured as option.xAxis instance or as option.xAxis[] array

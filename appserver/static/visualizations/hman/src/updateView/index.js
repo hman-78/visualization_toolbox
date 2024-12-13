@@ -87,14 +87,7 @@ const _updateView = function (data, config) {
     this.evalHook(params, data, config, option, params.event, splunk);
   }
   console.log("this.scopedVariables", this.scopedVariables);
-
-  try {
-    const tmpOptionObj = config['display.visualizations.custom.visualization_toolbox.hman.option'];
-    const outputConfigObject = this._sharedFunctions.extractObjectFromString(tmpOptionObj);
-    console.log('The passed option to visualisation_toolbox is: ', outputConfigObject)
-  } catch (error) {
-    console.error(error.message);
-  }
+  console.log('Applied option on echart instance ', option);
 }
 
 module.exports = _updateView;
