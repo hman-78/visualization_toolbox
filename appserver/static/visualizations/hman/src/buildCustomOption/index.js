@@ -104,11 +104,14 @@ const _buildCustomOption = function (data, config) {
     for (let j = 0; j < data.rows.length; j++) {
       const dataRow = data.rows[j];
       const indexMap = theProcessedSeries[i];
+      const tmpDataObj = {value: 0};
       if (Array.isArray(indexMap)) {
         const tmpGeneratedData = this._sharedFunctions.extractElementsFromArray(dataRow, indexMap);
-        tmpSeriesObj.data.push(...tmpGeneratedData);
+        tmpSeriesObj.data.push({value: tmpGeneratedData});
       } else if (Number.isInteger(indexMap)) {
-        tmpSeriesObj.data.push(dataRow[indexMap]);
+        tmpSeriesObj.data.push({
+          value: dataRow[indexMap]
+        });
       } else {
         throw `The indexMap has an expected value: ${indexMap}. Check configSeriesDataIndexBinding definition!`;
       }
