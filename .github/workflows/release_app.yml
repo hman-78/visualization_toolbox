@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
     outputs:
       app_version: ${{ steps.version_information.outputs.app_version }}
       build_number: ${{ steps.version_information.outputs.build_number }}
