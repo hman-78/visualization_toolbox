@@ -2,18 +2,18 @@ name: Node.js CI - Build app
 
 on:
   push:
-    branches: [ "main", "test" ]
+    branches: [ "main", "test", "develop" ]
   pull_request:
     branches: [ "main", "test" ]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x, 22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     outputs:
