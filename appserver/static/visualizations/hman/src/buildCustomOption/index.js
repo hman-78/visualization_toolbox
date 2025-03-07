@@ -87,7 +87,7 @@ const _buildCustomOption = function (data, config) {
       tmpSeriesObj = cloneDeep(dynamicSeriesTemplate);
       tmpNameIterator += 1;
       if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
-        tmpSeriesObj.name = `DynamicSeries ${tmpNameIterator}`;
+        tmpSeriesObj.name = data.fields[theProcessedSeries[i]].name || `DynamicSeries ${tmpNameIterator}`;
       } else {
         tmpSeriesObj.name += ` ${tmpNameIterator}`;
       }
