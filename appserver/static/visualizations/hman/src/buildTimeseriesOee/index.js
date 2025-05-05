@@ -5,11 +5,12 @@
 
 // eslint-disable-next-line
 const echarts = require('echarts');
+const lodashFind = require('lodash.find');
 
 let processedData = [];
-var timestamp = Math.round(new Date().getTime() / 1000);
-var startTime24HoursAgo = timestamp - (24 * 3600);
-console.log('startTime24HoursAgo', startTime24HoursAgo);
+let processedLegends = [];
+let startPositionRight = 50;
+let startPositionTop = 50;
 var processedCategories = [];
 
 function renderItem(params, api) {
@@ -42,12 +43,7 @@ function renderItem(params, api) {
 }
 
 const _buildTimeseriesOption = function (data, config) {
-    console.log('The data of _buildTimeseriesOption', data);
-    console.log('Inside _buildTimeseriesOption', config);
     let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-
-    // Read echart properties
-    //const echartProps = this._getEchartProps(config);
 
     // Check for internalName field -> This field will provide the categories array
     const isInternalNameField = (element) => element.name == 'internal_name';
@@ -80,8 +76,28 @@ const _buildTimeseriesOption = function (data, config) {
 
     data.rows.forEach((tmpRow) => {
         const tmpValue = tmpRow[internalNameIdx];
+        const tmpLegendValue = tmpRow[reasonIdx];
+        const tmpColorValue = tmpRow[colorIdx];
         if(!processedCategories.includes(tmpValue)) {
             processedCategories.push(tmpValue);
+        }
+        if(!lodashFind(processedLegends, {'name': tmpLegendValue})) {
+          processedLegends.push(
+            {
+              type: "text",
+              right: startPositionRight,
+              top: startPositionTop,
+              name: tmpLegendValue,
+              info: "firstLabel",
+              style: {
+                text: tmpLegendValue,
+                font: "bolder 12px monospace",
+                fill: tmpColorValue,
+              },
+              z: 100
+            }
+          );
+          startPositionTop += 15;
         }
     });
 
@@ -145,7 +161,7 @@ const _buildTimeseriesOption = function (data, config) {
         },
         data: processedData
     }];
-    console.log('Before returning from oee', option);
+    option.graphic = processedLegends;
     return option;
 }
 
