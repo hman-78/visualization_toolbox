@@ -79,6 +79,12 @@ const _updateView = function (data, config) {
   tmpChart['instanceByDom'].setOption(option);
   tmpChart['_option'] = option;
 
+  tmpChart['instanceByDom'].on("mouseover", function (params) {
+    if(params.componentType == 'graphic') {
+      console.log("Hover on ", params.name, option.series);
+    }
+  });
+
   var splunk = this;
 
   // Function called by click on chart if option clickHook is enabled
