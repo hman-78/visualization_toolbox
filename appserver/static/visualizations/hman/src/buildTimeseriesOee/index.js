@@ -170,7 +170,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             tooltip: {
                 backgroundColor: 'blue',
                 formatter: function(params) {
-                    console.log('params', params);
                     return `
                         <div style="padding: 10px; background-color: ${params.data.itemStyle.color};">
                             <p><strong>Interval</strong>: ${new Date(params.data.value[1] * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${new Date(params.data.value[2] * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
