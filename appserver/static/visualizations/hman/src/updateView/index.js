@@ -1,5 +1,6 @@
 const echarts = require('echarts');
 const SplunkVisualizationUtils = require('api/SplunkVisualizationUtils');
+//const cloneDeep = require('lodash.clonedeep');
 
 // Implement updateView to render a visualization.
 // This function is called whenever search results are updated or the visualization format changes. It handles visualization rendering
@@ -48,7 +49,7 @@ const _updateView = function (data, config) {
   } else if (echartProps.dataType == "SimpleBoxplot") {
     option = this._buildSimpleBoxplotOption(data, config);
   } else if (echartProps.dataType == "Timeseries") {
-    option = this._buildTimeseriesOption(data, config);
+    option = this._buildTimeseriesOption(data, config, tmpChart['instanceByDom']);
   }
   // tokens might not yet be replaced in the option. In this case we
   // don't want the echart to be shown yet, as it would result in an error.
@@ -78,13 +79,7 @@ const _updateView = function (data, config) {
 
   tmpChart['instanceByDom'].setOption(option);
   tmpChart['_option'] = option;
-
-  tmpChart['instanceByDom'].on("mouseover", function (params) {
-    if(params.componentType == 'graphic') {
-      console.log("Hover on ", params.name, option.series);
-    }
-  });
-
+  
   var splunk = this;
 
   // Function called by click on chart if option clickHook is enabled

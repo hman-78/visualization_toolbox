@@ -12,6 +12,9 @@ let processedLegends = [];
 let startPositionRight = 50;
 let startPositionTop = 50;
 var processedCategories = [];
+let tmpMappedSeries = [];
+let tmpMappedAllRectangles = [];
+let tmpOnlySelectedRectangles = [];
 
 function renderItem(params, api) {
     var categoryIndex = api.value(0);
@@ -37,12 +40,13 @@ function renderItem(params, api) {
             type: 'rect',
             transition: ['shape'],
             shape: rectShape,
-            style: api.style()
+            style: api.style(),
+            styleEmphasis: api.styleEmphasis(),
         }
     );
 }
 
-const _buildTimeseriesOption = function (data, config) {
+const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
 
     // Check for internalName field -> This field will provide the categories array
@@ -74,6 +78,7 @@ const _buildTimeseriesOption = function (data, config) {
         throw "Error: The search result have no end_time field inside!"
     }
 
+    
     data.rows.forEach((tmpRow) => {
         const tmpValue = tmpRow[internalNameIdx];
         const tmpLegendValue = tmpRow[reasonIdx];
@@ -89,6 +94,40 @@ const _buildTimeseriesOption = function (data, config) {
               top: startPositionTop,
               name: tmpLegendValue,
               info: "firstLabel",
+              onclick: function() {
+                alert('The user will navigate away from this page to a custom link...');
+                navigation.navigate("https://google.de", { history: "replace" });
+              }, 
+              onmouseover: function(mouseEvt) {
+                const theOriginalOptions = tmpChartInstance.getOption();
+                theOriginalOptions.yAxis[0].data.forEach((el, idx) => {
+                    tmpMappedSeries.push(idx)
+                })
+                theOriginalOptions.series[0].data.forEach((el, idx) => {
+                    tmpMappedAllRectangles.push(idx);
+                    if(el.name == mouseEvt.target.style.text) {
+                        tmpOnlySelectedRectangles.push(idx)
+                    }
+                })
+                tmpChartInstance.dispatchAction({
+                    type: 'highlight',
+                    seriesIndex: tmpMappedSeries,
+                    dataIndex: tmpMappedAllRectangles
+                });
+                tmpChartInstance.dispatchAction({
+                    type: 'downplay',
+                    seriesIndex: tmpMappedSeries,
+                    dataIndex: tmpOnlySelectedRectangles
+                });
+                tmpOnlySelectedRectangles = [];
+              },
+              onmouseout: function() {
+                tmpChartInstance.dispatchAction({
+                    type: 'downplay',
+                    seriesIndex: tmpMappedSeries,
+                    dataIndex: tmpMappedAllRectangles
+                  });
+              },
               style: {
                 text: tmpLegendValue,
                 font: "bolder 12px monospace",
@@ -121,12 +160,23 @@ const _buildTimeseriesOption = function (data, config) {
         if(tmpProcessedInternalNameIdx < 0) {
             throw 'Error: The search result has malformed internal_name field mapping';
         }
+    
         processedData.push({
             name: tmpReason,
             value: [tmpProcessedInternalNameIdx, tmpStartTime, tmpEndTime, tmpDuration],
             itemStyle: {
-                normal: {
-                    color: tmpColor
+                color: tmpColor,
+            },
+            tooltip: {
+                backgroundColor: 'blue',
+                formatter: function(params) {
+                    console.log('params', params);
+                    return `
+                        <div style="padding: 10px; background-color: ${params.data.itemStyle.color};">
+                            <p><strong>Interval</strong>: ${new Date(params.data.value[1] * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${new Date(params.data.value[2] * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+                            <p><strong>Category</strong>: ${params.data.name}</p>
+                        </div>
+                    `;
                 }
             }
         })
@@ -138,11 +188,13 @@ const _buildTimeseriesOption = function (data, config) {
         return null;
     }
     option.xAxis = {
+        boundaryGap: false,
+        axisLine: { onZero: false },
         min: 1727341200,
         scale: true,
         axisLabel: {
             formatter: function (val) {
-                return Math.max(0, val - 1727341200) + ' ms';
+                return new Date(val * 1000).toLocaleTimeString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
             }
         }
     };
@@ -152,14 +204,18 @@ const _buildTimeseriesOption = function (data, config) {
     option.series = [{
         type: 'custom',
         renderItem: renderItem,
-        itemStyle: {
-            opacity: 0.8
-        },
         encode: {
             x: [startTimeIdx, endTimeIdx],
             y: internalNameIdx
         },
-        data: processedData
+        selectedMode: 'series',
+        data: processedData,
+        emphasis: {
+            itemStyle: {
+                color: 'rgba(255, 246, 246, 0.84)',
+                opacity: '0.15',
+            }
+        }
     }];
     option.graphic = processedLegends;
     return option;
