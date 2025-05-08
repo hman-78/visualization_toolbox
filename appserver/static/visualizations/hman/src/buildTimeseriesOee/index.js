@@ -130,7 +130,8 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
               },
               style: {
                 text: tmpLegendValue,
-                font: "bolder 12px monospace",
+                fontSize: 12,
+                fontFamily: "Splunk Platform Sans",
                 fill: tmpColorValue,
               },
               z: 100
