@@ -9,12 +9,15 @@ const lodashFind = require('lodash.find');
 
 let processedData = [];
 let processedLegends = [];
-let startPositionRight = 50;
-let startPositionTop = 50;
+let startPositionLeft = 0;
 var processedCategories = [];
 let tmpMappedSeries = [];
 let tmpMappedAllRectangles = [];
 let tmpOnlySelectedRectangles = [];
+let tmpLocale = 'en-GB';
+if(typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
+    tmpLocale = window._i18n_locale.locale_name.replace('_', '-');
+}
 
 function renderItem(params, api) {
     var categoryIndex = api.value(0);
@@ -90,13 +93,14 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
           processedLegends.push(
             {
               type: "text",
-              right: startPositionRight,
-              top: startPositionTop,
               name: tmpLegendValue,
-              info: "firstLabel",
+              info: tmpLegendValue,
               onclick: function() {
-                alert('The user will navigate away from this page to a custom link...');
-                navigation.navigate("https://google.de", { history: "replace" });
+                tmpChartInstance.dispatchAction({
+                    type: 'highlight',
+                    seriesIndex: tmpMappedSeries,
+                    dataIndex: tmpMappedAllRectangles
+                });
               }, 
               onmouseover: function(mouseEvt) {
                 const theOriginalOptions = tmpChartInstance.getOption();
@@ -128,16 +132,24 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
                     dataIndex: tmpMappedAllRectangles
                   });
               },
+              textConfig: {
+                position: 'insideTopLeft',
+                layoutRect: {
+                    width: 20,
+                },
+              },
               style: {
                 text: tmpLegendValue,
+                overflow: 'truncate',
                 fontSize: 12,
                 fontFamily: "Splunk Platform Sans",
                 fill: tmpColorValue,
+                x: startPositionLeft,
               },
               z: 100
             }
           );
-          startPositionTop += 15;
+          startPositionLeft += 110;
         }
     });
 
@@ -161,7 +173,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         if(tmpProcessedInternalNameIdx < 0) {
             throw 'Error: The search result has malformed internal_name field mapping';
         }
-    
         processedData.push({
             name: tmpReason,
             value: [tmpProcessedInternalNameIdx, tmpStartTime, tmpEndTime, tmpDuration],
@@ -173,7 +184,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
                 formatter: function(params) {
                     return `
                         <div style="padding: 10px; background-color: ${params.data.itemStyle.color};">
-                            <p><strong>Interval</strong>: ${new Date(params.data.value[1] * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${new Date(params.data.value[2] * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+                            <p><strong>Interval</strong>: ${new Date(params.data.value[1] * 1000).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })} - ${new Date(params.data.value[2] * 1000).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })}</p>
                             <p><strong>Category</strong>: ${params.data.name}</p>
                         </div>
                     `;
@@ -194,7 +205,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         scale: true,
         axisLabel: {
             formatter: function (val) {
-                return new Date(val * 1000).toLocaleTimeString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+                return new Date(val * 1000).toLocaleTimeString([tmpLocale], {year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
             }
         }
     };
@@ -212,12 +223,18 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         data: processedData,
         emphasis: {
             itemStyle: {
-                color: 'rgba(255, 246, 246, 0.84)',
+                //color: 'rgba(255,255,255,0)',
                 opacity: '0.15',
             }
         }
     }];
-    option.graphic = processedLegends;
+    option.graphic = {
+        type: 'group',
+        top: 40,
+        left: 20,
+        bounding: 'all',
+        children: processedLegends,
+    };
     return option;
 }
 
