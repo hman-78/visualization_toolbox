@@ -9,6 +9,8 @@ const lodashFind = require('lodash.find');
 
 let processedData = [];
 let processedLegends = [];
+let manuallyAddedLegends = [];
+let manuallySelectedLegends = {};
 let startPositionLeft = 0;
 var processedCategories = [];
 let tmpMappedSeries = [];
@@ -47,6 +49,54 @@ function renderItem(params, api) {
             styleEmphasis: api.styleEmphasis(),
         }
     );
+}
+
+function showHoveredLegend(tmpChartInstance, params) {
+    const shlOption = tmpChartInstance.getOption();
+    let shlMappedAllRectangles = [];
+    let shlVisibleLegends = [];
+    let shlMappedSeries = [];
+    let shlOnlySelectedRectangles = [];
+    if(typeof shlOption.yAxis !== 'undefined' && typeof shlOption.yAxis[0] !== 'undefined') {
+        shlOption.yAxis[0].data.forEach((el, idx) => {
+            shlMappedSeries.push(idx)
+        })
+    }
+    if(typeof shlOption.legend !== 'undefined' && typeof shlOption.legend[0].selected !== 'undefined') {
+        Object.keys(shlOption.legend[0].selected).forEach((elm) => {
+            if(!shlVisibleLegends.includes(elm) && shlOption.legend[0].selected[elm] == true) {
+                shlVisibleLegends.push(elm);
+            }
+        })
+    }
+
+    if(typeof shlOption.series !== 'undefined' && typeof shlOption.series[0] !== 'undefined' && typeof shlOption.series[0].data !== 'undefined') {
+        shlOption.series[0].data.forEach((el, idx) => {
+            shlMappedAllRectangles.push(idx)
+            if(el.name == params.seriesName) {
+                shlOnlySelectedRectangles.push(idx)
+            }
+        })
+    }
+    if(typeof shlOption.series !== 'undefined' && typeof shlOption.series[0] !== 'undefined' && typeof shlOption.series[0].data !== 'undefined') {
+        shlOption.series[0].data.forEach((el) => {
+            if(params.type == 'highlight') {
+                if(el.name != params.seriesName) {
+                    el.itemStyle.opacity = 0;
+                } else {
+                    el.itemStyle.opacity = 1;
+                }
+            }
+            if(params.type == 'downplay') {
+                if(shlVisibleLegends.includes(el.name)) {
+                    el.itemStyle.opacity = 1;
+                } else {
+                    el.itemStyle.opacity = 0;
+                }
+            }
+        })
+    }
+    tmpChartInstance.setOption(shlOption);
 }
 
 const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
@@ -149,6 +199,15 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
               z: 100
             }
           );
+          manuallyAddedLegends.push({
+            name: tmpLegendValue,
+            icon: 'rect',
+            textStyle: {
+                width: 100,
+                overflow: 'truncate',
+            }
+          });
+          manuallySelectedLegends[tmpLegendValue] = true;
           startPositionLeft += 110;
         }
     });
@@ -198,17 +257,19 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     if (option == null) {
         return null;
     }
-    option.xAxis = {
-        boundaryGap: false,
-        axisLine: { onZero: false },
-        min: 1727341200,
-        scale: true,
-        axisLabel: {
-            formatter: function (val) {
-                return new Date(val * 1000).toLocaleTimeString([tmpLocale], {year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+    option.xAxis = [
+        {
+            boundaryGap: false,
+            axisLine: { onZero: false },
+            min: 1727341200,
+            scale: true,
+            axisLabel: {
+                formatter: function (val) {
+                    return new Date(val * 1000).toLocaleTimeString([tmpLocale], {year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+                }
             }
-        }
-    };
+        },
+    ];
     option.yAxis = {
         data: processedCategories
     };
@@ -224,10 +285,21 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         emphasis: {
             itemStyle: {
                 //color: 'rgba(255,255,255,0)',
-                opacity: '0.15',
+                opacity: '0.25',
             }
         }
     }];
+    processedLegends.forEach((el) => {
+        option.series.push({
+            type: 'line',
+            name: el.name,
+            itemStyle: {
+                color: el.style.fill,
+            },
+            data: [],
+        });
+    })
+    /*
     option.graphic = {
         type: 'group',
         top: 40,
@@ -235,6 +307,31 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         bounding: 'all',
         children: processedLegends,
     };
+    */
+    option.legend = {
+        type: 'scroll',
+        orient: 'horizontal',
+        top: 30,
+        tooltip: {
+            show: true,
+        },
+        selected: manuallySelectedLegends,
+        data: manuallyAddedLegends,
+    }
+    tmpChartInstance.on('highlight', function(params) {
+        if(typeof params.seriesName !== 'undefined') {
+            showHoveredLegend(tmpChartInstance, params);
+        }        
+    });
+    tmpChartInstance.on('downplay', function(params) {
+        if(typeof params.seriesName !== 'undefined') {
+            showHoveredLegend(tmpChartInstance, params);
+        }
+    });
+    tmpChartInstance.on('legendselectchanged', function(params) {
+        console.log('legendselectchanged', params);
+    });
+
     return option;
 }
 
