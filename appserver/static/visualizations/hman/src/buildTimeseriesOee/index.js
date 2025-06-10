@@ -257,6 +257,22 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     if (option == null) {
         return null;
     }
+    option.dataZoom = [
+        {
+            type: 'slider',
+            filterMode: 'weakFilter',
+            showDataShadow: false,
+            top: 400,
+            labelFormatter: '',
+        },
+        {
+            type: 'inside',
+            filterMode: 'weakFilter',
+        }
+    ];
+    option.grid = {
+        height: 300
+    };
     option.xAxis = [
         {
             boundaryGap: false,
@@ -281,6 +297,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             y: internalNameIdx
         },
         selectedMode: 'series',
+        //dimensions: [],
         data: processedData,
         emphasis: {
             itemStyle: {
