@@ -6,6 +6,7 @@
 // eslint-disable-next-line
 const echarts = require('echarts');
 const lodashFind = require('lodash.find');
+const isNumber = value => !isNaN(parseFloat(value)) && isFinite(value);
 
 let processedData = [];
 let processedLegends = [];
@@ -22,9 +23,9 @@ if(typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.loca
 }
 
 function renderItem(params, api) {
-    var categoryIndex = api.value(0);
-    var start = api.coord([api.value(1), categoryIndex]);
-    var end = api.coord([api.value(2), categoryIndex]);
+    var categoryIndex = api.value(3);
+    var start = api.coord([api.value(0), categoryIndex]);
+    var end = api.coord([api.value(1), categoryIndex]);
     var height = api.size([0, 1])[1] * 0.6;
     var rectShape = echarts.graphic.clipRectByRect(
         {
@@ -102,40 +103,41 @@ function showHoveredLegend(tmpChartInstance, params) {
 const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
 
-    // Check for internalName field -> This field will provide the categories array
-    const isInternalNameField = (element) => element.name == 'internal_name';
-    const isReasonField = (element) => element.name == 'category';
-    const isColorField = (element) => element.name == 'fill_color';
-    const isStartTimeField = (element) => element.name == 'start_time';
-    const isEndTimeField = (element) => element.name == 'end_time';
+    // Check for seriesDataIndexBinding option -> This index nr will provide the categories array
+    let configSeriesDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"]); //internal_name idx
 
-    const internalNameIdx = data.fields.findIndex(isInternalNameField);
-    const reasonIdx = data.fields.findIndex(isReasonField);
-    const colorIdx = data.fields.findIndex(isColorField);
-    const startTimeIdx = data.fields.findIndex(isStartTimeField);
-    const endTimeIdx = data.fields.findIndex(isEndTimeField);
+    // Check for startTimeDataIndexBinding option -> This index nr will provide the start_time column index
+    let configStartTimeDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "startTimeDataIndexBinding"]); //start_time idx
 
-    if (internalNameIdx < 0) {
-        throw "Error: The search result have no internal_name field inside!"
-    }
-    if (reasonIdx < 0) {
-        throw "Error: The search result have no category field inside!"
-    }
-    if (colorIdx < 0) {
-        throw "Error: The search result have no fill_color field inside!"
-    }
-    if(startTimeIdx < 0) {
-        throw "Error: The search result have no start_time field inside!"
-    }
-    if(endTimeIdx < 0) {
-        throw "Error: The search result have no end_time field inside!"
-    }
+    // Check for startTimeDataIndexBinding option -> This index nr will provide the end_time column index
+    let configEndTimeDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "endTimeDataIndexBinding"]); //end_time idx
 
+    // Check for colorDataIndexBinding option -> This index nr will provide the color column index
+    let configColorDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "colorDataIndexBinding"]); //end_time idx
+
+    // Check for legendsDataIndexBinding option -> This index nr will provide the legends column index
+    let configLegendsDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "legendsDataIndexBinding"]); //end_time idx
+
+    if(typeof configSeriesDataIndexBinding === 'undefined' || !isNumber(configSeriesDataIndexBinding)) {
+        throw "Error: wrong configuration for seriesDataIndexBinding! Please check the dashboard source code!"
+    }
+    if(typeof configStartTimeDataIndexBinding === 'undefined' || !isNumber(configStartTimeDataIndexBinding)) {
+        throw "Error: wrong configuration for configStartTimeDataIndexBinding! Please check the dashboard source code!"
+    }
+    if(typeof configColorDataIndexBinding === 'undefined' || !isNumber(configColorDataIndexBinding)) {
+        throw "Error: wrong configuration for configColorDataIndexBinding! Please check the dashboard source code!"
+    }
+    if(typeof configEndTimeDataIndexBinding === 'undefined' || !isNumber(configEndTimeDataIndexBinding)) {
+        throw "Error: wrong configuration for configEndTimeDataIndexBinding! Please check the dashboard source code!"
+    }
+    if(typeof configLegendsDataIndexBinding === 'undefined' || !isNumber(configLegendsDataIndexBinding)) {
+        throw "Error: wrong configuration for configLegendsDataIndexBinding! Please check the dashboard source code!"
+    }
     
     data.rows.forEach((tmpRow) => {
-        const tmpValue = tmpRow[internalNameIdx];
-        const tmpLegendValue = tmpRow[reasonIdx];
-        const tmpColorValue = tmpRow[colorIdx];
+        const tmpValue = tmpRow[configSeriesDataIndexBinding];
+        const tmpLegendValue = tmpRow[configLegendsDataIndexBinding];
+        const tmpColorValue = tmpRow[configColorDataIndexBinding];
         if(!processedCategories.includes(tmpValue)) {
             processedCategories.push(tmpValue);
         }
@@ -216,11 +218,11 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     processedCategories = processedCategories.sort().reverse();
 
     data.rows.forEach((tmpRow) => {
-        const tmpInternalName = tmpRow[internalNameIdx];
-        const tmpReason = tmpRow[reasonIdx];
-        const tmpColor = tmpRow[colorIdx];
-        const tmpStartTime = tmpRow[startTimeIdx];
-        const tmpEndTime = tmpRow[endTimeIdx];
+        const tmpInternalName = tmpRow[configSeriesDataIndexBinding];
+        const tmpReason = tmpRow[configLegendsDataIndexBinding];
+        const tmpColor = tmpRow[configColorDataIndexBinding];
+        const tmpStartTime = tmpRow[configStartTimeDataIndexBinding];
+        const tmpEndTime = tmpRow[configEndTimeDataIndexBinding];
         const tmpDuration = tmpEndTime - tmpStartTime;
         const tmpProcessedInternalNameIdx = processedCategories.findIndex((internalCategoryName) => {
             let tmpResult = false;
@@ -234,7 +236,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         }
         processedData.push({
             name: tmpReason,
-            value: [tmpProcessedInternalNameIdx, tmpStartTime, tmpEndTime, tmpDuration],
+            value: [tmpStartTime, tmpEndTime, tmpDuration, tmpProcessedInternalNameIdx],
             itemStyle: {
                 color: tmpColor,
             },
@@ -293,11 +295,11 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         type: 'custom',
         renderItem: renderItem,
         encode: {
-            x: [startTimeIdx, endTimeIdx],
-            y: internalNameIdx
+            x: ['start_time', 'end_time'],
+            y: 'category'
         },
         selectedMode: 'series',
-        //dimensions: [],
+        dimensions: ['start_time', 'end_time', 'duration', 'category'],
         data: processedData,
         emphasis: {
             itemStyle: {
