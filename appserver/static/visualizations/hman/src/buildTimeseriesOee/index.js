@@ -282,30 +282,35 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     };
     option.xAxis = [
         {
+            type: "time",
             boundaryGap: false,
-            axisLine: { onZero: false },
-            min: xAxisDataMinValue,
-            max: xAxisDataMaxValue,
-            scale: true,
-            axisLabel: {
-                formatter: function (val) {
-                    return new Date(val * 1000).toLocaleTimeString([tmpLocale], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
-                }
-            }
+            
         }
     ];
     option.yAxis = {
         data: processedCategories
     };
+    option.dataZoom = [
+        {
+        type: 'slider',
+        start: 50,
+        end: 70
+        },
+        {
+        type: 'inside',
+        start: 50,
+        end: 70
+        }
+    ];
     option.series = [{
         type: 'custom',
         renderItem: renderItem,
         encode: {
-            x: ['start_time', 'end_time'],
+            x: 'start_timex',
             y: 'category'
         },
         selectedMode: 'series',
-        dimensions: ['start_time', 'end_time', 'duration', 'category'],
+        dimensions: ['start_timex', 'end_time', 'duration', 'category'],
         data: processedData,
         emphasis: {
             itemStyle: {
