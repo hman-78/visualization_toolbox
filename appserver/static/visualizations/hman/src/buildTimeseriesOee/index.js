@@ -18,6 +18,9 @@ let tmpMappedSeries = [];
 let tmpMappedAllRectangles = [];
 let tmpOnlySelectedRectangles = [];
 let tmpLocale = 'en-GB';
+let xAxisDataMinValue = '';
+let xAxisDataMaxValue = '';
+let xAxisStartDates = [];
 if(typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
     tmpLocale = window._i18n_locale.locale_name.replace('_', '-');
 }
@@ -234,9 +237,24 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         if(tmpProcessedInternalNameIdx < 0) {
             throw 'Error: The search result has malformed internal_name field mapping';
         }
+        if(xAxisDataMinValue === '') {
+            xAxisDataMinValue = tmpStartTime;
+        } else {
+            if(tmpStartTime < xAxisDataMinValue) {
+                xAxisDataMinValue = tmpStartTime;
+            }
+        }
+        if(xAxisDataMaxValue === '') {
+            xAxisDataMaxValue = tmpEndTime;
+        } else {
+            if(tmpEndTime > xAxisDataMaxValue) {
+                xAxisDataMaxValue = tmpEndTime;
+            }
+        }
+        xAxisStartDates.push(tmpEndTime);
         processedData.push({
             name: tmpReason,
-            value: [tmpStartTime, tmpEndTime, tmpDuration, tmpProcessedInternalNameIdx],
+            value: [parseFloat(tmpStartTime), parseFloat(tmpEndTime), tmpDuration, tmpProcessedInternalNameIdx],
             itemStyle: {
                 color: tmpColor,
             },
@@ -259,19 +277,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     if (option == null) {
         return null;
     }
-    option.dataZoom = [
-        {
-            type: 'slider',
-            filterMode: 'weakFilter',
-            showDataShadow: false,
-            top: 400,
-            labelFormatter: '',
-        },
-        {
-            type: 'inside',
-            filterMode: 'weakFilter',
-        }
-    ];
     option.grid = {
         height: 300
     };
@@ -279,14 +284,15 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         {
             boundaryGap: false,
             axisLine: { onZero: false },
-            min: 1727341200,
+            min: xAxisDataMinValue,
+            max: xAxisDataMaxValue,
             scale: true,
             axisLabel: {
                 formatter: function (val) {
-                    return new Date(val * 1000).toLocaleTimeString([tmpLocale], {year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+                    return new Date(val * 1000).toLocaleTimeString([tmpLocale], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
                 }
             }
-        },
+        }
     ];
     option.yAxis = {
         data: processedCategories
