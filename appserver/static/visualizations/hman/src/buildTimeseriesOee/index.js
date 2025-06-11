@@ -21,7 +21,7 @@ let tmpLocale = 'en-GB';
 let xAxisDataMinValue = '';
 let xAxisDataMaxValue = '';
 let xAxisStartDates = [];
-if(typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
+if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
     tmpLocale = window._i18n_locale.locale_name.replace('_', '-');
 }
 
@@ -61,38 +61,38 @@ function showHoveredLegend(tmpChartInstance, params) {
     let shlVisibleLegends = [];
     let shlMappedSeries = [];
     let shlOnlySelectedRectangles = [];
-    if(typeof shlOption.yAxis !== 'undefined' && typeof shlOption.yAxis[0] !== 'undefined') {
+    if (typeof shlOption.yAxis !== 'undefined' && typeof shlOption.yAxis[0] !== 'undefined') {
         shlOption.yAxis[0].data.forEach((el, idx) => {
             shlMappedSeries.push(idx)
         })
     }
-    if(typeof shlOption.legend !== 'undefined' && typeof shlOption.legend[0].selected !== 'undefined') {
+    if (typeof shlOption.legend !== 'undefined' && typeof shlOption.legend[0].selected !== 'undefined') {
         Object.keys(shlOption.legend[0].selected).forEach((elm) => {
-            if(!shlVisibleLegends.includes(elm) && shlOption.legend[0].selected[elm] == true) {
+            if (!shlVisibleLegends.includes(elm) && shlOption.legend[0].selected[elm] == true) {
                 shlVisibleLegends.push(elm);
             }
         })
     }
 
-    if(typeof shlOption.series !== 'undefined' && typeof shlOption.series[0] !== 'undefined' && typeof shlOption.series[0].data !== 'undefined') {
+    if (typeof shlOption.series !== 'undefined' && typeof shlOption.series[0] !== 'undefined' && typeof shlOption.series[0].data !== 'undefined') {
         shlOption.series[0].data.forEach((el, idx) => {
             shlMappedAllRectangles.push(idx)
-            if(el.name == params.seriesName) {
+            if (el.name == params.seriesName) {
                 shlOnlySelectedRectangles.push(idx)
             }
         })
     }
-    if(typeof shlOption.series !== 'undefined' && typeof shlOption.series[0] !== 'undefined' && typeof shlOption.series[0].data !== 'undefined') {
+    if (typeof shlOption.series !== 'undefined' && typeof shlOption.series[0] !== 'undefined' && typeof shlOption.series[0].data !== 'undefined') {
         shlOption.series[0].data.forEach((el) => {
-            if(params.type == 'highlight') {
-                if(el.name != params.seriesName) {
+            if (params.type == 'highlight') {
+                if (el.name != params.seriesName) {
                     el.itemStyle.opacity = 0;
                 } else {
                     el.itemStyle.opacity = 1;
                 }
             }
-            if(params.type == 'downplay') {
-                if(shlVisibleLegends.includes(el.name)) {
+            if (params.type == 'downplay') {
+                if (shlVisibleLegends.includes(el.name)) {
                     el.itemStyle.opacity = 1;
                 } else {
                     el.itemStyle.opacity = 0;
@@ -121,99 +121,99 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     // Check for legendsDataIndexBinding option -> This index nr will provide the legends column index
     let configLegendsDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "legendsDataIndexBinding"]); //end_time idx
 
-    if(typeof configSeriesDataIndexBinding === 'undefined' || !isNumber(configSeriesDataIndexBinding)) {
+    if (typeof configSeriesDataIndexBinding === 'undefined' || !isNumber(configSeriesDataIndexBinding)) {
         throw "Error: wrong configuration for seriesDataIndexBinding! Please check the dashboard source code!"
     }
-    if(typeof configStartTimeDataIndexBinding === 'undefined' || !isNumber(configStartTimeDataIndexBinding)) {
+    if (typeof configStartTimeDataIndexBinding === 'undefined' || !isNumber(configStartTimeDataIndexBinding)) {
         throw "Error: wrong configuration for configStartTimeDataIndexBinding! Please check the dashboard source code!"
     }
-    if(typeof configColorDataIndexBinding === 'undefined' || !isNumber(configColorDataIndexBinding)) {
+    if (typeof configColorDataIndexBinding === 'undefined' || !isNumber(configColorDataIndexBinding)) {
         throw "Error: wrong configuration for configColorDataIndexBinding! Please check the dashboard source code!"
     }
-    if(typeof configEndTimeDataIndexBinding === 'undefined' || !isNumber(configEndTimeDataIndexBinding)) {
+    if (typeof configEndTimeDataIndexBinding === 'undefined' || !isNumber(configEndTimeDataIndexBinding)) {
         throw "Error: wrong configuration for configEndTimeDataIndexBinding! Please check the dashboard source code!"
     }
-    if(typeof configLegendsDataIndexBinding === 'undefined' || !isNumber(configLegendsDataIndexBinding)) {
+    if (typeof configLegendsDataIndexBinding === 'undefined' || !isNumber(configLegendsDataIndexBinding)) {
         throw "Error: wrong configuration for configLegendsDataIndexBinding! Please check the dashboard source code!"
     }
-    
+
     data.rows.forEach((tmpRow) => {
         const tmpValue = tmpRow[configSeriesDataIndexBinding];
         const tmpLegendValue = tmpRow[configLegendsDataIndexBinding];
         const tmpColorValue = tmpRow[configColorDataIndexBinding];
-        if(!processedCategories.includes(tmpValue)) {
+        if (!processedCategories.includes(tmpValue)) {
             processedCategories.push(tmpValue);
         }
-        if(!lodashFind(processedLegends, {'name': tmpLegendValue})) {
-          processedLegends.push(
-            {
-              type: "text",
-              name: tmpLegendValue,
-              info: tmpLegendValue,
-              onclick: function() {
-                tmpChartInstance.dispatchAction({
-                    type: 'highlight',
-                    seriesIndex: tmpMappedSeries,
-                    dataIndex: tmpMappedAllRectangles
-                });
-              }, 
-              onmouseover: function(mouseEvt) {
-                const theOriginalOptions = tmpChartInstance.getOption();
-                theOriginalOptions.yAxis[0].data.forEach((el, idx) => {
-                    tmpMappedSeries.push(idx)
-                })
-                theOriginalOptions.series[0].data.forEach((el, idx) => {
-                    tmpMappedAllRectangles.push(idx);
-                    if(el.name == mouseEvt.target.style.text) {
-                        tmpOnlySelectedRectangles.push(idx)
-                    }
-                })
-                tmpChartInstance.dispatchAction({
-                    type: 'highlight',
-                    seriesIndex: tmpMappedSeries,
-                    dataIndex: tmpMappedAllRectangles
-                });
-                tmpChartInstance.dispatchAction({
-                    type: 'downplay',
-                    seriesIndex: tmpMappedSeries,
-                    dataIndex: tmpOnlySelectedRectangles
-                });
-                tmpOnlySelectedRectangles = [];
-              },
-              onmouseout: function() {
-                tmpChartInstance.dispatchAction({
-                    type: 'downplay',
-                    seriesIndex: tmpMappedSeries,
-                    dataIndex: tmpMappedAllRectangles
-                  });
-              },
-              textConfig: {
-                position: 'insideTopLeft',
-                layoutRect: {
-                    width: 20,
-                },
-              },
-              style: {
-                text: tmpLegendValue,
-                overflow: 'truncate',
-                fontSize: 12,
-                fontFamily: "Splunk Platform Sans",
-                fill: tmpColorValue,
-                x: startPositionLeft,
-              },
-              z: 100
-            }
-          );
-          manuallyAddedLegends.push({
-            name: tmpLegendValue,
-            icon: 'rect',
-            textStyle: {
-                width: 100,
-                overflow: 'truncate',
-            }
-          });
-          manuallySelectedLegends[tmpLegendValue] = true;
-          startPositionLeft += 110;
+        if (!lodashFind(processedLegends, { 'name': tmpLegendValue })) {
+            processedLegends.push(
+                {
+                    type: "text",
+                    name: tmpLegendValue,
+                    info: tmpLegendValue,
+                    onclick: function () {
+                        tmpChartInstance.dispatchAction({
+                            type: 'highlight',
+                            seriesIndex: tmpMappedSeries,
+                            dataIndex: tmpMappedAllRectangles
+                        });
+                    },
+                    onmouseover: function (mouseEvt) {
+                        const theOriginalOptions = tmpChartInstance.getOption();
+                        theOriginalOptions.yAxis[0].data.forEach((el, idx) => {
+                            tmpMappedSeries.push(idx)
+                        })
+                        theOriginalOptions.series[0].data.forEach((el, idx) => {
+                            tmpMappedAllRectangles.push(idx);
+                            if (el.name == mouseEvt.target.style.text) {
+                                tmpOnlySelectedRectangles.push(idx)
+                            }
+                        })
+                        tmpChartInstance.dispatchAction({
+                            type: 'highlight',
+                            seriesIndex: tmpMappedSeries,
+                            dataIndex: tmpMappedAllRectangles
+                        });
+                        tmpChartInstance.dispatchAction({
+                            type: 'downplay',
+                            seriesIndex: tmpMappedSeries,
+                            dataIndex: tmpOnlySelectedRectangles
+                        });
+                        tmpOnlySelectedRectangles = [];
+                    },
+                    onmouseout: function () {
+                        tmpChartInstance.dispatchAction({
+                            type: 'downplay',
+                            seriesIndex: tmpMappedSeries,
+                            dataIndex: tmpMappedAllRectangles
+                        });
+                    },
+                    textConfig: {
+                        position: 'insideTopLeft',
+                        layoutRect: {
+                            width: 20,
+                        },
+                    },
+                    style: {
+                        text: tmpLegendValue,
+                        overflow: 'truncate',
+                        fontSize: 12,
+                        fontFamily: "Splunk Platform Sans",
+                        fill: tmpColorValue,
+                        x: startPositionLeft,
+                    },
+                    z: 100
+                }
+            );
+            manuallyAddedLegends.push({
+                name: tmpLegendValue,
+                icon: 'rect',
+                textStyle: {
+                    width: 100,
+                    overflow: 'truncate',
+                }
+            });
+            manuallySelectedLegends[tmpLegendValue] = true;
+            startPositionLeft += 110;
         }
     });
 
@@ -229,25 +229,25 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         const tmpDuration = tmpEndTime - tmpStartTime;
         const tmpProcessedInternalNameIdx = processedCategories.findIndex((internalCategoryName) => {
             let tmpResult = false;
-            if(internalCategoryName == tmpInternalName) {
+            if (internalCategoryName == tmpInternalName) {
                 tmpResult = true;
             }
             return tmpResult;
         });
-        if(tmpProcessedInternalNameIdx < 0) {
+        if (tmpProcessedInternalNameIdx < 0) {
             throw 'Error: The search result has malformed internal_name field mapping';
         }
-        if(xAxisDataMinValue === '') {
+        if (xAxisDataMinValue === '') {
             xAxisDataMinValue = tmpStartTime;
         } else {
-            if(tmpStartTime < xAxisDataMinValue) {
+            if (tmpStartTime < xAxisDataMinValue) {
                 xAxisDataMinValue = tmpStartTime;
             }
         }
-        if(xAxisDataMaxValue === '') {
+        if (xAxisDataMaxValue === '') {
             xAxisDataMaxValue = tmpEndTime;
         } else {
-            if(tmpEndTime > xAxisDataMaxValue) {
+            if (tmpEndTime > xAxisDataMaxValue) {
                 xAxisDataMaxValue = tmpEndTime;
             }
         }
@@ -260,7 +260,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             },
             tooltip: {
                 backgroundColor: 'blue',
-                formatter: function(params) {
+                formatter: function (params) {
                     return `
                         <div style="padding: 10px; background-color: ${params.data.itemStyle.color};">
                             <p><strong>Interval</strong>: ${new Date(params.data.value[1] * 1000).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })} - ${new Date(params.data.value[2] * 1000).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })}</p>
@@ -284,7 +284,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         {
             type: "time",
             boundaryGap: false,
-            
         }
     ];
     option.yAxis = {
@@ -292,14 +291,17 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     };
     option.dataZoom = [
         {
-        type: 'slider',
-        start: 50,
-        end: 70
+            type: 'slider',
+            start: 0,
+            end: 100,
+            labelFormatter: function (value) {
+                return new Date(value * 1000).toLocaleTimeString([tmpLocale], {year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+            }
         },
         {
-        type: 'inside',
-        start: 50,
-        end: 70
+            type: 'inside',
+            start: 50,
+            end: 70
         }
     ];
     option.series = [{
@@ -348,17 +350,17 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         selected: manuallySelectedLegends,
         data: manuallyAddedLegends,
     }
-    tmpChartInstance.on('highlight', function(params) {
-        if(typeof params.seriesName !== 'undefined') {
-            showHoveredLegend(tmpChartInstance, params);
-        }        
-    });
-    tmpChartInstance.on('downplay', function(params) {
-        if(typeof params.seriesName !== 'undefined') {
+    tmpChartInstance.on('highlight', function (params) {
+        if (typeof params.seriesName !== 'undefined') {
             showHoveredLegend(tmpChartInstance, params);
         }
     });
-    tmpChartInstance.on('legendselectchanged', function(params) {
+    tmpChartInstance.on('downplay', function (params) {
+        if (typeof params.seriesName !== 'undefined') {
+            showHoveredLegend(tmpChartInstance, params);
+        }
+    });
+    tmpChartInstance.on('legendselectchanged', function (params) {
         console.log('legendselectchanged', params);
     });
 
