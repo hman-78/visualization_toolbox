@@ -1,5 +1,5 @@
 /**
- *  Method to map the search data from Splunk to the eChart instance for 'custom' charts. 
+ *  Method to map the search data from Splunk to the eChart instance for 'custom' timeseries charts. 
  * 
 */
 
@@ -107,19 +107,25 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
 
     // Check for seriesDataIndexBinding option -> This index nr will provide the categories array
-    let configSeriesDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"]); //internal_name idx
+    let configSeriesDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"]);
 
     // Check for startTimeDataIndexBinding option -> This index nr will provide the start_time column index
-    let configStartTimeDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "startTimeDataIndexBinding"]); //start_time idx
+    let configStartTimeDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "startTimeDataIndexBinding"]);
 
     // Check for startTimeDataIndexBinding option -> This index nr will provide the end_time column index
-    let configEndTimeDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "endTimeDataIndexBinding"]); //end_time idx
+    let configEndTimeDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "endTimeDataIndexBinding"]);
 
     // Check for colorDataIndexBinding option -> This index nr will provide the color column index
-    let configColorDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "colorDataIndexBinding"]); //end_time idx
+    let configColorDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "colorDataIndexBinding"]);
 
     // Check for legendsDataIndexBinding option -> This index nr will provide the legends column index
-    let configLegendsDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "legendsDataIndexBinding"]); //end_time idx
+    let configLegendsDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "legendsDataIndexBinding"]);
+
+    // Check for eventMachineIdDataIndexBinding option -> This index nr will provide the eventMachineId url column index
+    let configEventMachineGroupIdDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "eventMachineGroupIdDataIndexBinding"]);
+    
+    // Check for eventUrlDataIndexBinding option -> This index nr will provide the event url column index
+    let configEventUrlDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "eventUrlDataIndexBinding"];
 
     if (typeof configSeriesDataIndexBinding === 'undefined' || !isNumber(configSeriesDataIndexBinding)) {
         throw "Error: wrong configuration for seriesDataIndexBinding! Please check the dashboard source code!"
@@ -151,6 +157,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
                     name: tmpLegendValue,
                     info: tmpLegendValue,
                     onclick: function () {
+                        console.log('Click click')
                         tmpChartInstance.dispatchAction({
                             type: 'highlight',
                             seriesIndex: tmpMappedSeries,
@@ -252,20 +259,23 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             }
         }
         xAxisStartDates.push(tmpEndTime);
-        console.log('tmpStartTime', tmpStartTime);
+        let dynamicValue = [parseFloat(tmpStartTime * 1000), parseFloat(tmpEndTime * 1000), tmpDuration, tmpProcessedInternalNameIdx];
+        if (typeof configEventMachineGroupIdDataIndexBinding !== 'undefined' && isNumber(configEventMachineGroupIdDataIndexBinding)) {
+            dynamicValue.push(tmpRow[configEventMachineGroupIdDataIndexBinding]);
+        }
         processedData.push({
             name: tmpReason,
-            value: [parseFloat(tmpStartTime * 1000), parseFloat(tmpEndTime * 1000), tmpDuration, tmpProcessedInternalNameIdx],
+            value: dynamicValue,
             itemStyle: {
                 color: tmpColor,
             },
             tooltip: {
-                backgroundColor: 'blue',
+                backgroundColor: '#000',
                 formatter: function (params) {
                     return `
-                        <div style="padding: 10px; background-color: ${params.data.itemStyle.color};">
-                            <p><strong>Interval</strong>: ${new Date(params.data.value[1] * 1000).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })} - ${new Date(params.data.value[2] * 1000).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })}</p>
-                            <p><strong>Category</strong>: ${params.data.name}</p>
+                        <div style="padding: 10px; background-color: #010203;">
+                            <p style="color: white;"><strong>Interval</strong>: ${new Date(params.data.value[1] * 1000).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })} - ${new Date(params.data.value[2] * 1000).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })}</p>
+                            <p style="color: white;"><strong>Category</strong>: ${params.data.name}</p>
                         </div>
                     `;
                 }
@@ -298,7 +308,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
                 },
                 rich: {
                     yearStyle: {
-                        // Make yearly text more standing out
                         color: '#000',
                         fontWeight: 'bold'
                     },
@@ -307,7 +316,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
                     },
                     dayStyle: {
                         fontWeight: 'bold',
-                        color: 'red'
+                        color: '#010203'
                     }
                 }
             }
@@ -343,7 +352,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         data: processedData,
         emphasis: {
             itemStyle: {
-                //color: 'rgba(255,255,255,0)',
                 opacity: '0.25',
             }
         }
@@ -358,18 +366,13 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             data: [],
         });
     })
-    /*
-    option.graphic = {
-        type: 'group',
-        top: 40,
-        left: 20,
-        bounding: 'all',
-        children: processedLegends,
-    };
-    */
     option.legend = {
         type: 'scroll',
         orient: 'horizontal',
+        textStyle: {
+            color: '#010203',
+            fontSize: 13,
+        },
         top: 30,
         tooltip: {
             show: true,
@@ -389,6 +392,20 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     });
     tmpChartInstance.on('legendselectchanged', function (params) {
         console.log('legendselectchanged', params);
+    });
+
+    tmpChartInstance.on('click', 'series', function (params) {
+        if (typeof configEventUrlDataIndexBinding !== 'undefined' || configEventUrlDataIndexBinding !== '') {
+            let dynamicEventUrl = configEventUrlDataIndexBinding;
+            if(configEventUrlDataIndexBinding.includes('{eventMachineGroupId}') && configEventUrlDataIndexBinding.includes('{eventStartTime}')) {
+                if (typeof configEventMachineGroupIdDataIndexBinding === 'undefined' || !isNumber(configEventMachineGroupIdDataIndexBinding)) {
+                    throw "Error: wrong configuration for eventMachineIdDataIndexBinding! Please check the dashboard source code!"
+                }
+                dynamicEventUrl = dynamicEventUrl.replace('{eventMachineGroupId}', params.value[params.value.length-1]);
+                dynamicEventUrl = dynamicEventUrl.replace('{eventStartTime}', params.value[0]);
+            }
+            window.open(dynamicEventUrl);
+        }
     });
 
     return option;
