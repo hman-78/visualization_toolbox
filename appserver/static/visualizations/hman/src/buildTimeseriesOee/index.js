@@ -252,9 +252,10 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             }
         }
         xAxisStartDates.push(tmpEndTime);
+        console.log('tmpStartTime', tmpStartTime);
         processedData.push({
             name: tmpReason,
-            value: [parseFloat(tmpStartTime), parseFloat(tmpEndTime), tmpDuration, tmpProcessedInternalNameIdx],
+            value: [parseFloat(tmpStartTime * 1000), parseFloat(tmpEndTime * 1000), tmpDuration, tmpProcessedInternalNameIdx],
             itemStyle: {
                 color: tmpColor,
             },
@@ -284,6 +285,32 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         {
             type: "time",
             boundaryGap: false,
+            axisLabel: {
+                color: '#3c444d',
+                fontFamily: "Splunk Platform Sans",
+                fontSize: 14,
+                formatter: {
+                    year: '{yyyy}',
+                    month: '{MMM}',
+                    day: '{dayStyle|{d} {MMM}}',
+                    hour: '{HH}:{mm}',
+                    minute: '{HH}:{mm}',
+                },
+                rich: {
+                    yearStyle: {
+                        // Make yearly text more standing out
+                        color: '#000',
+                        fontWeight: 'bold'
+                    },
+                    monthStyle: {
+                        color: '#999'
+                    },
+                    dayStyle: {
+                        fontWeight: 'bold',
+                        color: 'red'
+                    }
+                }
+            }
         }
     ];
     option.yAxis = {
@@ -295,7 +322,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             start: 0,
             end: 100,
             labelFormatter: function (value) {
-                return new Date(value * 1000).toLocaleTimeString([tmpLocale], {year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+                return new Date(value).toLocaleTimeString([tmpLocale], {year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
             }
         },
         {
@@ -308,11 +335,11 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         type: 'custom',
         renderItem: renderItem,
         encode: {
-            x: 'start_timex',
+            x: 'start_time',
             y: 'category'
         },
         selectedMode: 'series',
-        dimensions: ['start_timex', 'end_time', 'duration', 'category'],
+        dimensions: ['start_time', 'end_time', 'duration', 'category'],
         data: processedData,
         emphasis: {
             itemStyle: {
