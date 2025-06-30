@@ -76,7 +76,11 @@ const _updateView = function (data, config) {
   if (echartProps.annotationSeriesName != null) {
     this._handleAnnotation(data, echartProps, option, tmpChart, config);
   }
-
+  if(typeof option.textStyle === 'undefined') {
+    option.textStyle = {
+      fontFamily: "Splunk Platform Sans"
+    }
+  }
   tmpChart['instanceByDom'].setOption(option);
   tmpChart['_option'] = option;
   
