@@ -104,22 +104,29 @@ function showHoveredLegend(tmpChartInstance, params) {
 }
 
 const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
+    
+    console.log('_buildTimeseriesOption...');
+    
+    if (typeof data.fields === 'undefined' || data.fields.length < 4) {
+        throw "Error: This visualization needs at least 5 different fields (start_time, end_time, internal_name, category, fill_color)! Please check the query results!"
+    }
+    
+    // Read start_time from data.fields[0]
+    let configStartTimeDataIndexBinding = 0;
+
+    // Read the end_time from data.fields[1]
+    let configEndTimeDataIndexBinding = 1;
+
+    // Read the series name from data.fields[2]
+    let configSeriesDataIndexBinding = 2;
+
+    // Read the legends name from data.fields[3]
+    let configLegendsDataIndexBinding = 3;
+
+    // Read the fill_color from data.fields[4]
+    let configColorDataIndexBinding = 4;
+
     let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-
-    // Check for seriesDataIndexBinding option -> This index nr will provide the categories array
-    let configSeriesDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"]);
-
-    // Check for startTimeDataIndexBinding option -> This index nr will provide the start_time column index
-    let configStartTimeDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "startTimeDataIndexBinding"]);
-
-    // Check for startTimeDataIndexBinding option -> This index nr will provide the end_time column index
-    let configEndTimeDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "endTimeDataIndexBinding"]);
-
-    // Check for colorDataIndexBinding option -> This index nr will provide the color column index
-    let configColorDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "colorDataIndexBinding"]);
-
-    // Check for legendsDataIndexBinding option -> This index nr will provide the legends column index
-    let configLegendsDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "legendsDataIndexBinding"]);
 
     // Check for eventMachineIdDataIndexBinding option -> This index nr will provide the eventMachineId url column index
     let configEventMachineGroupIdDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "eventMachineGroupIdDataIndexBinding"]);
@@ -289,7 +296,10 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         return null;
     }
     option.grid = {
-        height: 300
+        height: 300,
+        left: '5%',
+        top: 80,
+        containLabel: true,
     };
     option.xAxis = [
         {
@@ -340,6 +350,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             end: 70
         }
     ];
+    //These 2 keys (option.series and option.legend) cannot be overwritten from dashboard source code
     option.series = [{
         type: 'custom',
         renderItem: renderItem,
@@ -367,16 +378,11 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         });
     })
     option.legend = {
-        type: 'scroll',
-        orient: 'horizontal',
         textStyle: {
             color: '#010203',
             fontSize: 13,
         },
         top: 30,
-        tooltip: {
-            show: true,
-        },
         selected: manuallySelectedLegends,
         data: manuallyAddedLegends,
     }
