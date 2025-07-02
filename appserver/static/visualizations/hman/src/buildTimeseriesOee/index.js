@@ -86,7 +86,7 @@ function showHoveredLegend(tmpChartInstance, params) {
         shlOption.series[0].data.forEach((el) => {
             if (params.type == 'highlight') {
                 if (el.name != params.seriesName) {
-                    el.itemStyle.opacity = 0;
+                    el.itemStyle.opacity = 0.045;
                 } else {
                     el.itemStyle.opacity = 1;
                 }
@@ -95,7 +95,7 @@ function showHoveredLegend(tmpChartInstance, params) {
                 if (shlVisibleLegends.includes(el.name)) {
                     el.itemStyle.opacity = 1;
                 } else {
-                    el.itemStyle.opacity = 0;
+                    el.itemStyle.opacity = 0.045;
                 }
             }
         })
@@ -133,22 +133,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     
     // Check for eventUrlDataIndexBinding option -> This index nr will provide the event url column index
     let configEventUrlDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "eventUrlDataIndexBinding"];
-
-    if (typeof configSeriesDataIndexBinding === 'undefined' || !isNumber(configSeriesDataIndexBinding)) {
-        throw "Error: wrong configuration for seriesDataIndexBinding! Please check the dashboard source code!"
-    }
-    if (typeof configStartTimeDataIndexBinding === 'undefined' || !isNumber(configStartTimeDataIndexBinding)) {
-        throw "Error: wrong configuration for configStartTimeDataIndexBinding! Please check the dashboard source code!"
-    }
-    if (typeof configColorDataIndexBinding === 'undefined' || !isNumber(configColorDataIndexBinding)) {
-        throw "Error: wrong configuration for configColorDataIndexBinding! Please check the dashboard source code!"
-    }
-    if (typeof configEndTimeDataIndexBinding === 'undefined' || !isNumber(configEndTimeDataIndexBinding)) {
-        throw "Error: wrong configuration for configEndTimeDataIndexBinding! Please check the dashboard source code!"
-    }
-    if (typeof configLegendsDataIndexBinding === 'undefined' || !isNumber(configLegendsDataIndexBinding)) {
-        throw "Error: wrong configuration for configLegendsDataIndexBinding! Please check the dashboard source code!"
-    }
 
     data.rows.forEach((tmpRow) => {
         const tmpValue = tmpRow[configSeriesDataIndexBinding];
