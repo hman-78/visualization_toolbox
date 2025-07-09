@@ -53,6 +53,7 @@ const _reflow = require('./reflow');
 const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
+const _setCustomTokens = require('./setCustomTokens')
 const _setupView = require('./setupView')
 const _sharedFunctions = require('./sharedFunctions')
 const _updateView = require('./updateView');
@@ -100,6 +101,7 @@ define([
 			reflow: _reflow, // Interface method available in SplunkVisualizationBase. Implements visualization resizing logic.
 			selfModifiyingOption: _selfModifiyingOption,
 			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
+			_setCustomTokens: _setCustomTokens,
 			_sendMQTTMessage: _sendMQTTMessage,
 			setupView: _setupView,
       		_sharedFunctions: _sharedFunctions,
