@@ -6,7 +6,6 @@
 // eslint-disable-next-line
 const echarts = require('echarts');
 const lodashFind = require('lodash.find');
-const isNumber = value => !isNaN(parseFloat(value)) && isFinite(value);
 
 let processedData = [];
 let processedLegends = [];
@@ -24,6 +23,8 @@ let xAxisStartDates = [];
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
     tmpLocale = window._i18n_locale.locale_name.replace('_', '-');
 }
+
+
 
 function renderItem(params, api) {
     var categoryIndex = api.value(3);
@@ -86,7 +87,7 @@ function showHoveredLegend(tmpChartInstance, params) {
         shlOption.series[0].data.forEach((el) => {
             if (params.type == 'highlight') {
                 if (el.name != params.seriesName) {
-                    el.itemStyle.opacity = 0.045;
+                    el.itemStyle.opacity = 0.06;
                 } else {
                     el.itemStyle.opacity = 1;
                 }
@@ -95,7 +96,7 @@ function showHoveredLegend(tmpChartInstance, params) {
                 if (shlVisibleLegends.includes(el.name)) {
                     el.itemStyle.opacity = 1;
                 } else {
-                    el.itemStyle.opacity = 0.045;
+                    el.itemStyle.opacity = 0.06;
                 }
             }
         })
@@ -104,10 +105,9 @@ function showHoveredLegend(tmpChartInstance, params) {
 }
 
 const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
+    const _setCustomTokens = this._setCustomTokens;
     
-    console.log('_buildTimeseriesOption...');
-    
-    if (typeof data.fields === 'undefined' || data.fields.length < 4) {
+    if (typeof data.fields === 'undefined' || data.fields.length < 5) {
         throw "Error: This visualization needs at least 5 different fields (start_time, end_time, internal_name, category, fill_color)! Please check the query results!"
     }
     
@@ -127,12 +127,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     let configColorDataIndexBinding = 4;
 
     let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-
-    // Check for eventMachineIdDataIndexBinding option -> This index nr will provide the eventMachineId url column index
-    let configEventMachineGroupIdDataIndexBinding = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "eventMachineGroupIdDataIndexBinding"]);
-    
-    // Check for eventUrlDataIndexBinding option -> This index nr will provide the event url column index
-    let configEventUrlDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "eventUrlDataIndexBinding"];
 
     data.rows.forEach((tmpRow) => {
         const tmpValue = tmpRow[configSeriesDataIndexBinding];
@@ -193,7 +187,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
                     },
                     style: {
                         text: tmpLegendValue,
-                        overflow: 'truncate',
                         fontSize: 12,
                         fontFamily: "Splunk Platform Sans",
                         fill: tmpColorValue,
@@ -207,7 +200,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
                 icon: 'rect',
                 textStyle: {
                     width: 100,
-                    overflow: 'truncate',
                 }
             });
             manuallySelectedLegends[tmpLegendValue] = true;
@@ -225,9 +217,11 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         const tmpStartTime = tmpRow[configStartTimeDataIndexBinding];
         const tmpEndTime = tmpRow[configEndTimeDataIndexBinding];
         const tmpDuration = tmpEndTime - tmpStartTime;
+        let tmpCategoryName = '';
         const tmpProcessedInternalNameIdx = processedCategories.findIndex((internalCategoryName) => {
             let tmpResult = false;
             if (internalCategoryName == tmpInternalName) {
+                tmpCategoryName= internalCategoryName;
                 tmpResult = true;
             }
             return tmpResult;
@@ -250,10 +244,14 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             }
         }
         xAxisStartDates.push(tmpEndTime);
-        let dynamicValue = [parseFloat(tmpStartTime * 1000), parseFloat(tmpEndTime * 1000), tmpDuration, tmpProcessedInternalNameIdx];
-        if (typeof configEventMachineGroupIdDataIndexBinding !== 'undefined' && isNumber(configEventMachineGroupIdDataIndexBinding)) {
-            dynamicValue.push(tmpRow[configEventMachineGroupIdDataIndexBinding]);
-        }
+        let dynamicValue = [
+            parseFloat(tmpStartTime * 1000), //start_time
+            parseFloat(tmpEndTime * 1000), //end_time
+            tmpDuration, //duration
+            tmpProcessedInternalNameIdx, //legend index
+            tmpCategoryName, //category_name
+
+        ];
         processedData.push({
             name: tmpReason,
             value: dynamicValue,
@@ -343,11 +341,11 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             y: 'category'
         },
         selectedMode: 'series',
-        dimensions: ['start_time', 'end_time', 'duration', 'category'],
+        dimensions: ['start_time', 'end_time', 'duration', 'legend_idx', 'category_name'],
         data: processedData,
         emphasis: {
             itemStyle: {
-                opacity: '0.25',
+                opacity: '0',
             }
         }
     }];
@@ -383,19 +381,11 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     tmpChartInstance.on('legendselectchanged', function (params) {
         console.log('legendselectchanged', params);
     });
-
     tmpChartInstance.on('click', 'series', function (params) {
-        if (typeof configEventUrlDataIndexBinding !== 'undefined' || configEventUrlDataIndexBinding !== '') {
-            let dynamicEventUrl = configEventUrlDataIndexBinding;
-            if(configEventUrlDataIndexBinding.includes('{eventMachineGroupId}') && configEventUrlDataIndexBinding.includes('{eventStartTime}')) {
-                if (typeof configEventMachineGroupIdDataIndexBinding === 'undefined' || !isNumber(configEventMachineGroupIdDataIndexBinding)) {
-                    throw "Error: wrong configuration for eventMachineIdDataIndexBinding! Please check the dashboard source code!"
-                }
-                dynamicEventUrl = dynamicEventUrl.replace('{eventMachineGroupId}', params.value[params.value.length-1]);
-                dynamicEventUrl = dynamicEventUrl.replace('{eventStartTime}', params.value[0]);
-            }
-            window.open(dynamicEventUrl);
-        }
+        console.log('An event was selected...', params);
+        _setCustomTokens(params, tmpChartInstance, data);
+        //console.log('Open', configEventUrl);
+        //window.open(dynamicEventUrl);
     });
 
     return option;
