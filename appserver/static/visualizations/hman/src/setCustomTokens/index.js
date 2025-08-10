@@ -1,11 +1,7 @@
-/*eslint no-unused-vars: "error"*/
-/* exported SplunkVisualizationBase */
-const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
-
 /**
  * To be called after a timeseries custom render item was clicked upon
 */
-const _setCustomTokens = function (params, tmpChartInstance, data) {
+const _setCustomTokens = function (params, tmpChartInstance) {
     
     // Get token models
     var defaultTokenModel = this.splunkjs.mvc.Components.get("default");
