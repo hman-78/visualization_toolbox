@@ -24,8 +24,6 @@ if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.loc
     tmpLocale = window._i18n_locale.locale_name.replace('_', '-');
 }
 
-
-
 function renderItem(params, api) {
     var categoryIndex = api.value(3);
     var start = api.coord([api.value(0), categoryIndex]);
@@ -88,15 +86,19 @@ function showHoveredLegend(tmpChartInstance, params) {
             if (params.type == 'highlight') {
                 if (el.name != params.seriesName) {
                     el.itemStyle.opacity = 0.06;
+                    el.tooltip.show = false;
                 } else {
                     el.itemStyle.opacity = 1;
+                    el.tooltip.show = true;
                 }
             }
             if (params.type == 'downplay') {
                 if (shlVisibleLegends.includes(el.name)) {
                     el.itemStyle.opacity = 1;
+                    el.tooltip.show = true;
                 } else {
                     el.itemStyle.opacity = 0.06;
+                    el.tooltip.show = false;
                 }
             }
         })
@@ -245,12 +247,15 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         }
         xAxisStartDates.push(tmpEndTime);
         let dynamicValue = [
-            parseFloat(tmpStartTime * 1000), //start_time
-            parseFloat(tmpEndTime * 1000), //end_time
+            parseFloat(tmpStartTime * 1000), //start_time (javascript timestamp in miliseconds)
+            parseFloat(tmpEndTime * 1000), //end_time (javascript timestamp in miliseconds)
             tmpDuration, //duration
-            tmpProcessedInternalNameIdx, //legend index
             tmpCategoryName, //category_name
-
+            tmpReason, //legend_name
+            tmpColor, //color
+            tmpProcessedInternalNameIdx, //legend index,
+            tmpStartTime, //unix_start_time (unix timestamp in seconds)
+            tmpEndTime, //unix_end_time (unix timestamp in seconds)
         ];
         processedData.push({
             name: tmpReason,
@@ -263,7 +268,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
                 formatter: function (params) {
                     return `
                         <div style="padding: 10px; background-color: #010203;">
-                            <p style="color: white;"><strong>Interval</strong>: ${new Date(params.data.value[1] * 1000).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })} - ${new Date(params.data.value[2] * 1000).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })}</p>
+                            <p style="color: white;"><strong>Interval</strong>: ${new Date(params.data.value[0]).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })} - ${new Date(params.data.value[1]).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })}</p>
                             <p style="color: white;"><strong>Category</strong>: ${params.data.name}</p>
                         </div>
                     `;
@@ -341,7 +346,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
             y: 'category'
         },
         selectedMode: 'series',
-        dimensions: ['start_time', 'end_time', 'duration', 'legend_idx', 'category_name'],
+        dimensions: ['start_time', 'end_time', 'duration', 'category_name', 'legend_name', 'color', 'legend_idx', 'unix_start_time', 'unix_end_time'],
         data: processedData,
         emphasis: {
             itemStyle: {
@@ -381,11 +386,14 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     tmpChartInstance.on('legendselectchanged', function (params) {
         console.log('legendselectchanged', params);
     });
+
+    // After clicking an ECharts custom visualisation rectangle (from timeseries) the tokens will be populated, and Splunk will either run the linked search or navigate to another dashboard depending on the xml dashboard definition.
     tmpChartInstance.on('click', 'series', function (params) {
-        console.log('An event was selected...', params);
-        _setCustomTokens(params, tmpChartInstance, data);
-        //console.log('Open', configEventUrl);
-        //window.open(dynamicEventUrl);
+        const shlOption = tmpChartInstance.getOption();
+        // Set tokens and open the dynamic url if user clicks on a visible series data item
+        if(shlOption.legend[0].selected[params.name]) {
+            _setCustomTokens(params, tmpChartInstance, data);
+        }
     });
 
     return option;
