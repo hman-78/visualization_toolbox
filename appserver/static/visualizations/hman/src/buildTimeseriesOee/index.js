@@ -144,7 +144,6 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
                     name: tmpLegendValue,
                     info: tmpLegendValue,
                     onclick: function () {
-                        console.log('Click click')
                         tmpChartInstance.dispatchAction({
                             type: 'highlight',
                             seriesIndex: tmpMappedSeries,
@@ -278,8 +277,8 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     });
 
     let option = {};
-    option = this._parseOption(configOption);
-    if (option == null) {
+    const optionFromXmlDashboard = this._parseOption(configOption);
+    if (optionFromXmlDashboard == null) {
         return null;
     }
     option.grid = {
@@ -390,11 +389,19 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     // After clicking an ECharts custom visualisation rectangle (from timeseries) the tokens will be populated, and Splunk will either run the linked search or navigate to another dashboard depending on the xml dashboard definition.
     tmpChartInstance.on('click', 'series', function (params) {
         const shlOption = tmpChartInstance.getOption();
-        // Set tokens and open the dynamic url if user clicks on a visible series data item
         if(shlOption.legend[0].selected[params.name]) {
-            _setCustomTokens(params, tmpChartInstance, data);
+            _setCustomTokens(params, tmpChartInstance);
         }
     });
+
+    // Overwrite the option keys with values from the xml dashboard
+    for (var tmpOptionKey in optionFromXmlDashboard) {
+        // Check if the tmpOptionKey is not 'yAxis' or 'series' or 'legend' and if optionFromXmlDashboard has the tmpOptionKey
+        if (tmpOptionKey !== 'yAxis' && tmpOptionKey !== 'series' && tmpOptionKey !== 'legend' && Object.prototype.hasOwnProperty.call(optionFromXmlDashboard, tmpOptionKey)) {
+            // Replace the value in option with the value from optionFromXmlDashboard
+            option[tmpOptionKey] = optionFromXmlDashboard[tmpOptionKey];
+        }
+    }
 
     return option;
 }
