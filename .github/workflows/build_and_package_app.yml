@@ -2,7 +2,7 @@ name: Node.js CI - Build app
 
 on:
   push:
-    branches: [ "main", "test", "develop" ]
+    branches: [ "main", "test", "develop", "activeDevelopment" ]
   pull_request:
     branches: [ "main", "test" ]
 
