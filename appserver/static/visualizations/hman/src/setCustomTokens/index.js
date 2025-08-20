@@ -41,15 +41,15 @@ const _setCustomTokens = function (params, tmpChartInstance) {
            .replace('$hman_ts_start_time$', hmanTsStartTime ? encodeURIComponent(hmanTsStartTime) : '')
            .replace('$hman_ts_end_time$', hmanTsEndTime ? encodeURIComponent(hmanTsEndTime) : '')
         activeVizComponent._events.drilldown[0].ctx.attributes.actions[0].value = drilldownDynamicLink;
-        
         // Simulate native splunk drilldown
+        console.log('Simulate native splunk drilldown');
         activeVizComponent.trigger('drilldown', {
             name: 'click',
             value: 'drilldown',
             data: {
-                click: 'cell',  // or 'row'
-                name: 'customDrilldown',    // passed to click.name
-                value: [hmanTsStartTime, hmanTsEndTime, hmanTsDuration, hmanTsSeries, hmanTsLegend, hmanTsColor],   // passed to click.value
+                click: 'row',   // or 'cell'
+                name: 'customDrilldown',    // passed to click.name when data.click = 'cell'
+                value: [hmanTsStartTime, hmanTsEndTime, hmanTsDuration, hmanTsSeries, hmanTsLegend, hmanTsColor],   // passed to click.value when data.click = 'cell'
             }
         });
     }
