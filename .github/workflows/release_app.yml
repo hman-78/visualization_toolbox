@@ -27,7 +27,7 @@ jobs:
     - name: Version information
       id: version_information
       run: |
-           app_version=$(cat default/app.conf | grep -o 'version =.*' | head -1 |cut -f2- -d=)
+           app_version=$(awk -F '=' '/^\[launcher\]/{f=1; next} /^\[/{f=0} f && /^version[[:space:]]*=/{print $2; exit}' default/app.conf | tr -d ' ')
            echo "App version: " $app_version
            echo "app_version=$app_version" >> $GITHUB_OUTPUT
            build_number="${{ github.run_id }}-${{ github.run_attempt }}"
