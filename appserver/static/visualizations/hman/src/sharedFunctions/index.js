@@ -118,7 +118,63 @@ const _sharedFunctions = {
     }
 
     return true;
-  }
+  },
+  isValidUnixTimestamp: function (strTimestamp) {
+    // Check if the value is a number
+    if (typeof strTimestamp === 'string') {
+      strTimestamp = parseInt(strTimestamp, 10);
+    }
+    if (typeof strTimestamp !== 'number') {
+      return false;
+    }
+
+    // Check if timestamp is finite (not NaN, Infinity, or -Infinity)
+    if (!Number.isFinite(strTimestamp)) {
+      return false;
+    }
+
+    // Check if the number is a positive integer
+    if (!Number.isInteger(strTimestamp) || strTimestamp < 0) {
+      return false;
+    }
+
+    // Check if the timestamp is within a reasonable range
+    // Earliest = Unix epoch start = 0 => 1970-01-01, Latest: 2038-01-19 (for 32-bit systems)
+    const minTimestamp = 0; // 1970-01-01
+    const maxTimestamp = 2147483647000; // 2038-01-19
+    if (strTimestamp < minTimestamp || strTimestamp > maxTimestamp) {
+      return false;
+    }
+
+    // Last check: try to create a valid Date object
+    const tmpDate = new Date(strTimestamp);
+    if (isNaN(tmpDate.getTime())) {
+      return false;
+    }
+
+    return true;
+  },
+  convertUnixTimestamp: function (strTimestamp) {
+    if (_sharedFunctions.isValidUnixTimestamp(strTimestamp))
+      return parseInt(strTimestamp);
+  },
+  extractDate: function (strTimestamp) {
+    strTimestamp = _sharedFunctions.convertUnixTimestamp(strTimestamp);
+    const date = new Date(strTimestamp);
+    // Format date as DD/MM/YYYY
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  },
+  extractTime: function (strTimestamp) {
+    strTimestamp = _sharedFunctions.convertUnixTimestamp(strTimestamp);
+    const date = new Date(strTimestamp);
+    // Format time as HH:MM
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  },
 };
 
 module.exports = _sharedFunctions;

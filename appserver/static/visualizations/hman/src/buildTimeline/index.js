@@ -8,6 +8,8 @@ const echarts = require('echarts');
 const lodashFind = require('lodash.find');
 
 let processedData = [];
+let configOption = {};
+let optionFromXmlDashboard = {};
 let processedLegends = [];
 let manuallyAddedLegends = [];
 let manuallySelectedLegends = {};
@@ -86,19 +88,43 @@ function showHoveredLegend(tmpChartInstance, params) {
             if (params.type == 'highlight') {
                 if (el.name != params.seriesName) {
                     el.itemStyle.opacity = 0.06;
-                    el.tooltip.show = false;
+                    if (
+                        optionFromXmlDashboard?.tooltip && // Check if tooltip exists
+                        (optionFromXmlDashboard.tooltip.show === undefined || // No show property
+                            optionFromXmlDashboard.tooltip.show !== false) // show is not false
+                    ) {
+                        el.tooltip = {show:false};
+                    }
                 } else {
                     el.itemStyle.opacity = 1;
-                    el.tooltip.show = true;
+                    if (
+                        optionFromXmlDashboard?.tooltip && // Check if tooltip exists
+                        (optionFromXmlDashboard.tooltip.show === undefined || // No show property
+                            optionFromXmlDashboard.tooltip.show !== false) // show is not false
+                    ) {
+                        el.tooltip = {show:true};
+                    }
                 }
             }
             if (params.type == 'downplay') {
                 if (shlVisibleLegends.includes(el.name)) {
                     el.itemStyle.opacity = 1;
-                    el.tooltip.show = true;
+                    if (
+                        optionFromXmlDashboard?.tooltip && // Check if tooltip exists
+                        (optionFromXmlDashboard.tooltip.show === undefined || // No show property
+                            optionFromXmlDashboard.tooltip.show !== false) // show is not false
+                    ) {
+                        el.tooltip = {show:true};
+                    }
                 } else {
                     el.itemStyle.opacity = 0.06;
-                    el.tooltip.show = false;
+                    if (
+                        optionFromXmlDashboard?.tooltip && // Check if tooltip exists
+                        (optionFromXmlDashboard.tooltip.show === undefined || // No show property
+                            optionFromXmlDashboard.tooltip.show !== false) // show is not false
+                    ) {
+                        el.tooltip = {show:false};
+                    }
                 }
             }
         })
@@ -108,11 +134,12 @@ function showHoveredLegend(tmpChartInstance, params) {
 
 const _buildTimelineOption = function (data, config, tmpChartInstance) {
     const _setCustomTokens = this._setCustomTokens;
-    
+    configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
+    optionFromXmlDashboard = this._parseOption(configOption);
     if (typeof data.fields === 'undefined' || data.fields.length < 5) {
         throw "Error: This visualization needs at least 5 different fields (start_time, end_time, internal_name, category, fill_color)! Please check the query results!"
     }
-    
+
     // Read start_time from data.fields[0]
     let configStartTimeDataIndexBinding = 0;
 
@@ -127,8 +154,6 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
 
     // Read the fill_color from data.fields[4]
     let configColorDataIndexBinding = 4;
-
-    let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
 
     data.rows.forEach((tmpRow) => {
         const tmpValue = tmpRow[configSeriesDataIndexBinding];
@@ -217,12 +242,18 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         const tmpColor = tmpRow[configColorDataIndexBinding];
         const tmpStartTime = tmpRow[configStartTimeDataIndexBinding];
         const tmpEndTime = tmpRow[configEndTimeDataIndexBinding];
+        if (!this._sharedFunctions.isValidUnixTimestamp(tmpStartTime)) {
+            throw "Error: First value from the data is not a valid unix timestamp! Please check the data!"
+        }
+        if (!this._sharedFunctions.isValidUnixTimestamp(tmpEndTime)) {
+            throw "Error: Second value from the data is not a valid unix timestamp! Please check the data!"
+        }
         const tmpDuration = tmpEndTime - tmpStartTime;
         let tmpCategoryName = '';
         const tmpProcessedInternalNameIdx = processedCategories.findIndex((internalCategoryName) => {
             let tmpResult = false;
             if (internalCategoryName == tmpInternalName) {
-                tmpCategoryName= internalCategoryName;
+                tmpCategoryName = internalCategoryName;
                 tmpResult = true;
             }
             return tmpResult;
@@ -256,28 +287,22 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             tmpStartTime, //unix_start_time (unix timestamp in seconds)
             tmpEndTime, //unix_end_time (unix timestamp in seconds)
         ];
-        processedData.push({
+        let customDataObj = {
             name: tmpReason,
             value: dynamicValue,
             itemStyle: {
                 color: tmpColor,
             },
-            tooltip: {
-                backgroundColor: '#000',
-                formatter: function (params) {
-                    return `
-                        <div style="padding: 10px; background-color: #010203;">
-                            <p style="color: white;"><strong>Interval</strong>: ${new Date(params.data.value[0]).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })} - ${new Date(params.data.value[1]).toLocaleTimeString([tmpLocale], { hour: "2-digit", minute: "2-digit" })}</p>
-                            <p style="color: white;"><strong>Category</strong>: ${params.data.name}</p>
-                        </div>
-                    `;
-                }
+            utilityFunctions: {
+                displayDate: this._sharedFunctions.extractDate,
+                displayTime: this._sharedFunctions.extractTime,
+                escapeHtml: this._sharedFunctions.escapeHtml,
             }
-        })
+        };
+        processedData.push(customDataObj);
     });
 
     let option = {};
-    const optionFromXmlDashboard = this._parseOption(configOption);
     if (optionFromXmlDashboard == null) {
         return null;
     }
@@ -327,7 +352,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             start: 0,
             end: 100,
             labelFormatter: function (value) {
-                return new Date(value).toLocaleTimeString([tmpLocale], {year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+                return new Date(value).toLocaleTimeString([tmpLocale], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
             }
         },
         {
@@ -389,7 +414,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     // After clicking an ECharts custom visualisation rectangle (from timeline) the tokens will be populated, and Splunk will either run the linked search or navigate to another dashboard depending on the xml dashboard definition.
     tmpChartInstance.on('click', 'series', function (params) {
         const shlOption = tmpChartInstance.getOption();
-        if(shlOption.legend[0].selected[params.name]) {
+        if (shlOption.legend[0].selected[params.name]) {
             _setCustomTokens(params, tmpChartInstance);
         }
     });
@@ -402,7 +427,6 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             option[tmpOptionKey] = optionFromXmlDashboard[tmpOptionKey];
         }
     }
-
     return option;
 }
 
