@@ -158,7 +158,7 @@ const _sharedFunctions = {
     if (_sharedFunctions.isValidUnixTimestamp(strTimestamp))
       return parseInt(strTimestamp);
   },
-  extractDate: function (strTimestamp) {
+  extractDate: function (strTimestamp, localeOption) {
     strTimestamp = _sharedFunctions.convertUnixTimestamp(strTimestamp);
     const date = new Date(strTimestamp);
     // Format date as DD/MM/YYYY
@@ -167,7 +167,7 @@ const _sharedFunctions = {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   },
-  extractTime: function (strTimestamp) {
+  extractTime: function (strTimestamp, localeOption) {
     strTimestamp = _sharedFunctions.convertUnixTimestamp(strTimestamp);
     const date = new Date(strTimestamp);
     // Format time as HH:MM
