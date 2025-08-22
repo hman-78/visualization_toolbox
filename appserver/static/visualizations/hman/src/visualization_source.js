@@ -33,7 +33,7 @@ the MIT license. See custom_chart_viz-LICENSE.md for additional details.
 
 const _buildBoxplotOption = require('./buildBoxplotOption');
 const _buildCustomOption = require('./buildCustomOption');
-const _buildTimeseriesOption = require('./buildTimeseriesOee');
+const _buildTimelineOption = require('./buildTimeline');
 const _buildSimpleBoxplotOption = require('./buildSimpleBoxplotOption');
 const _createModal = require('./createModal');
 const _drilldownToCategories = require('./drilldownToCategories');
@@ -53,6 +53,7 @@ const _reflow = require('./reflow');
 const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
+const _setCustomTokens = require('./setCustomTokens')
 const _setupView = require('./setupView')
 const _sharedFunctions = require('./sharedFunctions')
 const _updateView = require('./updateView');
@@ -81,7 +82,7 @@ define([
 			scopedVariables,
 			_buildBoxplotOption: _buildBoxplotOption,
 			_buildCustomOption: _buildCustomOption,
-			_buildTimeseriesOption: _buildTimeseriesOption,
+			_buildTimelineOption: _buildTimelineOption,
 			_buildSimpleBoxplotOption: _buildSimpleBoxplotOption,
 			createModal: _createModal,
 			drilldownToCategories: _drilldownToCategories,
@@ -100,9 +101,10 @@ define([
 			reflow: _reflow, // Interface method available in SplunkVisualizationBase. Implements visualization resizing logic.
 			selfModifiyingOption: _selfModifiyingOption,
 			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
+			_setCustomTokens: _setCustomTokens,
 			_sendMQTTMessage: _sendMQTTMessage,
 			setupView: _setupView,
-      		_sharedFunctions: _sharedFunctions,
+			_sharedFunctions: _sharedFunctions,
 			updateView: _updateView // Interface method available in SplunkVisualizationBase. Function called to render the visualization.
 		});
 	});

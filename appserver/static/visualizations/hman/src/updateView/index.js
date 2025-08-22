@@ -48,8 +48,8 @@ const _updateView = function (data, config) {
     option = this._buildBoxplotOption(data, config);
   } else if (echartProps.dataType == "SimpleBoxplot") {
     option = this._buildSimpleBoxplotOption(data, config);
-  } else if (echartProps.dataType == "Timeseries") {
-    option = this._buildTimeseriesOption(data, config, tmpChart['instanceByDom']);
+  } else if (echartProps.dataType == "Timeline") {
+    option = this._buildTimelineOption(data, config, tmpChart['instanceByDom']);
   }
   // tokens might not yet be replaced in the option. In this case we
   // don't want the echart to be shown yet, as it would result in an error.
@@ -89,6 +89,7 @@ const _updateView = function (data, config) {
   // Function called by click on chart if option clickHook is enabled
   // Used to call the Javascript Code provided by the option clickHook to
   // set tokens for drill down
+  // Call the set tokens and generate them for all the echarts vis + aux
   function onChartClick(params) {
     this.evalHook = eval("(function a(params, data, config, option, event, splunk) {" + echartProps.clickHook + "})");
     this.evalHook(params, data, config, option, params.event, splunk);
