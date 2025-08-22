@@ -1,5 +1,5 @@
 /**
- *  Method to map the search data from Splunk to the eChart instance for 'custom' timeseries charts. 
+ *  Method to map the search data from Splunk to the eChart instance for 'custom' timeline charts. 
  * 
 */
 
@@ -106,7 +106,7 @@ function showHoveredLegend(tmpChartInstance, params) {
     tmpChartInstance.setOption(shlOption);
 }
 
-const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
+const _buildTimelineOption = function (data, config, tmpChartInstance) {
     const _setCustomTokens = this._setCustomTokens;
     
     if (typeof data.fields === 'undefined' || data.fields.length < 5) {
@@ -386,7 +386,7 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
         console.log('legendselectchanged', params);
     });
 
-    // After clicking an ECharts custom visualisation rectangle (from timeseries) the tokens will be populated, and Splunk will either run the linked search or navigate to another dashboard depending on the xml dashboard definition.
+    // After clicking an ECharts custom visualisation rectangle (from timeline) the tokens will be populated, and Splunk will either run the linked search or navigate to another dashboard depending on the xml dashboard definition.
     tmpChartInstance.on('click', 'series', function (params) {
         const shlOption = tmpChartInstance.getOption();
         if(shlOption.legend[0].selected[params.name]) {
@@ -406,4 +406,4 @@ const _buildTimeseriesOption = function (data, config, tmpChartInstance) {
     return option;
 }
 
-module.exports = _buildTimeseriesOption;
+module.exports = _buildTimelineOption;

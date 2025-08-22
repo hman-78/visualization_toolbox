@@ -33,7 +33,7 @@ the MIT license. See custom_chart_viz-LICENSE.md for additional details.
 
 const _buildBoxplotOption = require('./buildBoxplotOption');
 const _buildCustomOption = require('./buildCustomOption');
-const _buildTimeseriesOption = require('./buildTimeseries');
+const _buildTimelineOption = require('./buildTimeline');
 const _buildSimpleBoxplotOption = require('./buildSimpleBoxplotOption');
 const _createModal = require('./createModal');
 const _drilldownToCategories = require('./drilldownToCategories');
@@ -82,7 +82,7 @@ define([
 			scopedVariables,
 			_buildBoxplotOption: _buildBoxplotOption,
 			_buildCustomOption: _buildCustomOption,
-			_buildTimeseriesOption: _buildTimeseriesOption,
+			_buildTimelineOption: _buildTimelineOption,
 			_buildSimpleBoxplotOption: _buildSimpleBoxplotOption,
 			createModal: _createModal,
 			drilldownToCategories: _drilldownToCategories,

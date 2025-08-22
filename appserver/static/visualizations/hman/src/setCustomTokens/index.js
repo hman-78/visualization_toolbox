@@ -1,5 +1,5 @@
 /**
- * To be called after a timeseries custom render item was clicked upon
+ * To be called after a timeline custom render item was clicked upon
 */
 const _setCustomTokens = function (params, tmpChartInstance) {
     
