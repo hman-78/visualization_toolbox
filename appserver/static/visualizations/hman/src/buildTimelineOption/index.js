@@ -3,6 +3,7 @@
  * 
 */
 
+const SplunkVisualizationUtils = require('api/SplunkVisualizationUtils');
 // eslint-disable-next-line
 const echarts = require('echarts');
 const lodashFind = require('lodash.find');
@@ -22,6 +23,8 @@ let tmpLocale = 'en-GB';
 let xAxisDataMinValue = '';
 let xAxisDataMaxValue = '';
 let xAxisStartDates = [];
+const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
+const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
     tmpLocale = window._i18n_locale.locale_name.replace('_', '-');
 }
@@ -226,6 +229,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
                 icon: 'rect',
                 textStyle: {
                     width: 100,
+                    color: genericTextColor,
                 }
             });
             manuallySelectedLegends[tmpLegendValue] = true;
@@ -317,7 +321,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             type: "time",
             boundaryGap: false,
             axisLabel: {
-                color: '#3c444d',
+                color: genericTextColor,
                 fontFamily: "Splunk Platform Sans",
                 fontSize: 14,
                 formatter: {
@@ -329,15 +333,15 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
                 },
                 rich: {
                     yearStyle: {
-                        color: '#000',
+                        color: genericTextColor,
                         fontWeight: 'bold'
                     },
                     monthStyle: {
-                        color: '#999'
+                        color: genericTextColor,
                     },
                     dayStyle: {
                         fontWeight: 'bold',
-                        color: '#010203'
+                        color: genericTextColor,
                     }
                 }
             }
@@ -390,7 +394,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     })
     option.legend = {
         textStyle: {
-            color: '#010203',
+            color: genericTextColor,
             fontSize: 13,
         },
         top: 30,
