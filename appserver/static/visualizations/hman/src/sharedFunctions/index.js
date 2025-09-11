@@ -43,6 +43,11 @@ const isFixedTuple = s => /^\[\d+(;\d+)*\]$/.test(s);
 const isDynamicRangeTuple = s => /^\[(\d+|\d+\*)(;(\d+|\d+\*))*\]$/.test(s);
 const isWildcardInteger = s => /^\d+\*$/.test(s);
 
+let tmpLocaleOption = 'en-GB';
+if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
+    tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
+}
+
 const _sharedFunctions = {
   // Step 1: Filter the `indicesArray` array to include only valid indicesArray.
   // Valid indicesArray are non-negative and less than the length of `arrayToProcess`.
@@ -158,22 +163,25 @@ const _sharedFunctions = {
     if (_sharedFunctions.isValidUnixTimestamp(strTimestamp))
       return parseInt(strTimestamp);
   },
-  extractDate: function (strTimestamp, localeOption) {
+  extractDate: function (strTimestamp) {
     strTimestamp = _sharedFunctions.convertUnixTimestamp(strTimestamp);
     const date = new Date(strTimestamp);
-    // Format date as DD/MM/YYYY
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    const formatter = new Intl.DateTimeFormat(tmpLocaleOption, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    return formatter.format(date);
   },
-  extractTime: function (strTimestamp, localeOption) {
+  extractTime: function (strTimestamp) {
     strTimestamp = _sharedFunctions.convertUnixTimestamp(strTimestamp);
     const date = new Date(strTimestamp);
-    // Format time as HH:MM
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+    const formatter = new Intl.DateTimeFormat(tmpLocaleOption, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false, // Use 24 hours by default
+    });
+    return formatter.format(date);
   },
 };
 
