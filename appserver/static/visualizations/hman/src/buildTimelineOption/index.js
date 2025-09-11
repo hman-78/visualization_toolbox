@@ -19,14 +19,14 @@ var processedCategories = [];
 let tmpMappedSeries = [];
 let tmpMappedAllRectangles = [];
 let tmpOnlySelectedRectangles = [];
-let tmpLocale = 'en-GB';
+let tmpLocaleOption = 'en-GB';
 let xAxisDataMinValue = '';
 let xAxisDataMaxValue = '';
 let xAxisStartDates = [];
 const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
 const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
-    tmpLocale = window._i18n_locale.locale_name.replace('_', '-');
+    tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
 }
 
 function renderItem(params, api) {
@@ -356,7 +356,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             start: 0,
             end: 100,
             labelFormatter: function (value) {
-                return new Date(value).toLocaleTimeString([tmpLocale], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+                return new Date(value).toLocaleTimeString([tmpLocaleOption], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
             }
         },
         {
