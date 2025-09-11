@@ -158,7 +158,20 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     // Read the fill_color from data.fields[4]
     let configColorDataIndexBinding = 4;
 
-    data.rows.forEach((tmpRow) => {
+    // Before doing any processing ignore any rows that have any of the start_time, end_time, internal_name or category properties empty
+    const cleanDataRows = data.rows.filter(obj => {
+        const keys = Object.keys(obj);
+        const firstProp = obj[keys[0]]; //start_time
+        const secondProp = obj[keys[1]]; //end_time
+        const thirdProp = obj[keys[2]]; //internal_name
+        const fourthProp = obj[keys[3]]; //category
+        return (firstProp !== "" && firstProp !== null && firstProp !== undefined) ||
+        (secondProp !== "" && secondProp !== null && secondProp !== undefined) ||
+        (thirdProp !== "" && thirdProp !== null && thirdProp !== undefined) ||
+        (fourthProp !== "" && fourthProp !== null && fourthProp !== undefined);
+    });
+
+    cleanDataRows.forEach((tmpRow) => {
         const tmpValue = tmpRow[configSeriesDataIndexBinding];
         const tmpLegendValue = tmpRow[configLegendsDataIndexBinding];
         const tmpColorValue = tmpRow[configColorDataIndexBinding];
@@ -240,7 +253,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     // Sort categories as strings in alphabetical and ascending order
     processedCategories = processedCategories.sort().reverse();
 
-    data.rows.forEach((tmpRow) => {
+    cleanDataRows.forEach((tmpRow) => {
         const tmpInternalName = tmpRow[configSeriesDataIndexBinding];
         const tmpReason = tmpRow[configLegendsDataIndexBinding];
         const tmpColor = tmpRow[configColorDataIndexBinding];
