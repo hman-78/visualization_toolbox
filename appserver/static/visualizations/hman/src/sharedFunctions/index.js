@@ -45,7 +45,7 @@ const isWildcardInteger = s => /^\d+\*$/.test(s);
 
 let tmpLocaleOption = 'en-GB';
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
-    tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
+  tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
 }
 
 const _sharedFunctions = {
@@ -183,6 +183,58 @@ const _sharedFunctions = {
     });
     return formatter.format(date);
   },
+  // Function to generate a color palette dynamically
+  generateColorPalette(numColors) {
+    //# TODO when building this check for rgb/rgba sanity check
+    const colors = [];
+    const hueStep = 360 / numColors; // Distribute hues evenly
+    for (let i = 0; i < numColors; i++) {
+      const hue = i * hueStep;
+      // Get the splunk colors
+      // Convert HSL to hex for high contrast (fixed saturation and lightness)
+      const hslToHex = (h, s, l) => {
+        l /= 100;
+        const a = s * Math.min(l, 1 - l) / 100;
+        const f = n => {
+          const k = (n + h / 30) % 12;
+          const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+          return Math.round(255 * color).toString(16).padStart(2, '0');
+        };
+        return `#${f(0)}${f(8)}${f(4)}`;
+      };
+      colors.push(hslToHex(hue, 70, 50)); // 70% saturation, 50% lightness for vibrant, readable colors
+    }
+    return colors;
+  },
+  isValidInteger(value) {
+    // Check for null, undefined, empty string, or boolean
+    if (value === null || value === undefined || value === '' || typeof value === 'boolean') {
+        return false;
+    }
+    
+    // Convert to number and check if it's an integer
+    const num = Number(value);
+    
+    // Check if conversion resulted in NaN or if it's not an integer
+    if (isNaN(num) || !Number.isInteger(num)) {
+        return false;
+    }
+    
+    // Additional check for string inputs that might have leading/trailing spaces
+    // or other edge cases like "123.0" which technically converts to integer 123
+    if (typeof value === 'string') {
+        // Remove leading/trailing whitespace and check if it matches the number
+        const trimmed = value.trim();
+        if (trimmed === '' || trimmed !== num.toString()) {
+            // Allow "123.0" to pass as valid integer
+            if (!/^-?\d+\.?0*$/.test(trimmed)) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
 };
 
 module.exports = _sharedFunctions;

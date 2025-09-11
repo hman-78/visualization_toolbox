@@ -3,6 +3,7 @@
  * 
 */
 
+const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
 const SplunkVisualizationUtils = require('api/SplunkVisualizationUtils');
 // eslint-disable-next-line
 const echarts = require('echarts');
@@ -29,8 +30,10 @@ if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.loc
     tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
 }
 
-function renderItem(params, api) {
-    var categoryIndex = api.value(3);
+console.log('Checking the color palette from splunk', SplunkVisualizationBase);
+
+function renderItemLogic(params, api) {
+    var categoryIndex = api.value(2);
     var start = api.coord([api.value(0), categoryIndex]);
     var end = api.coord([api.value(1), categoryIndex]);
     var height = api.size([0, 1])[1] * 0.6;
@@ -60,37 +63,37 @@ function renderItem(params, api) {
 }
 
 function showHoveredLegend(tmpChartInstance, params) {
-    const shlOption = tmpChartInstance.getOption();
+    const shlOptionTmp = tmpChartInstance.getOption();
     let shlMappedAllRectangles = [];
     let shlVisibleLegends = [];
     let shlMappedSeries = [];
     let shlOnlySelectedRectangles = [];
-    if (typeof shlOption.yAxis !== 'undefined' && typeof shlOption.yAxis[0] !== 'undefined') {
-        shlOption.yAxis[0].data.forEach((el, idx) => {
+    if (typeof shlOptionTmp.yAxis !== 'undefined' && typeof shlOptionTmp.yAxis[0] !== 'undefined') {
+        shlOptionTmp.yAxis[0].data.forEach((el, idx) => {
             shlMappedSeries.push(idx)
         })
     }
-    if (typeof shlOption.legend !== 'undefined' && typeof shlOption.legend[0].selected !== 'undefined') {
-        Object.keys(shlOption.legend[0].selected).forEach((elm) => {
-            if (!shlVisibleLegends.includes(elm) && shlOption.legend[0].selected[elm] == true) {
+    if (typeof shlOptionTmp.legend !== 'undefined' && typeof shlOptionTmp.legend[0].selected !== 'undefined') {
+        Object.keys(shlOptionTmp.legend[0].selected).forEach((elm) => {
+            if (!shlVisibleLegends.includes(elm) && shlOptionTmp.legend[0].selected[elm] == true) {
                 shlVisibleLegends.push(elm);
             }
         })
     }
 
-    if (typeof shlOption.series !== 'undefined' && typeof shlOption.series[0] !== 'undefined' && typeof shlOption.series[0].data !== 'undefined') {
-        shlOption.series[0].data.forEach((el, idx) => {
+    if (typeof shlOptionTmp.series !== 'undefined' && typeof shlOptionTmp.series[0] !== 'undefined' && typeof shlOptionTmp.series[0].data !== 'undefined') {
+        shlOptionTmp.series[0].data.forEach((el, idx) => {
             shlMappedAllRectangles.push(idx)
             if (el.name == params.seriesName) {
                 shlOnlySelectedRectangles.push(idx)
             }
         })
     }
-    if (typeof shlOption.series !== 'undefined' && typeof shlOption.series[0] !== 'undefined' && typeof shlOption.series[0].data !== 'undefined') {
-        shlOption.series[0].data.forEach((el) => {
+    if (typeof shlOptionTmp.series !== 'undefined' && typeof shlOptionTmp.series[0] !== 'undefined' && typeof shlOptionTmp.series[0].data !== 'undefined') {
+        shlOptionTmp.series[0].data.forEach((el) => {
             if (params.type == 'highlight') {
                 if (el.name != params.seriesName) {
-                    el.itemStyle.opacity = 0.06;
+                    el.itemStyle.opacity = 0;
                     if (
                         optionFromXmlDashboard?.tooltip && // Check if tooltip exists
                         (optionFromXmlDashboard.tooltip.show === undefined || // No show property
@@ -132,15 +135,18 @@ function showHoveredLegend(tmpChartInstance, params) {
             }
         })
     }
-    tmpChartInstance.setOption(shlOption);
+    tmpChartInstance.setOption(shlOptionTmp);
 }
 
 const _buildTimelineOption = function (data, config, tmpChartInstance) {
     const _setCustomTokens = this._setCustomTokens;
+    let computedDimensions = data.fields.map(tmpField => tmpField.name);
     configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
     optionFromXmlDashboard = this._parseOption(configOption);
-    if (typeof data.fields === 'undefined' || data.fields.length < 5) {
-        throw "Error: This visualization needs at least 5 different fields (start_time, end_time, internal_name, category, fill_color)! Please check the query results!"
+    
+    // Dynamic data field length check based on useColors option
+    if (typeof data.fields === 'undefined' || data.fields.length < 4) {
+        throw "Error: This visualization needs at least 4 different fields (start_time, end_time, internal_name, category)! Please check the query results!"
     }
 
     // Read start_time from data.fields[0]
@@ -155,21 +161,40 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     // Read the legends name from data.fields[3]
     let configLegendsDataIndexBinding = 3;
 
-    // Read the fill_color from data.fields[4]
-    let configColorDataIndexBinding = 4;
-
     // Before doing any processing ignore any rows that have any of the start_time, end_time, internal_name or category properties empty
-    const cleanDataRows = data.rows.filter(obj => {
-        const keys = Object.keys(obj);
-        const firstProp = obj[keys[0]]; //start_time
-        const secondProp = obj[keys[1]]; //end_time
-        const thirdProp = obj[keys[2]]; //internal_name
-        const fourthProp = obj[keys[3]]; //category
-        return (firstProp !== "" && firstProp !== null && firstProp !== undefined) ||
-        (secondProp !== "" && secondProp !== null && secondProp !== undefined) ||
-        (thirdProp !== "" && thirdProp !== null && thirdProp !== undefined) ||
-        (fourthProp !== "" && fourthProp !== null && fourthProp !== undefined);
-    });
+    // The data.rows array contains sub-arrays, each with at least four elements (representing start_time, end_time, internal_name, and category)
+    // For each sub-array (row), we use slice(0, 4) to consider only the first four elements.
+    // The every() method ensures all four elements are not "", null, or undefined.
+    let cleanDataRows = data.rows.filter(row => 
+        row.slice(0, 4).every(value => 
+            value !== "" && value !== null && value !== undefined
+        )
+    );
+
+    // Read the fill_color from useColorDataIndexBinding property
+    let configColorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "useColorDataIndexBinding"];
+    if(!this._sharedFunctions.isValidInteger(configColorDataIndexBinding)) {
+        console.log(`useColorDataIndexBinding parameter is not defined inside the dashboard source code or does not have a valid number value. Proceed on generating a dynamic color palette.`);
+        //this._sharedFunctions.isValidUnixTimestamp(tmpStartTime)
+        // Get all unique categories from cleanDataRows
+        const uniqueCategories = [...new Set(cleanDataRows.map(dataRow => dataRow[3]))];
+        // Generate color palette based on number of unique categories
+        const colorPalette = this._sharedFunctions.generateColorPalette(uniqueCategories.length);
+        // Map categories to colors
+        const categoryColors = uniqueCategories.reduce((acc, category, index) => {
+            acc[category] = colorPalette[index];
+            return acc;
+        }, {});
+        // Push the dynamicFillColor to every sub-array from cleanDataRows based on category
+        const enhancedRowsWithColorPalette = cleanDataRows.map(dataRow => [
+            ...dataRow,
+            categoryColors[dataRow[3]] || "#999999" // Append color, use fallback if category not found
+        ]);
+        cleanDataRows = enhancedRowsWithColorPalette;
+        computedDimensions.push('dynamicFillColor');
+        // Overwrite configColorDataIndexBinding with the index of the dynamicFillColor property
+        configColorDataIndexBinding = cleanDataRows[0].length - 1;
+    }
 
     cleanDataRows.forEach((tmpRow) => {
         const tmpValue = tmpRow[configSeriesDataIndexBinding];
@@ -253,24 +278,27 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     // Sort categories as strings in alphabetical and ascending order
     processedCategories = processedCategories.sort().reverse();
 
+    
+    console.log(`computedDimensions`, computedDimensions);
     cleanDataRows.forEach((tmpRow) => {
-        const tmpInternalName = tmpRow[configSeriesDataIndexBinding];
-        const tmpReason = tmpRow[configLegendsDataIndexBinding];
-        const tmpColor = tmpRow[configColorDataIndexBinding];
-        const tmpStartTime = tmpRow[configStartTimeDataIndexBinding];
-        const tmpEndTime = tmpRow[configEndTimeDataIndexBinding];
+        const tmpStartTime = tmpRow[configStartTimeDataIndexBinding]; //0
+        const tmpEndTime = tmpRow[configEndTimeDataIndexBinding]; //1
+        const tmpInternalName = tmpRow[configSeriesDataIndexBinding]; //2
+        const tmpReason = tmpRow[configLegendsDataIndexBinding]; //3
+        const tmpColor = tmpRow[configColorDataIndexBinding]; //4
+        
         if (!this._sharedFunctions.isValidUnixTimestamp(tmpStartTime)) {
             throw "Error: First value from the data is not a valid unix timestamp! Please check the data!"
         }
+        
         if (!this._sharedFunctions.isValidUnixTimestamp(tmpEndTime)) {
             throw "Error: Second value from the data is not a valid unix timestamp! Please check the data!"
         }
+        
         const tmpDuration = tmpEndTime - tmpStartTime;
-        let tmpCategoryName = '';
         const tmpProcessedInternalNameIdx = processedCategories.findIndex((internalCategoryName) => {
             let tmpResult = false;
             if (internalCategoryName == tmpInternalName) {
-                tmpCategoryName = internalCategoryName;
                 tmpResult = true;
             }
             return tmpResult;
@@ -293,17 +321,14 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             }
         }
         xAxisStartDates.push(tmpEndTime);
-        let dynamicValue = [
-            parseFloat(tmpStartTime * 1000), //start_time (javascript timestamp in miliseconds)
-            parseFloat(tmpEndTime * 1000), //end_time (javascript timestamp in miliseconds)
-            tmpDuration, //duration
-            tmpCategoryName, //category_name
-            tmpReason, //legend_name
-            tmpColor, //color
-            tmpProcessedInternalNameIdx, //legend index,
-            tmpStartTime, //unix_start_time (unix timestamp in seconds)
-            tmpEndTime, //unix_end_time (unix timestamp in seconds)
-        ];
+        //['start_time', 'end_time', 'duration', 'category_name', 'legend_name', 'color', 'legend_idx', 'unix_start_time', 'unix_end_time'],
+        let dynamicValue = tmpRow;
+        dynamicValue[configStartTimeDataIndexBinding] = parseFloat(tmpStartTime * 1000);//start_time (javascript timestamp in miliseconds)
+        dynamicValue[configEndTimeDataIndexBinding] = parseFloat(tmpEndTime * 1000);//end_time (javascript timestamp in miliseconds)
+        dynamicValue.push(tmpDuration); //duration
+        dynamicValue.push(tmpProcessedInternalNameIdx); //legend index,
+        dynamicValue.push(tmpStartTime); //unix_start_time (unix timestamp in seconds)
+        dynamicValue.push(tmpEndTime); //unix_end_time (unix timestamp in seconds)
         let customDataObj = {
             name: tmpReason,
             value: dynamicValue,
@@ -319,75 +344,93 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         processedData.push(customDataObj);
     });
 
-    let option = {};
+    computedDimensions.push('duration');
+    computedDimensions.push('legend_index');
+    computedDimensions.push('unix_start_time');
+    computedDimensions.push('unix_end_time');
+
+    let computedOption = {};
     if (optionFromXmlDashboard == null) {
         return null;
     }
-    option.grid = {
-        height: 300,
-        left: '5%',
-        top: 80,
-        containLabel: true,
-    };
-    option.xAxis = [
-        {
-            type: "time",
-            boundaryGap: false,
-            axisLabel: {
-                color: genericTextColor,
-                fontFamily: "Splunk Platform Sans",
-                fontSize: 14,
-                formatter: {
-                    year: '{yyyy}',
-                    month: '{MMM}',
-                    day: '{dayStyle|{d} {MMM}}',
-                    hour: '{HH}:{mm}',
-                    minute: '{HH}:{mm}',
-                },
-                rich: {
-                    yearStyle: {
-                        color: genericTextColor,
-                        fontWeight: 'bold'
+    if(!optionFromXmlDashboard.grid) {
+        // Apply sane defaults
+        computedOption.grid = {
+            height: 300,
+            left: '5%',
+            top: 80,
+            containLabel: true,
+        };
+    }
+    if(!optionFromXmlDashboard.xAxis) {
+        computedOption.xAxis = [
+            {
+                type: "time",
+                boundaryGap: false,
+                axisLabel: {
+                    color: genericTextColor,
+                    fontFamily: "Splunk Platform Sans",
+                    fontSize: 14,
+                    formatter: {
+                        year: '{yyyy}',
+                        month: '{MMM}',
+                        day: '{dayStyle|{d} {MMM}}',
+                        hour: '{HH}:{mm}',
+                        minute: '{HH}:{mm}',
                     },
-                    monthStyle: {
-                        color: genericTextColor,
-                    },
-                    dayStyle: {
-                        fontWeight: 'bold',
-                        color: genericTextColor,
+                    rich: {
+                        yearStyle: {
+                            color: genericTextColor,
+                            fontWeight: 'bold'
+                        },
+                        monthStyle: {
+                            color: genericTextColor,
+                        },
+                        dayStyle: {
+                            fontWeight: 'bold',
+                            color: genericTextColor,
+                        }
                     }
                 }
             }
-        }
-    ];
-    option.yAxis = {
-        data: processedCategories
-    };
-    option.dataZoom = [
-        {
-            type: 'slider',
-            start: 0,
-            end: 100,
-            labelFormatter: function (value) {
-                return new Date(value).toLocaleTimeString([tmpLocaleOption], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+        ];
+    }
+    if(!optionFromXmlDashboard.yAxis) {
+        computedOption.yAxis = {
+            data: processedCategories
+        };
+    } else {
+        // Using spread operator to insert data property inside computedOption.yAxis
+        computedOption.yAxis = { ...optionFromXmlDashboard.yAxis, data: processedCategories };
+    }
+    if(!optionFromXmlDashboard.dataZoom) {
+        computedOption.dataZoom = [
+            {
+                type: 'slider',
+                start: 0,
+                end: 100,
+                labelFormatter: function (value) {
+                    return new Date(value).toLocaleTimeString([tmpLocaleOption], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+                }
+            },
+            {
+                type: 'inside',
+                start: 50,
+                end: 70
             }
-        },
-        {
-            type: 'inside',
-            start: 50,
-            end: 70
-        }
-    ];
-    //These 2 keys (option.series and option.legend) cannot be overwritten from dashboard source code
-    option.series = [{
+        ];
+    }
+    //These 2 keys (computedOption.series and computedOption.legend) cannot be overwritten from dashboard source code
+    console.log(`computedDimensions`, computedDimensions);
+    computedOption.series = [{
         type: 'custom',
-        renderItem: renderItem,
+        renderItem: renderItemLogic,
         encode: {
-            x: 'start_time',
-            y: 'category'
+            x: computedDimensions[configStartTimeDataIndexBinding], //start_time
+            y: computedDimensions[configLegendsDataIndexBinding], //category
         },
         selectedMode: 'series',
-        dimensions: ['start_time', 'end_time', 'duration', 'category_name', 'legend_name', 'color', 'legend_idx', 'unix_start_time', 'unix_end_time'],
+        dimensions: computedDimensions,
         data: processedData,
         emphasis: {
             itemStyle: {
@@ -396,7 +439,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         }
     }];
     processedLegends.forEach((el) => {
-        option.series.push({
+        computedOption.series.push({
             type: 'line',
             name: el.name,
             itemStyle: {
@@ -405,7 +448,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             data: [],
         });
     })
-    option.legend = {
+    computedOption.legend = {
         textStyle: {
             color: genericTextColor,
             fontSize: 13,
@@ -430,8 +473,8 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
 
     // After clicking an ECharts custom visualisation rectangle (from timeline) the tokens will be populated, and Splunk will either run the linked search or navigate to another dashboard depending on the xml dashboard definition.
     tmpChartInstance.on('click', 'series', function (params) {
-        const shlOption = tmpChartInstance.getOption();
-        if (shlOption.legend[0].selected[params.name]) {
+        const shlOptionTmp = tmpChartInstance.getOption();
+        if (shlOptionTmp.legend[0].selected[params.name]) {
             _setCustomTokens(params, tmpChartInstance);
         }
     });
@@ -441,10 +484,10 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         // Check if the tmpOptionKey is not 'yAxis' or 'series' or 'legend' and if optionFromXmlDashboard has the tmpOptionKey
         if (tmpOptionKey !== 'yAxis' && tmpOptionKey !== 'series' && tmpOptionKey !== 'legend' && Object.prototype.hasOwnProperty.call(optionFromXmlDashboard, tmpOptionKey)) {
             // Replace the value in option with the value from optionFromXmlDashboard
-            option[tmpOptionKey] = optionFromXmlDashboard[tmpOptionKey];
+            computedOption[tmpOptionKey] = optionFromXmlDashboard[tmpOptionKey];
         }
     }
-    return option;
+    return computedOption;
 }
 
 module.exports = _buildTimelineOption;
