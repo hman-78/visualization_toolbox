@@ -185,24 +185,11 @@ const _sharedFunctions = {
   },
   // Function to generate a color palette dynamically
   generateColorPalette(numColors) {
-    //# TODO when building this check for rgb/rgba sanity check
+    const splunkCategoricalColors = ["#006d9c", "#4fa484", "#ec9960", "#af575a", "#b6c75a", "#62b3b2", "#294e70", "#738795", "#edd051", "#bd9872", "#5a4575", "#7ea77b", "#708794", "#d7c6b7", "#339bb2", "#55672d", "#e6e1ae", "#96907f", "#87bc65", "#cf7e60", "#7b5547", "#77d6d8", "#4a7f2c", "#f589ad", "#6a2c5d", "#aaabae", "#9a7438", "#a4d563", "#7672a4", "#184b81", "#7fb6ce", "#a7d2c2", "#f6ccb0", "#d7abad", "#dbe3ad", "#b1d9d9", "#94a7b8", "#b9c3ca", "#f6e8a8", "#deccb9", "#b7acca", "#b2cab0", "#a5b2bf", "#e9ddd4", "#66c3d0", "#aab396", "#f3f0d7", "#c1bcb3", "#b6d7a3", "#e1b2a1", "#dec4ba", "#abe6e8", "#91b282", "#f8b7ce", "#cba3c2", "#cccdce", "#c3ab89", "#c7e6a3", "#ada9c8", "#a4bbe0"];
     const colors = [];
-    const hueStep = 360 / numColors; // Distribute hues evenly
     for (let i = 0; i < numColors; i++) {
-      const hue = i * hueStep;
-      // Get the splunk colors
-      // Convert HSL to hex for high contrast (fixed saturation and lightness)
-      const hslToHex = (h, s, l) => {
-        l /= 100;
-        const a = s * Math.min(l, 1 - l) / 100;
-        const f = n => {
-          const k = (n + h / 30) % 12;
-          const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-          return Math.round(255 * color).toString(16).padStart(2, '0');
-        };
-        return `#${f(0)}${f(8)}${f(4)}`;
-      };
-      colors.push(hslToHex(hue, 70, 50)); // 70% saturation, 50% lightness for vibrant, readable colors
+      let tmpIdx = i % splunkCategoricalColors.length;
+      colors.push(splunkCategoricalColors[tmpIdx]);
     }
     return colors;
   },
@@ -234,7 +221,44 @@ const _sharedFunctions = {
     }
     
     return true;
-}
+  },
+  /**
+   * Checks if a string is a valid color code in hex, rgb, rgba, or hsl format.
+   *
+   * @param {string} colorCode The string to check.
+   * @returns {boolean} True if the string is a valid color code, otherwise false.
+   */
+  isColorCode(colorCode) {
+    // Regular expression for Hex colors (3 or 6 digits, with or without a leading #)
+    const hexRegex = /^#?([0-9a-fA-F]{3}){1,2}$/;
+    
+    // Regular expression for RGB or RGBA colors
+    const rgbRegex = /^rgba?\((\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*)(,\s*(0|1|0?\.\d+)\s*)?\)$/i;
+
+    // Regular expression for HSL colors
+    const hslRegex = /^hsl\((\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*)\)$/i;
+
+    // Remove any leading or trailing whitespace and convert to lowercase for consistent checking.
+    const cleanColor = colorCode.trim().toLowerCase();
+
+    // Check for Hex format
+    if (hexRegex.test(cleanColor)) {
+        return true;
+    }
+
+    // Check for RGB or RGBA format
+    if (rgbRegex.test(cleanColor)) {
+        return true;
+    }
+
+    // Check for HSL format
+    if (hslRegex.test(cleanColor)) {
+        return true;
+    }
+
+    // If none of the above patterns match, it's not a valid color code.
+    return false;
+  }
 };
 
 module.exports = _sharedFunctions;
