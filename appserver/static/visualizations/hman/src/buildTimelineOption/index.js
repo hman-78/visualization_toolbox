@@ -3,7 +3,6 @@
  * 
 */
 
-const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
 const SplunkVisualizationUtils = require('api/SplunkVisualizationUtils');
 // eslint-disable-next-line
 const echarts = require('echarts');
@@ -29,8 +28,6 @@ const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
     tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
 }
-
-console.log('Checking the color palette from splunk', SplunkVisualizationBase);
 
 function renderItemLogic(params, api) {
     var categoryIndex = api.value(2);
@@ -143,10 +140,21 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     let computedDimensions = data.fields.map(tmpField => tmpField.name);
     configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
     optionFromXmlDashboard = this._parseOption(configOption);
+    let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"];
+    let nrOfDataFieldsToBeCheckedFor = 4; // Minimum nr of fields required for this visualization to work in case the user is choosing to use splunk categorical colors
+    let configColorDataIndexBinding;
+    if(useSplunkCategoricalColors.toLowerCase() !== 'true') {
+        nrOfDataFieldsToBeCheckedFor = 5; // Minimum nr of fields required for this visualization to work in case the user is choosing to use its own colors
+        configColorDataIndexBinding = 4;
+        const dataRowsIsValidColor = this._sharedFunctions.isColorCode(data.rows[0][4]);
+        if(!dataRowsIsValidColor) {
+          throw `The 5th data field is not a valid color code! Please check the search results or define useSplunkCategoricalColors option with value true!`;
+        }
+    }
     
-    // Dynamic data field length check based on useColors option
-    if (typeof data.fields === 'undefined' || data.fields.length < 4) {
-        throw "Error: This visualization needs at least 4 different fields (start_time, end_time, internal_name, category)! Please check the query results!"
+    // Dynamic data field length check
+    if (typeof data.fields === 'undefined' || data.fields.length < nrOfDataFieldsToBeCheckedFor) {
+        throw `Error: This visualization needs at least ${nrOfDataFieldsToBeCheckedFor} different fields (start_time, end_time, internal_name, category, ${nrOfDataFieldsToBeCheckedFor === 5 ? 'fill_color': ''})! Please check the query results!`
     }
 
     // Read start_time from data.fields[0]
@@ -171,11 +179,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         )
     );
 
-    // Read the fill_color from useColorDataIndexBinding property
-    let configColorDataIndexBinding = config[this.getPropertyNamespaceInfo().propertyNamespace + "useColorDataIndexBinding"];
-    if(!this._sharedFunctions.isValidInteger(configColorDataIndexBinding)) {
-        console.log(`useColorDataIndexBinding parameter is not defined inside the dashboard source code or does not have a valid number value. Proceed on generating a dynamic color palette.`);
-        //this._sharedFunctions.isValidUnixTimestamp(tmpStartTime)
+    if(useSplunkCategoricalColors.toLowerCase() === 'true') {
         // Get all unique categories from cleanDataRows
         const uniqueCategories = [...new Set(cleanDataRows.map(dataRow => dataRow[3]))];
         // Generate color palette based on number of unique categories
@@ -194,6 +198,32 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         computedDimensions.push('dynamicFillColor');
         // Overwrite configColorDataIndexBinding with the index of the dynamicFillColor property
         configColorDataIndexBinding = cleanDataRows[0].length - 1;
+    } else {
+        // Identify all unique rows that at least one empty value in the fill_color property.
+        // Then, sets the value of fill_color to a color from splunk color palette for all rows belonging to the same category.
+        
+        // Step 1: Identify all unique rows that have at least one empty fill_color value
+        const categoriesWithEmptyColorColumnValues = new Set();
+        cleanDataRows.forEach((rowSubArray) => {
+            if (rowSubArray[configColorDataIndexBinding] === "") {
+                categoriesWithEmptyColorColumnValues.add(rowSubArray[configLegendsDataIndexBinding]);
+            }
+        });
+        
+        // Generate color palette based on number of unique categories with at least 1 empty color value
+        const colorPalette = this._sharedFunctions.generateColorPalette(categoriesWithEmptyColorColumnValues.size);
+        
+        // Convert the keys to an array so we can find the index when adding the color from the colorPalette
+        const tmpKeysArray = Array.from(categoriesWithEmptyColorColumnValues);
+        
+        // Step 2: Assign the splunk colors to all data rows where category is in categoriesWithEmptyColorColumnValues
+        cleanDataRows.forEach((rowSubArray) => {
+            if (categoriesWithEmptyColorColumnValues.has(rowSubArray[configLegendsDataIndexBinding])) {
+                const matchedValue = rowSubArray[configLegendsDataIndexBinding];
+                const indexInKeysToModify = tmpKeysArray.findIndex(key => key === matchedValue);
+                rowSubArray[configColorDataIndexBinding] = colorPalette[indexInKeysToModify];
+            }
+        });
     }
 
     cleanDataRows.forEach((tmpRow) => {
@@ -277,9 +307,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
 
     // Sort categories as strings in alphabetical and ascending order
     processedCategories = processedCategories.sort().reverse();
-
     
-    console.log(`computedDimensions`, computedDimensions);
     cleanDataRows.forEach((tmpRow) => {
         const tmpStartTime = tmpRow[configStartTimeDataIndexBinding]; //0
         const tmpEndTime = tmpRow[configEndTimeDataIndexBinding]; //1
@@ -421,7 +449,6 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         ];
     }
     //These 2 keys (computedOption.series and computedOption.legend) cannot be overwritten from dashboard source code
-    console.log(`computedDimensions`, computedDimensions);
     computedOption.series = [{
         type: 'custom',
         renderItem: renderItemLogic,
