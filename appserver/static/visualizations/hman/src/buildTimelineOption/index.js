@@ -14,11 +14,7 @@ let optionFromXmlDashboard = {};
 let processedLegends = [];
 let manuallyAddedLegends = [];
 let manuallySelectedLegends = {};
-let startPositionLeft = 0;
 var processedCategories = [];
-let tmpMappedSeries = [];
-let tmpMappedAllRectangles = [];
-let tmpOnlySelectedRectangles = [];
 let tmpLocaleOption = 'en-GB';
 let xAxisDataMinValue = '';
 let xAxisDataMaxValue = '';
@@ -60,9 +56,9 @@ function renderItemLogic(params, api) {
 }
 
 const _buildTimelineOption = function (data, config, tmpChartInstance) {
-    let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
+    configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
     let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"];
-    let optionFromXmlDashboard = this._parseOption(configOption);
+    optionFromXmlDashboard = this._parseOption(configOption);
     const _setCustomTokens = this._setCustomTokens;
     let computedDimensions = data.fields.map(tmpField => tmpField.name);
     let allSeriesData = [];
@@ -166,66 +162,20 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
                 {
                     type: "text",
                     name: tmpLegendValue,
-                    info: tmpLegendValue,
-                    onmouseover: function (mouseEvt) {
-                        /*
-                        const theOriginalOptions = tmpChartInstance.getOption();
-                        theOriginalOptions.yAxis[0].data.forEach((el, idx) => {
-                            tmpMappedSeries.push(idx)
-                        })
-                        theOriginalOptions.series[0].data.forEach((el, idx) => {
-                            tmpMappedAllRectangles.push(idx);
-                            if (el.name == mouseEvt.target.style.text) {
-                                tmpOnlySelectedRectangles.push(idx)
-                            }
-                        })
-                        tmpChartInstance.dispatchAction({
-                            type: 'downplay',
-                            seriesIndex: tmpMappedSeries,
-                            dataIndex: tmpOnlySelectedRectangles
-                        });
-                        */
-                        tmpChartInstance.dispatchAction({
-                            type: 'highlight',
-                            seriesIndex: tmpMappedSeries,
-                            dataIndex: tmpMappedAllRectangles
-                        });
-                        
-                        tmpOnlySelectedRectangles = [];
-                    },
-                    onmouseout: function () {
-                        tmpChartInstance.dispatchAction({
-                            type: 'downplay',
-                            seriesIndex: tmpMappedSeries,
-                            dataIndex: tmpMappedAllRectangles
-                        });
-                    },
-                    textConfig: {
-                        position: 'insideTopLeft',
-                        layoutRect: {
-                            width: 20,
-                        },
-                    },
                     style: {
-                        text: tmpLegendValue,
-                        fontSize: 12,
-                        fontFamily: "Splunk Platform Sans",
                         fill: tmpColorValue,
-                        x: startPositionLeft,
                     },
-                    z: 100
                 }
             );
             manuallyAddedLegends.push({
                 name: tmpLegendValue,
                 icon: 'rect',
                 textStyle: {
-                    width: 100,
                     color: genericTextColor,
+                    fontFamily: "Splunk Platform Sans",
                 }
             });
             manuallySelectedLegends[tmpLegendValue] = true;
-            startPositionLeft += 110;
         }
     });
 
