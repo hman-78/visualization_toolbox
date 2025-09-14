@@ -59,102 +59,30 @@ function renderItemLogic(params, api) {
     );
 }
 
-function showHoveredLegend(tmpChartInstance, params) {
-    const shlOptionTmp = tmpChartInstance.getOption();
-    let shlMappedAllRectangles = [];
-    let shlVisibleLegends = [];
-    let shlMappedSeries = [];
-    let shlOnlySelectedRectangles = [];
-    if (typeof shlOptionTmp.yAxis !== 'undefined' && typeof shlOptionTmp.yAxis[0] !== 'undefined') {
-        shlOptionTmp.yAxis[0].data.forEach((el, idx) => {
-            shlMappedSeries.push(idx)
-        })
-    }
-    if (typeof shlOptionTmp.legend !== 'undefined' && typeof shlOptionTmp.legend[0].selected !== 'undefined') {
-        Object.keys(shlOptionTmp.legend[0].selected).forEach((elm) => {
-            if (!shlVisibleLegends.includes(elm) && shlOptionTmp.legend[0].selected[elm] == true) {
-                shlVisibleLegends.push(elm);
-            }
-        })
-    }
-
-    if (typeof shlOptionTmp.series !== 'undefined' && typeof shlOptionTmp.series[0] !== 'undefined' && typeof shlOptionTmp.series[0].data !== 'undefined') {
-        shlOptionTmp.series[0].data.forEach((el, idx) => {
-            shlMappedAllRectangles.push(idx)
-            if (el.name == params.seriesName) {
-                shlOnlySelectedRectangles.push(idx)
-            }
-        })
-    }
-    if (typeof shlOptionTmp.series !== 'undefined' && typeof shlOptionTmp.series[0] !== 'undefined' && typeof shlOptionTmp.series[0].data !== 'undefined') {
-        shlOptionTmp.series[0].data.forEach((el) => {
-            if (params.type == 'highlight') {
-                if (el.name != params.seriesName) {
-                    el.itemStyle.opacity = 0;
-                    if (
-                        optionFromXmlDashboard?.tooltip && // Check if tooltip exists
-                        (optionFromXmlDashboard.tooltip.show === undefined || // No show property
-                            optionFromXmlDashboard.tooltip.show !== false) // show is not false
-                    ) {
-                        el.tooltip = {show:false};
-                    }
-                } else {
-                    el.itemStyle.opacity = 1;
-                    if (
-                        optionFromXmlDashboard?.tooltip && // Check if tooltip exists
-                        (optionFromXmlDashboard.tooltip.show === undefined || // No show property
-                            optionFromXmlDashboard.tooltip.show !== false) // show is not false
-                    ) {
-                        el.tooltip = {show:true};
-                    }
-                }
-            }
-            if (params.type == 'downplay') {
-                if (shlVisibleLegends.includes(el.name)) {
-                    el.itemStyle.opacity = 1;
-                    if (
-                        optionFromXmlDashboard?.tooltip && // Check if tooltip exists
-                        (optionFromXmlDashboard.tooltip.show === undefined || // No show property
-                            optionFromXmlDashboard.tooltip.show !== false) // show is not false
-                    ) {
-                        el.tooltip = {show:true};
-                    }
-                } else {
-                    el.itemStyle.opacity = 0.06;
-                    if (
-                        optionFromXmlDashboard?.tooltip && // Check if tooltip exists
-                        (optionFromXmlDashboard.tooltip.show === undefined || // No show property
-                            optionFromXmlDashboard.tooltip.show !== false) // show is not false
-                    ) {
-                        el.tooltip = {show:false};
-                    }
-                }
-            }
-        })
-    }
-    tmpChartInstance.setOption(shlOptionTmp);
-}
-
 const _buildTimelineOption = function (data, config, tmpChartInstance) {
+    let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
+    let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"];
+    let optionFromXmlDashboard = this._parseOption(configOption);
     const _setCustomTokens = this._setCustomTokens;
     let computedDimensions = data.fields.map(tmpField => tmpField.name);
-    configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-    optionFromXmlDashboard = this._parseOption(configOption);
-    let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"];
+    let allSeriesData = [];
+    let deselectedLegends = []; // Array to track deselected legends
+    let originalDataHasBeenCopied = false;
     let nrOfDataFieldsToBeCheckedFor = 4; // Minimum nr of fields required for this visualization to work in case the user is choosing to use splunk categorical colors
     let configColorDataIndexBinding;
-    if(useSplunkCategoricalColors.toLowerCase() !== 'true') {
+
+    if (useSplunkCategoricalColors.toLowerCase() !== 'true') {
         nrOfDataFieldsToBeCheckedFor = 5; // Minimum nr of fields required for this visualization to work in case the user is choosing to use its own colors
         configColorDataIndexBinding = 4;
         const dataRowsIsValidColor = this._sharedFunctions.isColorCode(data.rows[0][4]);
-        if(!dataRowsIsValidColor) {
-          throw `The 5th data field is not a valid color code! Please check the search results or define useSplunkCategoricalColors option with value true!`;
+        if (!dataRowsIsValidColor) {
+            throw `The 5th data field is not a valid color code! Please check the search results or define useSplunkCategoricalColors option with value true!`;
         }
     }
-    
+
     // Dynamic data field length check
     if (typeof data.fields === 'undefined' || data.fields.length < nrOfDataFieldsToBeCheckedFor) {
-        throw `Error: This visualization needs at least ${nrOfDataFieldsToBeCheckedFor} different fields (start_time, end_time, internal_name, category, ${nrOfDataFieldsToBeCheckedFor === 5 ? 'fill_color': ''})! Please check the query results!`
+        throw `Error: This visualization needs at least ${nrOfDataFieldsToBeCheckedFor} different fields (start_time, end_time, internal_name, category, ${nrOfDataFieldsToBeCheckedFor === 5 ? 'fill_color' : ''})! Please check the query results!`
     }
 
     // Read start_time from data.fields[0]
@@ -173,13 +101,13 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     // The data.rows array contains sub-arrays, each with at least four elements (representing start_time, end_time, internal_name, and category)
     // For each sub-array (row), we use slice(0, 4) to consider only the first four elements.
     // The every() method ensures all four elements are not "", null, or undefined.
-    let cleanDataRows = data.rows.filter(row => 
-        row.slice(0, 4).every(value => 
+    let cleanDataRows = data.rows.filter(row =>
+        row.slice(0, 4).every(value =>
             value !== "" && value !== null && value !== undefined
         )
     );
 
-    if(useSplunkCategoricalColors.toLowerCase() === 'true') {
+    if (useSplunkCategoricalColors.toLowerCase() === 'true') {
         // Get all unique categories from cleanDataRows
         const uniqueCategories = [...new Set(cleanDataRows.map(dataRow => dataRow[3]))];
         // Generate color palette based on number of unique categories
@@ -201,7 +129,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     } else {
         // Identify all unique rows that at least one empty value in the fill_color property.
         // Then, sets the value of fill_color to a color from splunk color palette for all rows belonging to the same category.
-        
+
         // Step 1: Identify all unique rows that have at least one empty fill_color value
         const categoriesWithEmptyColorColumnValues = new Set();
         cleanDataRows.forEach((rowSubArray) => {
@@ -209,13 +137,13 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
                 categoriesWithEmptyColorColumnValues.add(rowSubArray[configLegendsDataIndexBinding]);
             }
         });
-        
+
         // Generate color palette based on number of unique categories with at least 1 empty color value
         const colorPalette = this._sharedFunctions.generateColorPalette(categoriesWithEmptyColorColumnValues.size);
-        
+
         // Convert the keys to an array so we can find the index when adding the color from the colorPalette
         const tmpKeysArray = Array.from(categoriesWithEmptyColorColumnValues);
-        
+
         // Step 2: Assign the splunk colors to all data rows where category is in categoriesWithEmptyColorColumnValues
         cleanDataRows.forEach((rowSubArray) => {
             if (categoriesWithEmptyColorColumnValues.has(rowSubArray[configLegendsDataIndexBinding])) {
@@ -239,14 +167,8 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
                     type: "text",
                     name: tmpLegendValue,
                     info: tmpLegendValue,
-                    onclick: function () {
-                        tmpChartInstance.dispatchAction({
-                            type: 'highlight',
-                            seriesIndex: tmpMappedSeries,
-                            dataIndex: tmpMappedAllRectangles
-                        });
-                    },
                     onmouseover: function (mouseEvt) {
+                        /*
                         const theOriginalOptions = tmpChartInstance.getOption();
                         theOriginalOptions.yAxis[0].data.forEach((el, idx) => {
                             tmpMappedSeries.push(idx)
@@ -258,15 +180,17 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
                             }
                         })
                         tmpChartInstance.dispatchAction({
-                            type: 'highlight',
-                            seriesIndex: tmpMappedSeries,
-                            dataIndex: tmpMappedAllRectangles
-                        });
-                        tmpChartInstance.dispatchAction({
                             type: 'downplay',
                             seriesIndex: tmpMappedSeries,
                             dataIndex: tmpOnlySelectedRectangles
                         });
+                        */
+                        tmpChartInstance.dispatchAction({
+                            type: 'highlight',
+                            seriesIndex: tmpMappedSeries,
+                            dataIndex: tmpMappedAllRectangles
+                        });
+                        
                         tmpOnlySelectedRectangles = [];
                     },
                     onmouseout: function () {
@@ -307,22 +231,22 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
 
     // Sort categories as strings in alphabetical and ascending order
     processedCategories = processedCategories.sort().reverse();
-    
+
     cleanDataRows.forEach((tmpRow) => {
         const tmpStartTime = tmpRow[configStartTimeDataIndexBinding]; //0
         const tmpEndTime = tmpRow[configEndTimeDataIndexBinding]; //1
         const tmpInternalName = tmpRow[configSeriesDataIndexBinding]; //2
         const tmpReason = tmpRow[configLegendsDataIndexBinding]; //3
         const tmpColor = tmpRow[configColorDataIndexBinding]; //4
-        
+
         if (!this._sharedFunctions.isValidUnixTimestamp(tmpStartTime)) {
             throw "Error: First value from the data is not a valid unix timestamp! Please check the data!"
         }
-        
+
         if (!this._sharedFunctions.isValidUnixTimestamp(tmpEndTime)) {
             throw "Error: Second value from the data is not a valid unix timestamp! Please check the data!"
         }
-        
+
         const tmpDuration = tmpEndTime - tmpStartTime;
         const tmpProcessedInternalNameIdx = processedCategories.findIndex((internalCategoryName) => {
             let tmpResult = false;
@@ -349,7 +273,6 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             }
         }
         xAxisStartDates.push(tmpEndTime);
-        //['start_time', 'end_time', 'duration', 'category_name', 'legend_name', 'color', 'legend_idx', 'unix_start_time', 'unix_end_time'],
         let dynamicValue = tmpRow;
         dynamicValue[configStartTimeDataIndexBinding] = parseFloat(tmpStartTime * 1000);//start_time (javascript timestamp in miliseconds)
         dynamicValue[configEndTimeDataIndexBinding] = parseFloat(tmpEndTime * 1000);//end_time (javascript timestamp in miliseconds)
@@ -378,11 +301,13 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     computedDimensions.push('unix_end_time');
 
     let computedOption = {};
+
     if (optionFromXmlDashboard == null) {
         return null;
     }
-    if(!optionFromXmlDashboard.grid) {
-        // Apply sane defaults
+
+    if (!optionFromXmlDashboard.grid) {
+        // Apply default setting for echart option.grid
         computedOption.grid = {
             height: 300,
             left: '5%',
@@ -390,7 +315,9 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             containLabel: true,
         };
     }
-    if(!optionFromXmlDashboard.xAxis) {
+
+    if (!optionFromXmlDashboard.xAxis) {
+        // Apply default setting for echart option.xAxis
         computedOption.xAxis = [
             {
                 type: "time",
@@ -423,7 +350,9 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             }
         ];
     }
-    if(!optionFromXmlDashboard.yAxis) {
+    
+    if (!optionFromXmlDashboard.yAxis) {
+        // Apply default setting for echart option.yAxis
         computedOption.yAxis = {
             data: processedCategories
         };
@@ -431,7 +360,9 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         // Using spread operator to insert data property inside computedOption.yAxis
         computedOption.yAxis = { ...optionFromXmlDashboard.yAxis, data: processedCategories };
     }
-    if(!optionFromXmlDashboard.dataZoom) {
+
+    if (!optionFromXmlDashboard.dataZoom) {
+        // Apply default setting for echart option.dataZoom
         computedOption.dataZoom = [
             {
                 type: 'slider',
@@ -450,6 +381,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     }
     //These 2 keys (computedOption.series and computedOption.legend) cannot be overwritten from dashboard source code
     computedOption.series = [{
+        id: 'timelineData',
         type: 'custom',
         renderItem: renderItemLogic,
         encode: {
@@ -459,12 +391,16 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         selectedMode: 'series',
         dimensions: computedDimensions,
         data: processedData,
-        emphasis: {
-            itemStyle: {
-                opacity: '0',
-            }
-        }
     }];
+
+    if(optionFromXmlDashboard.series && optionFromXmlDashboard.series[0]) {
+        // Update the first item (id: timelineData) of the series array with properties from optionFromXmlDashboard
+        computedOption.series[0] = {
+            ...computedOption.series[0], // Keep existing properties of computedOption.series[0]
+            ...optionFromXmlDashboard.series[0] // Override with properties from optionFromXmlDashboard.series[0]
+        };
+    }
+
     processedLegends.forEach((el) => {
         computedOption.series.push({
             type: 'line',
@@ -475,27 +411,134 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             data: [],
         });
     })
+
     computedOption.legend = {
-        textStyle: {
-            color: genericTextColor,
-            fontSize: 13,
-        },
-        top: 30,
         selected: manuallySelectedLegends,
         data: manuallyAddedLegends,
+    };
+
+    if(!optionFromXmlDashboard.legend) {
+        computedOption.legend = {
+            ...computedOption.legend,
+            textStyle: {
+                color: genericTextColor,
+                fontSize: 13,
+            },
+            top: 30
+        }
+    } else {
+        // Merge properties from optionFromXmlDashboard.legend into computedOption.legend
+        console.log('Merge properties from optionFromXmlDashboard.legend into computedOption.legend', computedOption.legend);
+        computedOption.legend = {
+            ...computedOption.legend,
+            ...optionFromXmlDashboard.legend
+        };
+        console.log('After Merge properties from optionFromXmlDashboard.legend into computedOption.legend', computedOption.legend);
     }
+
     tmpChartInstance.on('highlight', function (params) {
-        if (typeof params.seriesName !== 'undefined') {
-            showHoveredLegend(tmpChartInstance, params);
+        const highlightedName = params.seriesName;
+        if (deselectedLegends.includes(highlightedName)) {
+            // Do not highligh any data items of this legend if the legend is deselected
+            return;
         }
+
+        const tmpXoption = tmpChartInstance.getOption();
+        const tmpXseriesData = tmpXoption.series[0].data;
+        // Find all indices with matching names
+        const indicesToHighlight = [];
+        tmpXseriesData.forEach((item, index) => {
+            if (item.name !== highlightedName) {
+                indicesToHighlight.push(index);
+            }
+        });
+        // Apply opacity only to matching indices
+        const rowsOfDataFromSelectedLegends = tmpXseriesData.map((item, index) => {
+            if (indicesToHighlight.includes(index)) {
+                return {
+                    ...item,
+                    itemStyle: {
+                        ...item.itemStyle,
+                        opacity: 0 // Make matching items transparent
+                    }
+                };
+            }
+            return item;
+        });
+        tmpChartInstance.setOption({
+            series: [
+                {
+                    id: 'timelineData',
+                    data: rowsOfDataFromSelectedLegends
+                }
+            ]
+        }, {
+            notMerge: false, // Merges only the data property of the first item from series array with the existing echart options
+        });
+            
     });
+
     tmpChartInstance.on('downplay', function (params) {
-        if (typeof params.seriesName !== 'undefined') {
-            showHoveredLegend(tmpChartInstance, params);
+        const highlightedName = params.seriesName;
+        if (deselectedLegends.includes(highlightedName)) {
+            // Do not downplay any data items of this legend if the legend is deselected
+            return;
         }
+        
+        const tmpXoption = tmpChartInstance.getOption();
+        const tmpXseriesData = tmpXoption.series[0].data;
+        const rowsOfDataFromSelectedLegends = tmpXseriesData.map(item => ({
+            ...item,
+            itemStyle: {
+                ...item.itemStyle,
+                opacity: 1
+            }
+        }));
+        tmpChartInstance.setOption({
+            series: [
+                {
+                    id: 'timelineData',
+                    data: rowsOfDataFromSelectedLegends
+                }
+            ]
+        }, {
+            notMerge: false, // Merges only the data property of the first item from series array with the existing echart options
+        });
     });
+
+    // Shallow copy of computedOption.series[0].data in allSeriesData with no reference to original computedOption.series[0].data;
+    if (!originalDataHasBeenCopied) {
+        allSeriesData = computedOption.series[0].data;
+        originalDataHasBeenCopied = true;
+    }
+
     tmpChartInstance.on('legendselectchanged', function (params) {
-        console.log('legendselectchanged', params);
+        const legendName = params.name;
+        const isSelected = params.selected[legendName];
+        if (isSelected) {
+            const index = deselectedLegends.indexOf(legendName);
+            if (index !== -1) {
+                deselectedLegends.splice(index, 1);
+            }
+        } else {
+            deselectedLegends.push(legendName);
+        }
+        const rowsOfDataFromSelectedLegends = allSeriesData.filter(dataRow => {
+            if (deselectedLegends.includes(dataRow.name)) {
+                return false;
+            }
+            return true;
+        });
+        tmpChartInstance.setOption({
+            series: [
+                {
+                    id: 'timelineData',
+                    data: rowsOfDataFromSelectedLegends
+                }
+            ]
+        }, {
+            notMerge: false // Merges only the data property of the first item from series array with the existing echart options
+        });
     });
 
     // After clicking an ECharts custom visualisation rectangle (from timeline) the tokens will be populated, and Splunk will either run the linked search or navigate to another dashboard depending on the xml dashboard definition.
