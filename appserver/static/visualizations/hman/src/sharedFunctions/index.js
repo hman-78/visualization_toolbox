@@ -258,6 +258,24 @@ const _sharedFunctions = {
 
     // If none of the above patterns match, it's not a valid color code.
     return false;
+  },
+  /**
+   * Replaces specified properties of objects in a data array with values from a template object.
+   *
+   * @param {Array<Object>} dataArray - The array of objects to update.
+   * @param {Object} template - The object providing replacement values for specified keys.
+   * @param {Array<string>} keys - The list of property names to replace in each object.
+   */
+  replacePropertiesFromTemplate(dataArray, template, keys) {
+    // Iterate through each object in the data array
+    dataArray.forEach(item => {
+      keys.forEach(key => {
+        // Only replace the property if it exists in the template object
+        if (template.hasOwnProperty(key)) {
+          item[key] = template[key]; // Replace the property with the template's value
+        }
+      });
+    });
   }
 };
 

@@ -158,15 +158,14 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             processedCategories.push(tmpValue);
         }
         if (!lodashFind(processedLegends, { 'name': tmpLegendValue })) {
-            processedLegends.push(
-                {
-                    type: "text",
-                    name: tmpLegendValue,
-                    style: {
-                        fill: tmpColorValue,
-                    },
-                }
-            );
+            // processedLegends is used for adding the series line items to echart option.series array
+            // the name and fillColor are mandatory
+            processedLegends.push({
+              type: "text",
+              name: tmpLegendValue,
+              fillColor: tmpColorValue,
+            });
+
             manuallyAddedLegends.push({
                 name: tmpLegendValue,
                 icon: 'rect',
@@ -356,7 +355,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             type: 'line',
             name: el.name,
             itemStyle: {
-                color: el.style.fill,
+                color: el.fillColor
             },
             data: [],
         });
@@ -378,12 +377,27 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         }
     } else {
         // Merge properties from optionFromXmlDashboard.legend into computedOption.legend
-        console.log('Merge properties from optionFromXmlDashboard.legend into computedOption.legend', computedOption.legend);
+        
+        // List of properties to replace in each object of the computedOption.legend.data array.
+        // You can add or remove property names here to control which properties get updated.
+        // Consult this list regularly depending on the eCharts version
+        const overrideableLegendProperties = [
+            "icon",
+            "itemStyle",
+            "lineStyle",
+            "inactiveColor",
+            "inactiveBorderColor",
+            "symbolRotate",
+            "textStyle"
+        ];
+        
+        // Apply the function to computedOption.legend.data using optionFromXmlDashboard.legend as the template
+        this._sharedFunctions.replacePropertiesFromTemplate(computedOption.legend.data, optionFromXmlDashboard.legend, overrideableLegendProperties);
+        
         computedOption.legend = {
             ...computedOption.legend,
             ...optionFromXmlDashboard.legend
         };
-        console.log('After Merge properties from optionFromXmlDashboard.legend into computedOption.legend', computedOption.legend);
     }
 
     tmpChartInstance.on('highlight', function (params) {
