@@ -72,8 +72,7 @@ const _createModal = function (splunk) {
 
   let footer = $("<div>").addClass("modal_annotation-footer").append(cancelButton, saveButton);
 
-  //eslint-disable-next-line
-  let modal_annotationContent = $("<div>").addClass("modal_annotation-content").append(header, body, footer);
+  let modal_annotationContent = $("<div>").addClass("modal_annotation-content").append(header, body, footer); // eslint-disable-line no-unused-vars
 
   let content = $("<div>").addClass("modal_annotation-content").append(header, body, footer);
   let modal_annotation = $("<div>")
@@ -107,10 +106,8 @@ const _createModal = function (splunk) {
       splunk._sendMQTTMessage(tmpEchartElement['mqttClient'], tmpEchartElement['mqttTopic'], JSON.stringify(msgJson));
       for (let i = 0; i < tmpEchartElement['_data'].rows.length; i++) {
         var x = tmpEchartElement['_data'].rows[i][tmpEchartElement['_annotationSeriesDataIndex'][0]];
-        //eslint-disable-next-line
-        var y = tmpEchartElement['_data'].rows[i][tmpEchartElement['_annotationSeriesDataIndex'][1]];
-        //eslint-disable-next-line
-        var annotation = tmpEchartElement['_data'].rows[i][tmpEchartElement['_annotationSeriesDataIndex'][2]];
+        var y = tmpEchartElement['_data'].rows[i][tmpEchartElement['_annotationSeriesDataIndex'][1]]; // eslint-disable-line no-unused-vars
+        var annotation = tmpEchartElement['_data'].rows[i][tmpEchartElement['_annotationSeriesDataIndex'][2]]; // eslint-disable-line no-unused-vars
 
         // to avoid a refresh of the panel the annotation with the matching x value is updated with the new annoation
         if (xAxisValue == x) {
@@ -119,7 +116,6 @@ const _createModal = function (splunk) {
 
       }
       var isAnnotationAlreadyInData = false;
-      var indexToBeDeleted = null;
   
       for (let i = 0; i < tmpEchartElement['_option'].series[tmpEchartElement['_annotationSeriesIndex']].data.length; i++) {
         let obj = tmpEchartElement['_option'].series[tmpEchartElement['_annotationSeriesIndex']].data[i];
@@ -128,8 +124,6 @@ const _createModal = function (splunk) {
           isAnnotationAlreadyInData = true;
           if ("" == description) {
             // remove data from series
-            //eslint-disable-next-line
-            indexToBeDeleted = i;
             obj[2] = "";
             tmpEchartElement['_option'].series[tmpEchartElement['_annotationSeriesIndex']].data.splice(i, 1);
             // TODO remove empty data obj from array

@@ -1,6 +1,4 @@
-/*eslint no-unused-vars: "error"*/
-/* exported SplunkVisualizationBase */
-const SplunkVisualizationBase = require('api/SplunkVisualizationBase');
+const SplunkVisualizationBase = require('api/SplunkVisualizationBase'); // eslint-disable-line no-unused-vars
 
 /**
  * To be called from the visualization's click handler, after computing the

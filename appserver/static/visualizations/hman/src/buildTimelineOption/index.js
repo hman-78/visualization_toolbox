@@ -4,7 +4,6 @@
 */
 
 const SplunkVisualizationUtils = require('api/SplunkVisualizationUtils');
-// eslint-disable-next-line
 const echarts = require('echarts');
 const lodashFind = require('lodash.find');
 
