@@ -271,7 +271,7 @@ const _sharedFunctions = {
     dataArray.forEach(item => {
       keys.forEach(key => {
         // Only replace the property if it exists in the template object
-        if (template.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(template, key)) {
           item[key] = template[key]; // Replace the property with the template's value
         }
       });
