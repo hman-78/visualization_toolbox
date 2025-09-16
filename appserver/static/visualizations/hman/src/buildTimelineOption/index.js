@@ -1,14 +1,8 @@
-/**
- *  Method to map the search data from Splunk to the eChart instance for 'custom' timeline charts. 
- * 
-*/
-
 const SplunkVisualizationUtils = require('api/SplunkVisualizationUtils');
 const echarts = require('echarts');
 const lodashFind = require('lodash.find');
 
 let processedData = [];
-let configOption = {};
 let optionFromXmlDashboard = {};
 let processedLegends = [];
 let manuallyAddedLegends = [];
@@ -55,10 +49,20 @@ function renderItemLogic(params, api) {
 }
 
 const _buildTimelineOption = function (data, config, tmpChartInstance) {
-    configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
+    let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
     let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"];
+    let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "splitByHour"];
+    
+    if(typeof splitByHour !== 'undefined' && splitByHour === 'true') {
+        splitByHour = true;
+    } else {
+        splitByHour = false;
+    }
+    
     optionFromXmlDashboard = this._parseOption(configOption);
     const _setCustomTokens = this._setCustomTokens;
+
+    // Extract 
     let computedDimensions = data.fields.map(tmpField => tmpField.name);
     let allSeriesData = [];
     let deselectedLegends = []; // Array to track deselected legends
@@ -71,7 +75,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         configColorDataIndexBinding = 4;
         const dataRowsIsValidColor = this._sharedFunctions.isColorCode(data.rows[0][4]);
         if (!dataRowsIsValidColor) {
-            throw `The 5th data field is not a valid color code! Please check the search results or define useSplunkCategoricalColors option with value true!`;
+            console.log(`The 5th data field is not a valid color code! It is going to be prefilled with a splunk categorical color.`);
         }
     }
 
@@ -128,7 +132,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         // Step 1: Identify all unique rows that have at least one empty fill_color value
         const categoriesWithEmptyColorColumnValues = new Set();
         cleanDataRows.forEach((rowSubArray) => {
-            if (rowSubArray[configColorDataIndexBinding] === "") {
+            if (!rowSubArray[configColorDataIndexBinding] || rowSubArray[configColorDataIndexBinding] == "") {
                 categoriesWithEmptyColorColumnValues.add(rowSubArray[configLegendsDataIndexBinding]);
             }
         });
