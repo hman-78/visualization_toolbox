@@ -7,15 +7,95 @@ let optionFromXmlDashboard = {};
 let processedLegends = [];
 let manuallyAddedLegends = [];
 let manuallySelectedLegends = {};
-var processedCategories = [];
+let processedCategories = [];
 let tmpLocaleOption = 'en-GB';
 let xAxisDataMinValue = '';
 let xAxisDataMaxValue = '';
 let xAxisStartDates = [];
+let yAxisListedHours = [];
+let hourlyIntervals = [];
+let matchedEvents = [];
 const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
+// Start creating the annotated computedOption object that will be passed to echart instance
+let computedOption = {};
 const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
     tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
+}
+
+let logCounter = 0;
+function renderItemForHour(params, api) {
+    //logCounter++
+    // 1. Initialize the counter on the context object
+    if (params.context.counter === undefined) {
+        params.context.counter = 0;
+    }
+    console.log('params.context.counter', params.context.counter);
+    if(logCounter <= processedData.length) {
+        // Log the grid's visible area
+        console.log('coordSys:', params.coordSys);
+        let startPoint;
+        let endPoint;
+
+        // Hardcoded example points (replace with your dynamic points)
+        startPoint = [130.11328125, 193.44];
+        endPoint = [178.98298997290146, 193.44];
+
+        if(params.context.counter == 2) {
+            startPoint = [230.11328125, 293.44];
+            endPoint = [278.98298997290146, 293.44];
+        } 
+
+        const rectHeight = 10; // A sample height
+        const rectShape = echarts.graphic.clipRectByRect(
+            {
+                x: startPoint[0],
+                y: startPoint[1] - rectHeight / 2,
+                width: endPoint[0] - startPoint[0],
+                height: rectHeight
+            },
+            params.coordSys
+        );
+
+        // Log the result of the clipping operation
+        if (rectShape) {
+            // Increment the counter for the next call
+            params.context.counter++;
+            return {
+                type: 'rect',
+                shape: rectShape,
+                style: { fill: 'red' }
+            };
+        }
+    }
+}
+
+// Function to match events to the provided hourly intervals
+function matchEventsToIntervals(events, intervals) {
+  // Clone intervals and add events array
+  const result = intervals.map(interval => ({
+    ...interval,
+    events: []
+  }));
+  events.forEach(event => {
+    const eventStart = Number(event[0]); // start time in seconds
+    const eventEnd = Number(event[1]);   // end time in seconds
+    intervals.forEach(interval => {
+        if (eventEnd > interval.start && eventStart < interval.end) {
+            // Check if event overlaps interval
+            console.log('The event is overlapping', interval, event);
+            event.push(`xoxo: ${interval.id}`);
+        }
+    });
+    result.forEach(interval => {
+      // Check if event overlaps interval
+      if (eventEnd > interval.start && eventStart < interval.end) {
+        interval.events.push(event);
+      }
+    });
+  });
+
+  return result;
 }
 
 function renderItemLogic(params, api) {
@@ -49,6 +129,7 @@ function renderItemLogic(params, api) {
 }
 
 const _buildTimelineOption = function (data, config, tmpChartInstance) {
+    computedOption = {};
     let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
     let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"];
     let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "splitByHour"];
@@ -61,6 +142,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     
     optionFromXmlDashboard = this._parseOption(configOption);
     const _setCustomTokens = this._setCustomTokens;
+    const _setSplunkMessages = this._setSplunkMessages;
 
     // Extract 
     let computedDimensions = data.fields.map(tmpField => tmpField.name);
@@ -153,6 +235,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         });
     }
 
+    // Create the legends
     cleanDataRows.forEach((tmpRow) => {
         const tmpValue = tmpRow[configSeriesDataIndexBinding];
         const tmpLegendValue = tmpRow[configLegendsDataIndexBinding];
@@ -184,6 +267,59 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     // Sort categories as strings in alphabetical and ascending order
     processedCategories = processedCategories.sort().reverse();
 
+    if(splitByHour) {
+        // Check if search time boundraries are inside the search results
+        const hasInfoMaxTime = data.fields.some(obj => obj.name === "info_max_time");
+        const hasInfoMinTime = data.fields.some(obj => obj.name === "info_min_time");
+        if(!hasInfoMaxTime || !hasInfoMinTime) {
+            _setSplunkMessages("error", "The search results do not have time boundraries. Update the query with | addinfo");
+            throw "The search results do not have time boundraries. Update the query with | addinfo";
+        }
+        const idxInfoMaxTime = data.fields.findIndex(obj => obj.name === 'info_max_time');
+        const idxInfoMinTime = data.fields.findIndex(obj => obj.name === 'info_min_time');
+        console.log(`idxInfoMaxTime: ${idxInfoMaxTime}`);
+        console.log(`idxInfoMinTime: ${idxInfoMinTime}`);
+        const rawEventsStartTime = 1727428797; //cleanDataRows[0][idxInfoMaxTime];
+        const rawEventsEndTime = 1727341200; //cleanDataRows[0][idxInfoMinTime];
+        console.log(`rawEventsStartTime: ${rawEventsStartTime}`);
+        console.log(`rawEventsEndTime: ${rawEventsEndTime}`);
+        // Convert to integers (seconds)
+        const start = Math.floor(Number(rawEventsStartTime));
+        const end = Math.floor(Number(rawEventsEndTime));
+
+        hourlyIntervals = [];
+        matchedEvents = [];
+        yAxisListedHours = [];
+        let idCounter = 0;
+
+        // Ensure we go from smaller to larger timestamp
+        const minTime = Math.min(start, end);
+        const maxTime = Math.max(start, end);
+
+        // Step through in hourly increments
+        for (let t = minTime; t < maxTime; t += 3600) {
+          const dateFromInfoMaxTime = new Date(t * 1000); // convert to ms
+          
+          // Format only hh:mm based on locale
+          const startTimeString = new Intl.DateTimeFormat(tmpLocaleOption, {
+            hour: "2-digit",
+            minute: "2-digit"
+          }).format(dateFromInfoMaxTime);
+          yAxisListedHours.push(startTimeString);
+          //if(yAxisListedHours.length < 5) {
+          //}
+          hourlyIntervals.push({
+            id: idCounter,
+            start: t,
+            startHour: startTimeString,
+            end: Math.min(t + 3600, maxTime),
+          });
+          idCounter++
+        }
+        console.log(hourlyIntervals);
+    }
+
+    // Create processedData, meaning the data array that belongs to first series object (the one with id "timelineData" )
     cleanDataRows.forEach((tmpRow) => {
         const tmpStartTime = tmpRow[configStartTimeDataIndexBinding]; //0
         const tmpEndTime = tmpRow[configEndTimeDataIndexBinding]; //1
@@ -232,12 +368,21 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         dynamicValue.push(tmpProcessedInternalNameIdx); //legend index,
         dynamicValue.push(tmpStartTime); //unix_start_time (unix timestamp in seconds)
         dynamicValue.push(tmpEndTime); //unix_end_time (unix timestamp in seconds)
+        let tmpMatchedHourlyIntervals = [];
+        hourlyIntervals.forEach(interval => {
+          if (tmpEndTime > interval.start && tmpStartTime < interval.end) {
+            // Check if event overlaps interval
+            tmpMatchedHourlyIntervals.push(interval.id);
+          }
+        });
         let customDataObj = {
             name: tmpReason,
             value: dynamicValue,
             itemStyle: {
                 color: tmpColor,
             },
+            eventDurationInSeconds: tmpDuration,
+            matchedHourlyIntervals: tmpMatchedHourlyIntervals,
             utilityFunctions: {
                 displayDate: this._sharedFunctions.extractDate,
                 displayTime: this._sharedFunctions.extractTime,
@@ -252,22 +397,22 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     computedDimensions.push('unix_start_time');
     computedDimensions.push('unix_end_time');
 
-    let computedOption = {};
-
     if (optionFromXmlDashboard == null) {
         return null;
     }
 
+    // Ensure grid property overwrite
     if (!optionFromXmlDashboard.grid) {
         // Apply default setting for echart option.grid
         computedOption.grid = {
-            height: 300,
+            height: splitByHour ? (30 * yAxisListedHours.length) : 300,
             left: '5%',
             top: 80,
             containLabel: true,
         };
     }
 
+    // Ensure xAxis property overwrite
     if (!optionFromXmlDashboard.xAxis) {
         // Apply default setting for echart option.xAxis
         computedOption.xAxis = [
@@ -303,18 +448,20 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         ];
     }
     
+    // Ensure yAxis property overwrite
     if (!optionFromXmlDashboard.yAxis) {
         // Apply default setting for echart option.yAxis
         computedOption.yAxis = {
-            data: processedCategories
+            data: splitByHour ? yAxisListedHours : processedCategories
         };
     } else {
         // Using spread operator to insert data property inside computedOption.yAxis
-        computedOption.yAxis = { ...optionFromXmlDashboard.yAxis, data: processedCategories };
+        computedOption.yAxis = { ...optionFromXmlDashboard.yAxis, data: splitByHour ? yAxisListedHours : processedCategories };
     }
 
-    if (!optionFromXmlDashboard.dataZoom) {
-        // Apply default setting for echart option.dataZoom
+    // Ensure dataZoom property overwrite
+    if (!optionFromXmlDashboard.dataZoom && !splitByHour) {
+        // Apply default setting for echart option.dataZoom, but only when splitByHour is not active
         computedOption.dataZoom = [
             {
                 type: 'slider',
@@ -331,13 +478,14 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
             }
         ];
     }
+
     //These 2 keys (computedOption.series and computedOption.legend) cannot be overwritten from dashboard source code
     computedOption.series = [{
         id: 'timelineData',
         type: 'custom',
-        renderItem: renderItemLogic,
+        renderItem: splitByHour ? renderItemForHour : renderItemLogic,
         encode: {
-            x: computedDimensions[configStartTimeDataIndexBinding], //start_time
+            x: [computedDimensions[configStartTimeDataIndexBinding], computedDimensions[configEndTimeDataIndexBinding]], //start_time, end_time
             y: computedDimensions[configLegendsDataIndexBinding], //category
         },
         selectedMode: 'series',
