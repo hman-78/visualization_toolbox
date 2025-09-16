@@ -229,6 +229,9 @@ const _sharedFunctions = {
    * @returns {boolean} True if the string is a valid color code, otherwise false.
    */
   isColorCode(colorCode) {
+    if(!colorCode) {
+      return false;
+    }
     // Regular expression for Hex colors (3 or 6 digits, with or without a leading #)
     const hexRegex = /^#?([0-9a-fA-F]{3}){1,2}$/;
     
