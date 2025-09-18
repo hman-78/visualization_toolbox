@@ -196,30 +196,30 @@ const _sharedFunctions = {
   isValidInteger(value) {
     // Check for null, undefined, empty string, or boolean
     if (value === null || value === undefined || value === '' || typeof value === 'boolean') {
-        return false;
+      return false;
     }
-    
+
     // Convert to number and check if it's an integer
     const num = Number(value);
-    
+
     // Check if conversion resulted in NaN or if it's not an integer
     if (isNaN(num) || !Number.isInteger(num)) {
-        return false;
+      return false;
     }
-    
+
     // Additional check for string inputs that might have leading/trailing spaces
     // or other edge cases like "123.0" which technically converts to integer 123
     if (typeof value === 'string') {
-        // Remove leading/trailing whitespace and check if it matches the number
-        const trimmed = value.trim();
-        if (trimmed === '' || trimmed !== num.toString()) {
-            // Allow "123.0" to pass as valid integer
-            if (!/^-?\d+\.?0*$/.test(trimmed)) {
-                return false;
-            }
+      // Remove leading/trailing whitespace and check if it matches the number
+      const trimmed = value.trim();
+      if (trimmed === '' || trimmed !== num.toString()) {
+        // Allow "123.0" to pass as valid integer
+        if (!/^-?\d+\.?0*$/.test(trimmed)) {
+          return false;
         }
+      }
     }
-    
+
     return true;
   },
   /**
@@ -229,12 +229,12 @@ const _sharedFunctions = {
    * @returns {boolean} True if the string is a valid color code, otherwise false.
    */
   isColorCode(colorCode) {
-    if(!colorCode) {
+    if (!colorCode) {
       return false;
     }
     // Regular expression for Hex colors (3 or 6 digits, with or without a leading #)
     const hexRegex = /^#?([0-9a-fA-F]{3}){1,2}$/;
-    
+
     // Regular expression for RGB or RGBA colors
     const rgbRegex = /^rgba?\((\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*)(,\s*(0|1|0?\.\d+)\s*)?\)$/i;
 
@@ -246,17 +246,17 @@ const _sharedFunctions = {
 
     // Check for Hex format
     if (hexRegex.test(cleanColor)) {
-        return true;
+      return true;
     }
 
     // Check for RGB or RGBA format
     if (rgbRegex.test(cleanColor)) {
-        return true;
+      return true;
     }
 
     // Check for HSL format
     if (hslRegex.test(cleanColor)) {
-        return true;
+      return true;
     }
 
     // If none of the above patterns match, it's not a valid color code.
@@ -279,7 +279,33 @@ const _sharedFunctions = {
         }
       });
     });
-  }
+  },
+  getHourlyIntervals(startTs, endTs, timeZone = 'UTC') {
+    // Round down startTs to the nearest hour
+    let current = startTs - (startTs % 3600);
+    const endHour = endTs - (endTs % 3600);
+    const labels = [];
+
+    while (current <= endHour) {
+      const startDate = new Date(current * 1000);
+      const endDate = new Date((current + 3599) * 1000);
+      // Format time in hh:mm:ss AM/PM
+      const formatOptions = {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      };
+      const startLabel = startDate.toLocaleTimeString(tmpLocaleOption, formatOptions);
+      const endLabel = endDate.toLocaleTimeString(tmpLocaleOption, formatOptions);
+      //labels.push(`${startLabel} - ${endLabel}`);
+      labels.push(`${startLabel}`);
+      current += 3600;
+    }
+    return labels;
+  },
 };
 
 module.exports = _sharedFunctions;
