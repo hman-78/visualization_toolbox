@@ -279,8 +279,8 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         const idxInfoMinTime = data.fields.findIndex(obj => obj.name === 'info_min_time');
         console.log(`idxInfoMaxTime: ${idxInfoMaxTime}`);
         console.log(`idxInfoMinTime: ${idxInfoMinTime}`);
-        const rawEventsStartTime = 1727428797; //cleanDataRows[0][idxInfoMaxTime];
-        const rawEventsEndTime = 1727341200; //cleanDataRows[0][idxInfoMinTime];
+        const rawEventsStartTime = 1727341200; //cleanDataRows[0][idxInfoMaxTime];
+        const rawEventsEndTime = 1727428797; //cleanDataRows[0][idxInfoMinTime];
         console.log(`rawEventsStartTime: ${rawEventsStartTime}`);
         console.log(`rawEventsEndTime: ${rawEventsEndTime}`);
         // Convert to integers (seconds)
