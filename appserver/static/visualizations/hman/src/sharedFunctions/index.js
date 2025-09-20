@@ -280,7 +280,7 @@ const _sharedFunctions = {
       });
     });
   },
-  getHourlyIntervals(startTs, endTs, timeZone = 'UTC') {
+  getHourlyIntervals(startTs, endTs) {
     // Round down startTs to the nearest hour
     let current = startTs - (startTs % 3600);
     const endHour = endTs - (endTs % 3600);
@@ -288,7 +288,7 @@ const _sharedFunctions = {
 
     while (current <= endHour) {
       const startDate = new Date(current * 1000);
-      const endDate = new Date((current + 3599) * 1000);
+      // const endDate = new Date((current + 3599) * 1000);
       // Format time in hh:mm:ss AM/PM
       const formatOptions = {
         day: '2-digit',
@@ -296,11 +296,10 @@ const _sharedFunctions = {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        hour12: false
+        hour12: false, // Always use 24 hours
       };
       const startLabel = startDate.toLocaleTimeString(tmpLocaleOption, formatOptions);
-      const endLabel = endDate.toLocaleTimeString(tmpLocaleOption, formatOptions);
-      //labels.push(`${startLabel} - ${endLabel}`);
+      //const endLabel = endDate.toLocaleTimeString(tmpLocaleOption, formatOptions);
       labels.push(`${startLabel}`);
       current += 3600;
     }
