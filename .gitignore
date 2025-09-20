@@ -122,3 +122,4 @@ appserver/static/visualizations/hman/visualization.js
 
 # vscode
 .vscode
+generate_events.js
