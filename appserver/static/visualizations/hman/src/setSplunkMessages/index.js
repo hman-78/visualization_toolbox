@@ -1,5 +1,3 @@
-const SplunkVisualizationUtils = require('api/SplunkVisualizationUtils');
-
 const _setSplunkMessages = function (type="info", message) {
     // Create toast container
     const $toast = $('<div class="viz-toast ' + type + '"></div>');
