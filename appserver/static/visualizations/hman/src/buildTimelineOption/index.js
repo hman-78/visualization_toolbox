@@ -14,7 +14,6 @@ let xAxisDataMaxValue = '';
 let xAxisStartDates = [];
 let yAxisListedHours = [];
 let hourlyIntervals = [];
-let matchedEvents = [];
 const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
 // Start creating the annotated computedOption object that will be passed to echart instance
 let computedOption = {};
@@ -23,81 +22,60 @@ if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.loc
   tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
 }
 
-let logCounter = 0;
 function renderItemForHour(params, api) {
-  /*
-  //logCounter++
   // 1. Initialize the counter on the context object
   if (params.context.counter === undefined) {
     params.context.counter = 0;
   }
-  console.log('params.context.counter', params.context.counter);
-  if (logCounter <= processedData.length) {
-    // Log the grid's visible area
-    console.log('coordSys:', params.coordSys);
-    let startPoint;
-    let endPoint;
 
-    // Hardcoded example points (replace with your dynamic points)
-    startPoint = [130.11328125, 193.44];
-    endPoint = [178.98298997290146, 193.44];
-
-    if (params.context.counter == 2) {
-      startPoint = [230.11328125, 293.44];
-      endPoint = [278.98298997290146, 293.44];
-    }
-
-    const rectHeight = 10; // A sample height
-    const rectShape = echarts.graphic.clipRectByRect(
-      {
-        x: startPoint[0],
-        y: startPoint[1] - rectHeight / 2,
-        width: endPoint[0] - startPoint[0],
-        height: rectHeight
-      },
-      params.coordSys
-    );
-
-    // Log the result of the clipping operation
-    if (rectShape) {
-      // Increment the counter for the next call
-      params.context.counter++;
-      return {
-        type: 'rect',
-        shape: rectShape,
-        style: { fill: 'red' }
-      };
-    }
+  // Use params.dataIndex to get the full data item
+  const eventItemData = processedData[params.dataIndex];
+  if (!eventItemData) {
+    return;
   }
-  */
-}
 
-// Function to match events to the provided hourly intervals
-function matchEventsToIntervals(events, intervals) {
-  // Clone intervals and add events array
-  const result = intervals.map(interval => ({
-    ...interval,
-    events: []
-  }));
-  events.forEach(event => {
-    const eventStart = Number(event[0]); // start time in seconds
-    const eventEnd = Number(event[1]);   // end time in seconds
-    intervals.forEach(interval => {
-      if (eventEnd > interval.start && eventStart < interval.end) {
-        // Check if event overlaps interval
-        console.log('The event is overlapping', interval, event);
-        event.push(`xoxo: ${interval.id}`);
-      }
-    });
-    result.forEach(interval => {
-      // Check if event overlaps interval
-      if (eventEnd > interval.start && eventStart < interval.end) {
-        interval.events.push(event);
-      }
-    });
-  });
-
-  return result;
+  // Get the event start and end timestamps in seconds
+  let tmpEventDurationInSeconds = eventItemData.eventDurationInSeconds;
+  // Get the corresponding yAxisIndexes from the matchedHourlyIntervals the event belongs to
+  const yAxisIndexes = eventItemData.matchedHourlyIntervals;
+  const tmpStartDate = new Date(eventItemData.value[0])
+  const tmpEventStartMinute = new Intl.DateTimeFormat(tmpLocaleOption, {
+    minute: "2-digit",
+  }).format(tmpStartDate);
+  let tmpEventStartPoint = tmpEventStartMinute * 60;
+  let tmpMaximumInitialDrawingSpace = 3600 - (tmpEventStartMinute * 60);
+  let yAxisDownIterator = 0;
+  let rectangleDrawingsArray = [];
+  while (tmpEventDurationInSeconds > 0) {
+    // Get the start point for drawing the rectangles
+    // Use api.coord to get the pixel coordinates for the rectangle.
+    const pointStart = api.coord([tmpEventStartPoint, yAxisIndexes[yAxisDownIterator]]);
+    const pointEnd = api.coord([tmpEventStartPoint + tmpMaximumInitialDrawingSpace, yAxisIndexes[yAxisDownIterator]]);
+    const rectShape = {
+      x: pointStart[0],
+      y: pointStart[1] - api.size([0, 1])[1] / 2,
+      width: pointEnd[0] - pointStart[0],
+      height: api.size([0, 1])[1] * 0.8,
+    };
+    const rectDrawing = {
+      type: 'rect',
+      shape: rectShape,
+      style: api.style(),
+    };
+    rectangleDrawingsArray.push(rectDrawing);
+    tmpEventStartPoint = 0; // Start from zero on the next row
+    tmpEventDurationInSeconds = tmpEventDurationInSeconds - tmpMaximumInitialDrawingSpace;
+    tmpMaximumInitialDrawingSpace = tmpEventDurationInSeconds;
+    if (tmpMaximumInitialDrawingSpace > 3600) {
+      tmpMaximumInitialDrawingSpace = 3600; // Restrict the max nr of drawed seconds per line
+    }
+    yAxisDownIterator++
+  }
+  params.context.counter++;
+  return {
+    type: 'group',
+    children: rectangleDrawingsArray,
+  };
 }
 
 function renderItemLogic(params, api) {
@@ -277,27 +255,18 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
       _setSplunkMessages("error", "The search results do not have time boundraries. Update the query with | addinfo");
       throw "The search results do not have time boundraries. Update the query with | addinfo";
     }
+
     const idxInfoMaxTime = data.fields.findIndex(obj => obj.name === 'info_max_time');
     const idxInfoMinTime = data.fields.findIndex(obj => obj.name === 'info_min_time');
-    const rawEventsStartTime = 1727341200; //cleanDataRows[0][idxInfoMaxTime];
-    const rawEventsEndTime = 1727428797; //cleanDataRows[0][idxInfoMinTime];
+    const rawEventsStartTime = cleanDataRows[0][idxInfoMaxTime];
+    const rawEventsEndTime = cleanDataRows[0][idxInfoMinTime];
 
-    // Get and log the intervals
-    const xoxohourlyIntervals = this._sharedFunctions.getHourlyIntervals(rawEventsStartTime, rawEventsEndTime);
-    //console.log('xxxxx xoxohourlyIntervals');
-    //console.log(xoxohourlyIntervals);
-
-    //console.log(`idxInfoMaxTime: ${idxInfoMaxTime}`);
-    //console.log(`idxInfoMinTime: ${idxInfoMinTime}`);
-    //console.log(`rawEventsStartTime: ${rawEventsStartTime}`);
-    //console.log(`rawEventsEndTime: ${rawEventsEndTime}`);
     // Convert to integers (seconds)
     const start = Math.floor(Number(rawEventsStartTime));
     const end = Math.floor(Number(rawEventsEndTime));
 
     hourlyIntervals = [];
-    matchedEvents = [];
-    yAxisListedHours = this._sharedFunctions.getHourlyIntervals(rawEventsStartTime, rawEventsEndTime).reverse(); //[];
+    yAxisListedHours = this._sharedFunctions.getHourlyIntervals(rawEventsStartTime, rawEventsEndTime);
     let tmpIdCounter = 0;
 
     // Ensure we go from smaller to larger timestamp
@@ -313,9 +282,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         hour: "2-digit",
         minute: "2-digit"
       }).format(dateFromInfoMaxTime);
-      
-      //yAxisListedHours.push(startTimeString);
-      
+
       // Keep hourlyIntervals saved for drawing the rectangles in render item function
       hourlyIntervals.push({
         id: tmpIdCounter,
@@ -325,7 +292,6 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
       });
       tmpIdCounter++
     }
-
   }
 
   // Create processedData, meaning the data array that belongs to first series object (the one with id "timelineData" )
@@ -414,7 +380,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   if (!optionFromXmlDashboard.grid) {
     // Apply default setting for echart option.grid
     computedOption.grid = {
-      height: splitByHour ? (30 * yAxisListedHours.length) : 300,
+      height: splitByHour ? (35 * yAxisListedHours.length) : 300,
       left: '5%',
       top: 80,
       containLabel: true,
@@ -455,27 +421,24 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         }
       }
     ];
-  } else if(!optionFromXmlDashboard.xAxis && splitByHour) {
+  } else if (!optionFromXmlDashboard.xAxis && splitByHour) {
     console.log('Configure the xAxis for the timeline by hour');
     computedOption.xAxis = {
       type: 'value',
       min: 0,
       max: 3600,
-      interval: 900, // Force ticks at intervals of 900 seconds (15 minutes)
+      interval: 600, // Force ticks at intervals of 600 seconds (10 minutes)
       axisTick: {
-        interval: 0, // Show ticks at every interval (0, 900, 1800, 2700)
+        interval: 0, // Show ticks at every interval (0, 600, 1200, 1800, 2400, 3000, 3600)
         alignWithLabel: true // Align ticks with labels
       },
+      name: 'Time in an Hour (Minutes)',
+      nameLocation: 'middle',
+      nameGap: 25,
       axisLabel: {
-        interval: function (index, value) {
-          // Only show labels for values 0, 900, and 2700
-          return [0, 900, 2700].includes(value);
-        },
-        formatter: function (val, index) {
-          if (val === 0) return '0';
-          if (val === 900) return '15min';
-          if (val === 2700) return '45min';
-          return ''; // Hide other labels
+        formatter: function (value) {
+          const minutes = Math.floor(value / 60);
+          return minutes < 10 ? `0${minutes}:00` : `${minutes}:00`;
         }
       }
     };
@@ -485,6 +448,10 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   if (!optionFromXmlDashboard.yAxis) {
     // Apply default setting for echart option.yAxis
     computedOption.yAxis = {
+      type: 'category',
+      axisTick: {
+        show: true
+      },
       data: splitByHour ? yAxisListedHours : processedCategories
     };
   } else {
