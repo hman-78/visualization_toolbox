@@ -179,7 +179,7 @@ const _sharedFunctions = {
     const formatter = new Intl.DateTimeFormat(tmpLocaleOption, {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false, // Use 24 hours by default
+      hour12: tmpLocaleOption.toLowerCase() === 'en-us' ? true : false,
     });
     return formatter.format(date);
   },
@@ -280,31 +280,163 @@ const _sharedFunctions = {
       });
     });
   },
-  getHourlyIntervals(startTs, endTs) {
-    // Round down startTs to the nearest hour
-    let current = startTs - (startTs % 3600);
-    const endHour = endTs - (endTs % 3600);
-    const labels = [];
+  getHourlyIntervals(startTimestamp, endTimestamp) {
+    let labels = [];
+    const oneHour = 60 * 60 * 1000; // milliseconds in an hour
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    // Round down to the nearest hour
+    const startTimeRounded = Math.floor(startTimestamp / oneHour) * oneHour;
+    let currentTimestamp = startTimeRounded;
 
-    while (current <= endHour) {
-      const startDate = new Date(current * 1000);
-      // const endDate = new Date((current + 3599) * 1000);
-      // Format time in hh:mm:ss AM/PM
-      const formatOptions = {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false, // Always use 24 hours
-      };
-      const startLabel = startDate.toLocaleTimeString(tmpLocaleOption, formatOptions);
-      //const endLabel = endDate.toLocaleTimeString(tmpLocaleOption, formatOptions);
-      labels.push(`${startLabel}`);
-      current += 3600;
+    while (currentTimestamp < endTimestamp) {
+      const date = new Date(currentTimestamp);
+      const year = date.getFullYear();
+      const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+
+      let label = '';
+      const twelveHourDisplay = tmpLocaleOption.toLowerCase() === 'en-us' ? true: false;
+
+      // Check if timestamp is from a different year
+      if (year !== currentYear) {
+        const dateString = date.toLocaleDateString(tmpLocaleOption, {
+          year: '2-digit',
+          month: '2-digit',
+          day: '2-digit'
+        });
+        const timeString = date.toLocaleTimeString(tmpLocaleOption, {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: twelveHourDisplay
+        });
+        label = `${dateString} ${timeString}`;
+      }
+      // Check if timestamp is from current year but different day
+      else if (dayStart !== currentDay) {
+        const dateString = date.toLocaleDateString(tmpLocaleOption, {
+          month: '2-digit',
+          day: '2-digit'
+        });
+        const timeString = date.toLocaleTimeString(tmpLocaleOption, {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: twelveHourDisplay
+        });
+        label = `${dateString} ${timeString}`;
+      }
+      // Timestamp is from current day
+      else {
+        label = date.toLocaleTimeString(tmpLocaleOption, {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: twelveHourDisplay
+        });
+      }
+
+      labels.push(label);
+      currentTimestamp += oneHour;
     }
+    //labels = labels.slice(0, labels.length-1);
     return labels;
   },
+  parseSplunkRelativeTime(expr, now = Date.now()) {
+    if (expr === "now") {
+      return now; // Return current timestamp
+    }
+
+    // 🔹 Handle raw epoch timestamps (integer or float)
+    if (/^\d+(\.\d+)?$/.test(expr)) {
+      let num = parseFloat(expr);
+      // If it's seconds (10-digit typical), convert to ms
+      if (num < 1e12) {
+        num *= 1000;
+      }
+      return Math.floor(num);
+    }
+
+    function snap(date, unit, arg) {
+      let d = new Date(date);
+
+      switch (unit) {
+        case "s":
+          d.setMilliseconds(0);
+          break;
+        case "m":
+          d.setSeconds(0, 0);
+          break;
+        case "h":
+          d.setMinutes(0, 0, 0);
+          break;
+        case "d":
+          d.setHours(0, 0, 0, 0);
+          break;
+        case "w": {
+          // Locale-aware start of week
+          const dow = d.getDay(); // 0 = Sunday, 1 = Monday ...
+          let startDow;
+          if (arg != null) {
+            startDow = arg; // explicit @w0, @w1, etc.
+          } else {
+            // Infer from locale: US = Sunday (0), most EU = Monday (1)
+            const firstDayGuess = new Intl.Locale(tmpLocaleOption).weekInfo?.firstDay ?? "mon";
+            startDow = firstDayGuess === "sun" ? 0 : 1;
+          }
+          const diff = (dow - startDow + 7) % 7;
+          d.setHours(0, 0, 0, 0);
+          d.setDate(d.getDate() - diff);
+          break;
+        }
+        case "M":
+          d.setDate(1);
+          d.setHours(0, 0, 0, 0);
+          break;
+        case "q": {
+          let currentMonth = d.getMonth();
+          let startMonth = Math.floor(currentMonth / 3) * 3;
+          d.setMonth(startMonth, 1);
+          d.setHours(0, 0, 0, 0);
+          break;
+        }
+        case "y":
+          d.setMonth(0, 1);
+          d.setHours(0, 0, 0, 0);
+          break;
+      }
+      return d;
+    }
+
+    let date = new Date(now);
+
+    // Split expression into tokens (offsets or snaps)
+    const tokens = expr.match(/([+-]\d+[smhdwqMy])|(@[smhdwqMy]\d?)/g);
+    if (!tokens) throw new Error("Invalid Splunk relative time: " + expr);
+
+    for (let token of tokens) {
+      if (token.startsWith("@")) {
+        const snapUnit = token[1];
+        const snapArg = token.length > 2 ? parseInt(token.slice(2), 10) : null;
+        date = snap(date, snapUnit, snapArg);
+      } else {
+        const [, numStr, unit] = token.match(/^([+-]?\d+)([smhdwqMy])$/);
+        const amount = parseInt(numStr, 10);
+
+        switch (unit) {
+          case "s": date.setSeconds(date.getSeconds() + amount); break;
+          case "m": date.setMinutes(date.getMinutes() + amount); break;
+          case "h": date.setHours(date.getHours() + amount); break;
+          case "d": date.setDate(date.getDate() + amount); break;
+          case "w": date.setDate(date.getDate() + amount * 7); break;
+          case "M": date.setMonth(date.getMonth() + amount); break;
+          case "q": date.setMonth(date.getMonth() + amount * 3); break;
+          case "y": date.setFullYear(date.getFullYear() + amount); break;
+          default: throw new Error("Invalid offset unit: " + unit);
+        }
+      }
+    }
+
+    return date.getTime(); // epoch timestamp (ms, system TZ)
+  }
 };
 
 module.exports = _sharedFunctions;
