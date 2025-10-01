@@ -15,11 +15,23 @@ let xAxisStartDates = [];
 let yAxisListedHours = [];
 let hourlyIntervals = [];
 const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
-// Start creating the annotated computedOption object that will be passed to echart instance
-let computedOption = {};
 const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
   tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
+}
+
+function reInitializeDataHolders() {
+  processedData = [];
+  optionFromXmlDashboard = {};
+  processedLegends = [];
+  manuallyAddedLegends = [];
+  manuallySelectedLegends = {};
+  processedCategories = [];
+  xAxisDataMinValue = '';
+  xAxisDataMaxValue = '';
+  xAxisStartDates = [];
+  yAxisListedHours = [];
+  hourlyIntervals = [];
 }
 
 function renderItemForHour(params, api) {
@@ -109,7 +121,9 @@ function renderItemLogic(params, api) {
 }
 
 const _buildTimelineOption = function (data, config, tmpChartInstance) {
-  computedOption = {};
+  reInitializeDataHolders();
+  // Start creating the annotated computedOption object that will be passed to echart instance
+  let computedOption = {};
   let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
   let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"];
   let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "splitByHour"];
@@ -144,6 +158,11 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   // Dynamic data field length check
   if (typeof data.fields === 'undefined' || data.fields.length < nrOfDataFieldsToBeCheckedFor) {
     throw `Error: This visualization needs at least ${nrOfDataFieldsToBeCheckedFor} different fields (start_time, end_time, internal_name, category, ${nrOfDataFieldsToBeCheckedFor === 5 ? 'fill_color' : ''})! Please check the query results!`
+  }
+
+  if(data.rows.length > 50000) {
+    _setSplunkMessages("info", "The visualization displays only 50000 rows from the current search result!");
+    data.rows = data.rows.slice(0, 50000); //keep only the first 50,000 items from data.rows
   }
 
   // Read start_time from data.fields[0]
@@ -249,46 +268,42 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
 
   if (splitByHour) {
     // Check if search time boundraries are inside the search results
-    const hasInfoMaxTime = data.fields.some(obj => obj.name === "info_max_time");
-    const hasInfoMinTime = data.fields.some(obj => obj.name === "info_min_time");
-    if (!hasInfoMaxTime || !hasInfoMinTime) {
+    if (typeof this.scopedVariables['timeRange'] === 'undefined' || this.scopedVariables['timeRange']['earliest'] === '' || this.scopedVariables['timeRange']['latest'] === '') {
       _setSplunkMessages("error", "The search results do not have time boundraries. Update the query with | addinfo");
       throw "The search results do not have time boundraries. Update the query with | addinfo";
     }
 
-    const idxInfoMaxTime = data.fields.findIndex(obj => obj.name === 'info_max_time');
-    const idxInfoMinTime = data.fields.findIndex(obj => obj.name === 'info_min_time');
-    const rawEventsStartTime = cleanDataRows[0][idxInfoMaxTime];
-    const rawEventsEndTime = cleanDataRows[0][idxInfoMinTime];
-
-    // Convert to integers (seconds)
-    const start = Math.floor(Number(rawEventsStartTime));
-    const end = Math.floor(Number(rawEventsEndTime));
-
+    let rawEventsStartTime = this.scopedVariables['timeRange']['earliest'];
+    let rawEventsEndTime = this.scopedVariables['timeRange']['latest'];
+    
     hourlyIntervals = [];
     yAxisListedHours = this._sharedFunctions.getHourlyIntervals(rawEventsStartTime, rawEventsEndTime);
+    if(yAxisListedHours.length > 24) {
+      yAxisListedHours = yAxisListedHours.slice(0,24);
+      _setSplunkMessages("error", "The time range too large. This visualization is adapted only for maximum 24 hourly intervals. The rest of the data has been trimmed. Try removing splitByHour parameter?");
+    }
     let tmpIdCounter = 0;
 
     // Ensure we go from smaller to larger timestamp
-    const minTime = Math.min(start, end);
-    const maxTime = Math.max(start, end);
+    const oneHourInMs = 60 * 60 * 1000; // 3600000 milliseconds in an hour
+    const minTime = Math.min(rawEventsStartTime, rawEventsEndTime);
+    const maxTime = Math.max(rawEventsStartTime, rawEventsEndTime);
+    // Round down to the nearest hour
+    const minTimeRounded = Math.floor(minTime / oneHourInMs) * oneHourInMs;
 
     // Step through in hourly increments
-    for (let t = minTime; t < maxTime; t += 3600) {
-      const dateFromInfoMaxTime = new Date(t * 1000); // convert to ms
-
-      // Format only hh:mm based on locale
+    for (let t = minTimeRounded; t < maxTime; t += oneHourInMs) {
+      const tmpDate = new Date(t);
       const startTimeString = new Intl.DateTimeFormat(tmpLocaleOption, {
-        hour: "2-digit",
-        minute: "2-digit"
-      }).format(dateFromInfoMaxTime);
-
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(tmpDate);
       // Keep hourlyIntervals saved for drawing the rectangles in render item function
       hourlyIntervals.push({
         id: tmpIdCounter,
         start: t,
         startHour: startTimeString,
-        end: Math.min(t + 3600, maxTime),
+        end: Math.min(t + oneHourInMs, maxTime),
       });
       tmpIdCounter++
     }
@@ -345,7 +360,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     dynamicValue.push(tmpEndTime); //unix_end_time (unix timestamp in seconds)
     let tmpMatchedHourlyIntervals = [];
     hourlyIntervals.forEach(interval => {
-      if (tmpEndTime > interval.start && tmpStartTime < interval.end) {
+      if ((tmpEndTime * 1000) > interval.start && (tmpStartTime * 1000) < interval.end) {
         // Check if event overlaps interval
         tmpMatchedHourlyIntervals.push(interval.id);
       }
