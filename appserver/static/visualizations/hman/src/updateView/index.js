@@ -18,6 +18,19 @@ const _updateView = function (data, config) {
     throw `Wrong configuration - echartUniqueId property not found! Please provide a unique echart id.`;
   }
 
+  // Get the default tokens model, extract splunk relative times and save them to scopedVariables
+  var defaultTokens = splunkjs.mvc.Components.get("default");
+  if(defaultTokens) {
+    const splunkRelativeTimeEarliest = defaultTokens.get("time_range.earliest");
+    const splunkRelativeTimeLatest = defaultTokens.get("time_range.latest");
+    const earliestTimestamp =  this._sharedFunctions.parseSplunkRelativeTime(splunkRelativeTimeEarliest);
+    const latestTimestamp = this._sharedFunctions.parseSplunkRelativeTime(splunkRelativeTimeLatest);
+    this.scopedVariables['timeRange'] = {
+      earliest: earliestTimestamp,
+      latest: latestTimestamp
+    };
+  }
+
   let tmpChart = {}
   let currentChart = this.scopedVariables['_renderedEchartsArray'].find(o => o.id === echartProps.echartUniqueId);
   if(typeof currentChart !== 'undefined') {
