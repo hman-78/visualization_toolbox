@@ -19,6 +19,7 @@ const _updateView = function (data, config) {
   }
 
   // Get the default tokens model, extract splunk relative times and save them to scopedVariables
+  //eslint-disable-next-line
   var defaultTokens = splunkjs.mvc.Components.get("default");
   if(defaultTokens) {
     const splunkRelativeTimeEarliest = defaultTokens.get("time_range.earliest");
