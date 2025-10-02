@@ -341,7 +341,7 @@ const _sharedFunctions = {
     return labels;
   },
   parseSplunkRelativeTime(expr, now = Date.now()) {
-    if (expr === "now") {
+    if (typeof expr === 'undefined'|| expr === "now") {
       return now; // Return current timestamp
     }
 
