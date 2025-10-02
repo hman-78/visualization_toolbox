@@ -337,7 +337,6 @@ const _sharedFunctions = {
       labels.push(label);
       currentTimestamp += oneHour;
     }
-    labels = labels.slice(0, labels.length-1);
     return labels;
   },
   parseSplunkRelativeTime(expr, now = Date.now()) {

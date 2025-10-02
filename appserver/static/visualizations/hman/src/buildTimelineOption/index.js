@@ -278,8 +278,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     
     hourlyIntervals = [];
     yAxisListedHours = this._sharedFunctions.getHourlyIntervals(rawEventsStartTime, rawEventsEndTime);
-    if(yAxisListedHours.length > 24) {
-      yAxisListedHours = yAxisListedHours.slice(0,24);
+    if(yAxisListedHours.length > 25) {
       _setSplunkMessages("error", "The time range too large. This visualization is adapted only for maximum 24 hourly intervals. The rest of the data has been trimmed. Try removing splitByHour parameter?");
     }
     let tmpIdCounter = 0;
@@ -307,7 +306,6 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
       });
       tmpIdCounter++
     }
-    hourlyIntervals = hourlyIntervals.slice(0, hourlyIntervals.length-1)
   }
 
   // Create processedData, meaning the data array that belongs to first series object (the one with id "timelineData" )
