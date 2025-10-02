@@ -307,6 +307,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
       });
       tmpIdCounter++
     }
+    hourlyIntervals = hourlyIntervals.slice(0, hourlyIntervals.length-1)
   }
 
   // Create processedData, meaning the data array that belongs to first series object (the one with id "timelineData" )
