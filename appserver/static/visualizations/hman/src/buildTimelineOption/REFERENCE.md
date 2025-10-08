@@ -1108,23 +1108,45 @@ Each item in `processedData` array:
 
 #### Timeline with Hourly Splitting
 
+**IMPORTANT**: When using `splitByHour`, the visualization requires access to `earliest` and `latest` Splunk tokens from the dashboard's time range selector. These tokens must be available in the scoped variables.
+
 ```xml
-<viz type="visualization_toolbox.hman">
-  <search>
-    <query>
-      | makeresults
-      | addinfo
-      | eval start_time=info_min_time
-      | eval end_time=info_max_time
-      | eval internal_name="Process1"
-      | eval category="Running"
-      | table start_time end_time internal_name category
-    </query>
-  </search>
-  <option name="visualization_toolbox.hman.useSplunkCategoricalColors">true</option>
-  <option name="visualization_toolbox.hman.splitByHour">true</option>
-</viz>
+<form>
+  <label>Timeline with Hourly Splitting</label>
+  <fieldset submitButton="false">
+    <input type="time" token="time_token" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <viz type="visualization_toolbox.hman">
+        <search>
+          <query>
+            | makeresults
+            | eval start_time=relative_time(now(), "-2h")
+            | eval end_time=now()
+            | eval internal_name="Process1"
+            | eval category="Running"
+            | table start_time end_time internal_name category
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="visualization_toolbox.hman.useSplunkCategoricalColors">true</option>
+        <option name="visualization_toolbox.hman.splitByHour">true</option>
+      </viz>
+    </panel>
+  </row>
+</form>
 ```
+
+**Note**: The `earliest` and `latest` tokens from the time range picker are automatically passed to the visualization's scoped variables. The visualization uses these to generate hourly intervals on the y-axis, not the individual event times.
 
 ---
 
@@ -1279,11 +1301,15 @@ if (!this._sharedFunctions.isValidUnixTimestamp(tmpStartTime)) {
 
 #### Missing Time Boundaries (splitByHour mode)
 ```javascript
-if (typeof this.scopedVariables['timeRange'] === 'undefined') {
-  _setSplunkMessages("error", "Update the query with | addinfo");
-  throw "The search results do not have time boundraries...";
+if (typeof this.scopedVariables['timeRange'] === 'undefined' ||
+    this.scopedVariables['timeRange']['earliest'] === '' ||
+    this.scopedVariables['timeRange']['latest'] === '') {
+  _setSplunkMessages("error", "The search results do not have time boundaries. Make sure you have earliest and latest splunk tokens.");
+  throw "The search results do not have time boundaries. Make sure you have earliest and latest splunk tokens.";
 }
 ```
+
+**Resolution**: Ensure your dashboard includes a time range picker and that the search element includes `<earliest>` and `<latest>` tags referencing the time picker tokens.
 
 #### Malformed Categories
 ```javascript
@@ -1329,10 +1355,10 @@ if(yAxisListedHours.length > 25) {
    | table start_time end_time internal_name category [fill_color]
    ```
 
-2. **For splitByHour mode, add time info**:
-   ```spl
-   | addinfo
-   ```
+2. **For splitByHour mode, ensure time range tokens are available**:
+   - Add a time range picker to your dashboard
+   - Include `<earliest>` and `<latest>` tags in the search element
+   - These tokens derive from the dashboard's time range selector
 
 3. **Use valid Unix timestamps** (seconds):
    ```spl
@@ -1371,7 +1397,7 @@ if(yAxisListedHours.length > 25) {
 | Issue | Cause | Solution |
 |-------|-------|----------|
 | Empty visualization | Unresolved tokens in option | Check `_parseOption` returns non-null |
-| Missing time boundaries | splitByHour without `| addinfo` | Add `| addinfo` to query |
+| Missing time boundaries | splitByHour without time range tokens | Add time range picker and `<earliest>/<latest>` tags |
 | Color validation fails | Invalid hex/rgb codes | Use valid color format or enable Splunk colors |
 | Y-axis overflow | Too many categories | Filter data or increase grid height |
 | Rectangles not visible | Events outside time range | Check timestamp validity |
