@@ -269,8 +269,8 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   if (splitByHour) {
     // Check if search time boundraries are inside the search results
     if (typeof this.scopedVariables['timeRange'] === 'undefined' || this.scopedVariables['timeRange']['earliest'] === '' || this.scopedVariables['timeRange']['latest'] === '') {
-      _setSplunkMessages("error", "The search results do not have time boundraries. Update the query with | addinfo");
-      throw "The search results do not have time boundraries. Update the query with | addinfo";
+      _setSplunkMessages("error", "The search results do not have time boundraries. Make sure you have earliest and latest splunk tokens.");
+      throw "The search results do not have time boundraries. Make sure you have earliest and latest splunk tokens.";
     }
 
     let rawEventsStartTime = this.scopedVariables['timeRange']['earliest'];
@@ -279,7 +279,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     hourlyIntervals = [];
     yAxisListedHours = this._sharedFunctions.getHourlyIntervals(rawEventsStartTime, rawEventsEndTime);
     if(yAxisListedHours.length > 25) {
-      _setSplunkMessages("error", "The time range too large. This visualization is adapted only for maximum 24 hourly intervals. The rest of the data has been trimmed. Try removing splitByHour parameter?");
+      _setSplunkMessages("error", "The time range is too large. This visualization is adapted only for maximum 24 hourly intervals. The rest of the data has been trimmed. Try removing splitByHour parameter?");
     }
     let tmpIdCounter = 0;
 
