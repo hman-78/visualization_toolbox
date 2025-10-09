@@ -13,7 +13,8 @@ export default [
         ...globals.browser,
         ...globals.node,
         ...globals.amd,
-        "$": true
+        "$": true,
+        "Intl": "readonly"
       }
     }
   },

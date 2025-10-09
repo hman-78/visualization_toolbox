@@ -15,7 +15,6 @@
  *                          will be visualized if value is empty.
  */
 const _buildSimpleBoxplotOption = function (data, config) {
-  console.log('Build _buildSimpleBoxplotOption....')
   var configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
 
   var option = {};

@@ -42,7 +42,6 @@ const _setCustomTokens = function (params, tmpChartInstance) {
            .replace('$hman_ts_end_time$', hmanTsEndTime ? encodeURIComponent(hmanTsEndTime) : '')
         activeVizComponent._events.drilldown[0].ctx.attributes.actions[0].value = drilldownDynamicLink;
         // Simulate native splunk drilldown
-        console.log('Simulate native splunk drilldown');
         activeVizComponent.trigger('drilldown', {
             name: 'click',
             value: 'drilldown',

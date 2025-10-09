@@ -33,7 +33,7 @@ the MIT license. See custom_chart_viz-LICENSE.md for additional details.
 
 const _buildBoxplotOption = require('./buildBoxplotOption');
 const _buildCustomOption = require('./buildCustomOption');
-const _buildTimelineOption = require('./buildTimeline');
+const _buildTimelineOption = require('./buildTimelineOption');
 const _buildSimpleBoxplotOption = require('./buildSimpleBoxplotOption');
 const _createModal = require('./createModal');
 const _drilldownToCategories = require('./drilldownToCategories');
@@ -54,6 +54,7 @@ const _selfModifiyingOption = require('./selfModifiyingOption');
 const _selfModifiyingOptionWithReturn = require('./selfModifiyingOptionWithReturn');
 const _sendMQTTMessage = require('./sendMQTTMessage')
 const _setCustomTokens = require('./setCustomTokens')
+const _setSplunkMessages = require('./setSplunkMessages')
 const _setupView = require('./setupView')
 const _sharedFunctions = require('./sharedFunctions')
 const _updateView = require('./updateView');
@@ -65,17 +66,15 @@ define([
 	'api/SplunkVisualizationBase',
 	'api/SplunkVisualizationUtils',
 	'echarts',
-	'mqtt'
+	'mqtt',
 ],
 	function (
 		$,
 		_,
 		SplunkVisualizationBase,
-		/* eslint-disable */
-		SplunkVisualizationUtils,
-		echarts,
-		mqtt
-		/* eslint-enable */
+		SplunkVisualizationUtils, // eslint-disable-line no-unused-vars
+		echarts, // eslint-disable-line no-unused-vars
+		mqtt, // eslint-disable-line no-unused-vars
 	) {
 		const scopedVariables = new PrivateVariables();
 		return SplunkVisualizationBase.extend({
@@ -102,9 +101,10 @@ define([
 			selfModifiyingOption: _selfModifiyingOption,
 			selfModifiyingOptionWithReturn: _selfModifiyingOptionWithReturn,
 			_setCustomTokens: _setCustomTokens,
+			_setSplunkMessages: _setSplunkMessages,
 			_sendMQTTMessage: _sendMQTTMessage,
 			setupView: _setupView,
 			_sharedFunctions: _sharedFunctions,
-			updateView: _updateView // Interface method available in SplunkVisualizationBase. Function called to render the visualization.
+			updateView: _updateView, // Interface method available in SplunkVisualizationBase. Function called to render the visualization
 		});
 	});

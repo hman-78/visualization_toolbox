@@ -122,3 +122,7 @@ appserver/static/visualizations/hman/visualization.js
 
 # vscode
 .vscode
+generate_events.js
+lookups/oee_clean_last_hours.csv
+lookups/oee_last_4_hours.csv
+lookups/oeerawresults.csv

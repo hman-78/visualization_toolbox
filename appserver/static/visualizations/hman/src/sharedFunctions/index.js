@@ -43,6 +43,11 @@ const isFixedTuple = s => /^\[\d+(;\d+)*\]$/.test(s);
 const isDynamicRangeTuple = s => /^\[(\d+|\d+\*)(;(\d+|\d+\*))*\]$/.test(s);
 const isWildcardInteger = s => /^\d+\*$/.test(s);
 
+let tmpLocaleOption = 'en-GB';
+if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
+  tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
+}
+
 const _sharedFunctions = {
   // Step 1: Filter the `indicesArray` array to include only valid indicesArray.
   // Valid indicesArray are non-negative and less than the length of `arrayToProcess`.
@@ -161,20 +166,276 @@ const _sharedFunctions = {
   extractDate: function (strTimestamp) {
     strTimestamp = _sharedFunctions.convertUnixTimestamp(strTimestamp);
     const date = new Date(strTimestamp);
-    // Format date as DD/MM/YYYY
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    const formatter = new Intl.DateTimeFormat(tmpLocaleOption, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    return formatter.format(date);
   },
   extractTime: function (strTimestamp) {
     strTimestamp = _sharedFunctions.convertUnixTimestamp(strTimestamp);
     const date = new Date(strTimestamp);
-    // Format time as HH:MM
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+    const formatter = new Intl.DateTimeFormat(tmpLocaleOption, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: tmpLocaleOption.toLowerCase() === 'en-us' ? true : false,
+    });
+    return formatter.format(date);
   },
+  // Function to generate a color palette dynamically
+  generateColorPalette(numColors) {
+    const splunkCategoricalColors = ["#006d9c", "#4fa484", "#ec9960", "#af575a", "#b6c75a", "#62b3b2", "#294e70", "#738795", "#edd051", "#bd9872", "#5a4575", "#7ea77b", "#708794", "#d7c6b7", "#339bb2", "#55672d", "#e6e1ae", "#96907f", "#87bc65", "#cf7e60", "#7b5547", "#77d6d8", "#4a7f2c", "#f589ad", "#6a2c5d", "#aaabae", "#9a7438", "#a4d563", "#7672a4", "#184b81", "#7fb6ce", "#a7d2c2", "#f6ccb0", "#d7abad", "#dbe3ad", "#b1d9d9", "#94a7b8", "#b9c3ca", "#f6e8a8", "#deccb9", "#b7acca", "#b2cab0", "#a5b2bf", "#e9ddd4", "#66c3d0", "#aab396", "#f3f0d7", "#c1bcb3", "#b6d7a3", "#e1b2a1", "#dec4ba", "#abe6e8", "#91b282", "#f8b7ce", "#cba3c2", "#cccdce", "#c3ab89", "#c7e6a3", "#ada9c8", "#a4bbe0"];
+    const colors = [];
+    for (let i = 0; i < numColors; i++) {
+      let tmpIdx = i % splunkCategoricalColors.length;
+      colors.push(splunkCategoricalColors[tmpIdx]);
+    }
+    return colors;
+  },
+  isValidInteger(value) {
+    // Check for null, undefined, empty string, or boolean
+    if (value === null || value === undefined || value === '' || typeof value === 'boolean') {
+      return false;
+    }
+
+    // Convert to number and check if it's an integer
+    const num = Number(value);
+
+    // Check if conversion resulted in NaN or if it's not an integer
+    if (isNaN(num) || !Number.isInteger(num)) {
+      return false;
+    }
+
+    // Additional check for string inputs that might have leading/trailing spaces
+    // or other edge cases like "123.0" which technically converts to integer 123
+    if (typeof value === 'string') {
+      // Remove leading/trailing whitespace and check if it matches the number
+      const trimmed = value.trim();
+      if (trimmed === '' || trimmed !== num.toString()) {
+        // Allow "123.0" to pass as valid integer
+        if (!/^-?\d+\.?0*$/.test(trimmed)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  },
+  /**
+   * Checks if a string is a valid color code in hex, rgb, rgba, or hsl format.
+   *
+   * @param {string} colorCode The string to check.
+   * @returns {boolean} True if the string is a valid color code, otherwise false.
+   */
+  isColorCode(colorCode) {
+    if (!colorCode) {
+      return false;
+    }
+    // Regular expression for Hex colors (3 or 6 digits, with or without a leading #)
+    const hexRegex = /^#?([0-9a-fA-F]{3}){1,2}$/;
+
+    // Regular expression for RGB or RGBA colors
+    const rgbRegex = /^rgba?\((\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*)(,\s*(0|1|0?\.\d+)\s*)?\)$/i;
+
+    // Regular expression for HSL colors
+    const hslRegex = /^hsl\((\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*)\)$/i;
+
+    // Remove any leading or trailing whitespace and convert to lowercase for consistent checking.
+    const cleanColor = colorCode.trim().toLowerCase();
+
+    // Check for Hex format
+    if (hexRegex.test(cleanColor)) {
+      return true;
+    }
+
+    // Check for RGB or RGBA format
+    if (rgbRegex.test(cleanColor)) {
+      return true;
+    }
+
+    // Check for HSL format
+    if (hslRegex.test(cleanColor)) {
+      return true;
+    }
+
+    // If none of the above patterns match, it's not a valid color code.
+    return false;
+  },
+  /**
+   * Replaces specified properties of objects in a data array with values from a template object.
+   *
+   * @param {Array<Object>} dataArray - The array of objects to update.
+   * @param {Object} template - The object providing replacement values for specified keys.
+   * @param {Array<string>} keys - The list of property names to replace in each object.
+   */
+  replacePropertiesFromTemplate(dataArray, template, keys) {
+    // Iterate through each object in the data array
+    dataArray.forEach(item => {
+      keys.forEach(key => {
+        // Only replace the property if it exists in the template object
+        if (Object.prototype.hasOwnProperty.call(template, key)) {
+          item[key] = template[key]; // Replace the property with the template's value
+        }
+      });
+    });
+  },
+  getHourlyIntervals(startTimestamp, endTimestamp) {
+    let labels = [];
+    const oneHour = 60 * 60 * 1000; // milliseconds in an hour
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    // Round down to the nearest hour
+    const startTimeRounded = Math.floor(startTimestamp / oneHour) * oneHour;
+    let currentTimestamp = startTimeRounded;
+
+    while (currentTimestamp < endTimestamp) {
+      const date = new Date(currentTimestamp);
+      const year = date.getFullYear();
+      const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+
+      let label = '';
+      const twelveHourDisplay = tmpLocaleOption.toLowerCase() === 'en-us' ? true: false;
+
+      // Check if timestamp is from a different year
+      if (year !== currentYear) {
+        const dateString = date.toLocaleDateString(tmpLocaleOption, {
+          year: '2-digit',
+          month: '2-digit',
+          day: '2-digit'
+        });
+        const timeString = date.toLocaleTimeString(tmpLocaleOption, {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: twelveHourDisplay
+        });
+        label = `${dateString} ${timeString}`;
+      }
+      // Check if timestamp is from current year but different day
+      else if (dayStart !== currentDay) {
+        const dateString = date.toLocaleDateString(tmpLocaleOption, {
+          month: '2-digit',
+          day: '2-digit'
+        });
+        const timeString = date.toLocaleTimeString(tmpLocaleOption, {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: twelveHourDisplay
+        });
+        label = `${dateString} ${timeString}`;
+      }
+      // Timestamp is from current day
+      else {
+        label = date.toLocaleTimeString(tmpLocaleOption, {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: twelveHourDisplay
+        });
+      }
+
+      labels.push(label);
+      currentTimestamp += oneHour;
+    }
+    return labels;
+  },
+  parseSplunkRelativeTime(expr, now = Date.now()) {
+    if (typeof expr === 'undefined'|| expr === "now") {
+      return now; // Return current timestamp
+    }
+
+    // 🔹 Handle raw epoch timestamps (integer or float)
+    if (/^\d+(\.\d+)?$/.test(expr)) {
+      let num = parseFloat(expr);
+      // If it's seconds (10-digit typical), convert to ms
+      if (num < 1e12) {
+        num *= 1000;
+      }
+      return Math.floor(num);
+    }
+
+    function snap(date, unit, arg) {
+      let d = new Date(date);
+
+      switch (unit) {
+        case "s":
+          d.setMilliseconds(0);
+          break;
+        case "m":
+          d.setSeconds(0, 0);
+          break;
+        case "h":
+          d.setMinutes(0, 0, 0);
+          break;
+        case "d":
+          d.setHours(0, 0, 0, 0);
+          break;
+        case "w": {
+          // Locale-aware start of week
+          const dow = d.getDay(); // 0 = Sunday, 1 = Monday ...
+          let startDow;
+          if (arg != null) {
+            startDow = arg; // explicit @w0, @w1, etc.
+          } else {
+            // Infer from locale: US = Sunday (0), most EU = Monday (1)
+            const firstDayGuess = new Intl.Locale(tmpLocaleOption).weekInfo?.firstDay ?? "mon";
+            startDow = firstDayGuess === "sun" ? 0 : 1;
+          }
+          const diff = (dow - startDow + 7) % 7;
+          d.setHours(0, 0, 0, 0);
+          d.setDate(d.getDate() - diff);
+          break;
+        }
+        case "M":
+          d.setDate(1);
+          d.setHours(0, 0, 0, 0);
+          break;
+        case "q": {
+          let currentMonth = d.getMonth();
+          let startMonth = Math.floor(currentMonth / 3) * 3;
+          d.setMonth(startMonth, 1);
+          d.setHours(0, 0, 0, 0);
+          break;
+        }
+        case "y":
+          d.setMonth(0, 1);
+          d.setHours(0, 0, 0, 0);
+          break;
+      }
+      return d;
+    }
+
+    let date = new Date(now);
+
+    // Split expression into tokens (offsets or snaps)
+    const tokens = expr.match(/([+-]\d+[smhdwqMy])|(@[smhdwqMy]\d?)/g);
+    if (!tokens) throw new Error("Invalid Splunk relative time: " + expr);
+
+    for (let token of tokens) {
+      if (token.startsWith("@")) {
+        const snapUnit = token[1];
+        const snapArg = token.length > 2 ? parseInt(token.slice(2), 10) : null;
+        date = snap(date, snapUnit, snapArg);
+      } else {
+        const [, numStr, unit] = token.match(/^([+-]?\d+)([smhdwqMy])$/);
+        const amount = parseInt(numStr, 10);
+
+        switch (unit) {
+          case "s": date.setSeconds(date.getSeconds() + amount); break;
+          case "m": date.setMinutes(date.getMinutes() + amount); break;
+          case "h": date.setHours(date.getHours() + amount); break;
+          case "d": date.setDate(date.getDate() + amount); break;
+          case "w": date.setDate(date.getDate() + amount * 7); break;
+          case "M": date.setMonth(date.getMonth() + amount); break;
+          case "q": date.setMonth(date.getMonth() + amount * 3); break;
+          case "y": date.setFullYear(date.getFullYear() + amount); break;
+          default: throw new Error("Invalid offset unit: " + unit);
+        }
+      }
+    }
+
+    return date.getTime(); // epoch timestamp (ms, system TZ)
+  }
 };
 
 module.exports = _sharedFunctions;

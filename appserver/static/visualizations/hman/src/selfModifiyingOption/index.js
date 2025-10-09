@@ -1,5 +1,4 @@
-//eslint-disable-next-line
-const echarts = require('echarts');
+const echarts = require('echarts'); // eslint-disable-line no-unused-vars
 
 const _selfModifiyingOption = function (data, config, option, hook) {
   this.evalHook = eval("(function a(data, config, option) {" + hook + "})");
