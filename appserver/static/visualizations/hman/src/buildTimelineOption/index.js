@@ -394,11 +394,12 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   if (!optionFromXmlDashboard.grid) {
     // Apply default setting for echart option.grid
     computedOption.grid = {
-      height: splitByHour ? (35 * yAxisListedHours.length) : 300,
+      height: splitByHour ? (35 * yAxisListedHours.length) : (70 * processedCategories.length),
       left: '5%',
       top: 80,
       containLabel: true,
     };
+    this.el.parentElement.parentNode.parentNode.parentNode.parentNode.style.height = `${computedOption.grid.height + 130}px`;
   }
 
   // Ensure xAxis property overwrite
