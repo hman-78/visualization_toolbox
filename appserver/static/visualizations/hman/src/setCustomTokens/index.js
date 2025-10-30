@@ -12,7 +12,6 @@ const _setCustomTokens = function (params, tmpChartInstance) {
     
     // Set tokens for drilldown
     console.log('Set tokens for drilldown...');
-    var tokenValues = {};
 
     // Loop through dimensionNames and set tokens dynamically
     if (params.dimensionNames && params.data.value) {
@@ -20,7 +19,6 @@ const _setCustomTokens = function (params, tmpChartInstance) {
             if (params.data.value[index] !== undefined) {
                 var tokenName = dimensionName;
                 defaultTokenModel.set(tokenName, params.data.value[index]);
-                tokenValues[dimensionName] = params.data.value[index];
             }
         });
     }
