@@ -12,35 +12,39 @@ const _setCustomTokens = function (params, tmpChartInstance) {
     
     // Set tokens for drilldown
     console.log('Set tokens for drilldown...');
-    defaultTokenModel.set('hman_ts_duration', params.data.value[2]);
-    defaultTokenModel.set('hman_ts_series', params.data.value[3]);
-    defaultTokenModel.set('hman_ts_legend', params.data.value[4]);
-    defaultTokenModel.set('hman_ts_color', params.data.value[5]);
-    defaultTokenModel.set('hman_ts_start_time', params.data.value[7]);
-    defaultTokenModel.set('hman_ts_end_time', params.data.value[8]);
+    var tokenValues = {};
 
-
-    // Retrieve current token values
-    var hmanTsDuration = defaultTokenModel.get('hman_ts_duration');
-    var hmanTsSeries = defaultTokenModel.get('hman_ts_series');
-    var hmanTsLegend = defaultTokenModel.get('hman_ts_legend');
-    var hmanTsColor = defaultTokenModel.get('hman_ts_color');
-    var hmanTsStartTime = defaultTokenModel.get('hman_ts_start_time');
-    var hmanTsEndTime = defaultTokenModel.get('hman_ts_end_time');
+    // Loop through dimensionNames and set tokens dynamically
+    if (params.dimensionNames && params.data.value) {
+        params.dimensionNames.forEach(function(dimensionName, index) {
+            if (params.data.value[index] !== undefined) {
+                var tokenName = dimensionName;
+                defaultTokenModel.set(tokenName, params.data.value[index]);
+                tokenValues[dimensionName] = params.data.value[index];
+            }
+        });
+    }
 
     // Execute this code only if there is a drilldown definition associated with the custom visualisation
     if(typeof activeVizComponent._events !== 'undefined' && typeof activeVizComponent._events.drilldown !== 'undefined') {
-        
+
         //Re-render the drilldown link associated with the active visualisation
         var drilldownDynamicLink = activeVizComponent._events.drilldown[0].ctx.attributes.actions[0].value;
-        drilldownDynamicLink = drilldownDynamicLink
-           .replace('$hman_ts_duration$', hmanTsDuration ? encodeURIComponent(hmanTsDuration) : '')
-           .replace('$hman_ts_series$', hmanTsSeries ? encodeURIComponent(hmanTsSeries) : '')
-           .replace('$hman_ts_legend$', hmanTsLegend ? encodeURIComponent(hmanTsLegend) : '')
-           .replace('$hman_ts_color$', hmanTsColor ? encodeURIComponent(hmanTsColor) : '')
-           .replace('$hman_ts_start_time$', hmanTsStartTime ? encodeURIComponent(hmanTsStartTime) : '')
-           .replace('$hman_ts_end_time$', hmanTsEndTime ? encodeURIComponent(hmanTsEndTime) : '')
+
+        // Dynamically replace all token placeholders in the drilldown link
+        if (params.dimensionNames && params.data.value) {
+            params.dimensionNames.forEach(function(dimensionName, index) {
+                var tokenPlaceholder = '$' + dimensionName + '$';
+                var tokenValue = params.data.value[index];
+                drilldownDynamicLink = drilldownDynamicLink.replace(
+                    tokenPlaceholder,
+                    tokenValue ? encodeURIComponent(tokenValue) : ''
+                );
+            });
+        }
+
         activeVizComponent._events.drilldown[0].ctx.attributes.actions[0].value = drilldownDynamicLink;
+
         // Simulate native splunk drilldown
         activeVizComponent.trigger('drilldown', {
             name: 'click',
@@ -48,7 +52,7 @@ const _setCustomTokens = function (params, tmpChartInstance) {
             data: {
                 click: 'row',   // or 'cell'
                 name: 'customDrilldown',    // passed to click.name when data.click = 'cell'
-                value: [hmanTsStartTime, hmanTsEndTime, hmanTsDuration, hmanTsSeries, hmanTsLegend, hmanTsColor],   // passed to click.value when data.click = 'cell'
+                value: params.data.value,   // Pass all values from the data array
             }
         });
     }
