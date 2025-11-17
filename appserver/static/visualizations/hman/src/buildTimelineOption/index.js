@@ -124,6 +124,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   reInitializeDataHolders();
   // Start creating the annotated computedOption object that will be passed to echart instance
   let computedOption = {};
+  this.scopedVariables['visualizationType'] = 'timeline';
   let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
   let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"];
   let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "splitByHour"];
@@ -391,15 +392,17 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   }
 
   // Ensure grid property overwrite
+  const visualizationHeight = splitByHour ? (35 * yAxisListedHours.length) : (70 * processedCategories.length);
+
   if (!optionFromXmlDashboard.grid) {
     // Apply default setting for echart option.grid
+    this.scopedVariables['visualizationHeight'] = visualizationHeight + 130;
     computedOption.grid = {
-      height: splitByHour ? (35 * yAxisListedHours.length) : (70 * processedCategories.length),
+      height: visualizationHeight,
       left: '5%',
       top: 80,
       containLabel: true,
     };
-    this.el.parentElement.parentNode.parentNode.parentNode.parentNode.style.height = `${computedOption.grid.height + 130}px`;
   }
 
   // Ensure xAxis property overwrite
