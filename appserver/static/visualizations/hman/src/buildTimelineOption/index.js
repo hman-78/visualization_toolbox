@@ -487,12 +487,8 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         end: 100,
         labelFormatter: function (value) {
           return new Date(value).toLocaleTimeString([tmpLocaleOption], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
-        }
-      },
-      {
-        type: 'inside',
-        start: 50,
-        end: 70
+        },
+        filterMode: 'none'
       }
     ];
   }
@@ -681,6 +677,22 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
       _setCustomTokens(params, tmpChartInstance);
     }
   });
+
+  tmpChartInstance.on('datazoom', function () {
+    const xAxisModel = tmpChartInstance.getModel().getComponent('xAxis', 0);
+    const xAxis = xAxisModel.axis;
+    let datazoomStartTimestamp = xAxis.scale._extent[0];
+    let datazoomEndTimestamp = xAxis.scale._extent[1];
+    computedOption.series[0].data = computedOption.series[0].data.filter(eventObj => {
+      const eventStartTimestamp = eventObj.value[0];
+      const eventEndTimestamp = eventObj.value[1];
+      if(eventStartTimestamp < datazoomEndTimestamp && eventEndTimestamp > datazoomStartTimestamp) {
+        return true;
+      }
+    });
+
+  });
+
 
   // Overwrite the option keys with values from the xml dashboard
   for (var tmpOptionKey in optionFromXmlDashboard) {
