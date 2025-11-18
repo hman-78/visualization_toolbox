@@ -124,6 +124,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   reInitializeDataHolders();
   // Start creating the annotated computedOption object that will be passed to echart instance
   let computedOption = {};
+  this.scopedVariables['visualizationType'] = 'timeline';
   let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
   let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"];
   let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "splitByHour"];
@@ -391,15 +392,17 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   }
 
   // Ensure grid property overwrite
+  const visualizationHeight = splitByHour ? (35 * yAxisListedHours.length) : (70 * processedCategories.length);
+
   if (!optionFromXmlDashboard.grid) {
     // Apply default setting for echart option.grid
+    this.scopedVariables['visualizationHeight'] = visualizationHeight + 130;
     computedOption.grid = {
-      height: splitByHour ? (35 * yAxisListedHours.length) : (70 * processedCategories.length),
+      height: visualizationHeight,
       left: '5%',
       top: 80,
       containLabel: true,
     };
-    this.el.parentElement.parentNode.parentNode.parentNode.parentNode.style.height = `${computedOption.grid.height + 130}px`;
   }
 
   // Ensure xAxis property overwrite
@@ -484,12 +487,8 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
         end: 100,
         labelFormatter: function (value) {
           return new Date(value).toLocaleTimeString([tmpLocaleOption], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
-        }
-      },
-      {
-        type: 'inside',
-        start: 50,
-        end: 70
+        },
+        filterMode: 'none'
       }
     ];
   }
@@ -678,6 +677,22 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
       _setCustomTokens(params, tmpChartInstance);
     }
   });
+
+  tmpChartInstance.on('datazoom', function () {
+    const xAxisModel = tmpChartInstance.getModel().getComponent('xAxis', 0);
+    const xAxis = xAxisModel.axis;
+    let datazoomStartTimestamp = xAxis.scale._extent[0];
+    let datazoomEndTimestamp = xAxis.scale._extent[1];
+    computedOption.series[0].data = computedOption.series[0].data.filter(eventObj => {
+      const eventStartTimestamp = eventObj.value[0];
+      const eventEndTimestamp = eventObj.value[1];
+      if(eventStartTimestamp < datazoomEndTimestamp && eventEndTimestamp > datazoomStartTimestamp) {
+        return true;
+      }
+    });
+
+  });
+
 
   // Overwrite the option keys with values from the xml dashboard
   for (var tmpOptionKey in optionFromXmlDashboard) {
