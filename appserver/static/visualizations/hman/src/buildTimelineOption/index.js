@@ -405,6 +405,25 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     };
   }
 
+  // Ensure dataZoom property overwrite
+  if (!optionFromXmlDashboard.dataZoom && !splitByHour) {
+    // Apply default setting for echart option.dataZoom, but only when splitByHour is not active
+    const dataZoomTopPosition = this.scopedVariables['visualizationHeight'] - 40; //40 is the estimated height of the dataZoom slider bar
+    computedOption.dataZoom = [
+      {
+        type: 'slider',
+        start: 0,
+        end: 100,
+        labelFormatter: function (value) {
+          return new Date(value).toLocaleTimeString([tmpLocaleOption], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+        },
+        filterMode: 'none',
+        // Now you can precisely position it
+        top: dataZoomTopPosition,  // distance from top of chart
+      }
+    ];
+  }
+
   // Ensure xAxis property overwrite
   if (!optionFromXmlDashboard.xAxis && !splitByHour) {
     // Apply default setting for echart option.xAxis
@@ -475,22 +494,6 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   } else {
     // Using spread operator to insert data property inside computedOption.yAxis
     computedOption.yAxis = { ...optionFromXmlDashboard.yAxis, data: splitByHour ? yAxisListedHours : processedCategories };
-  }
-
-  // Ensure dataZoom property overwrite
-  if (!optionFromXmlDashboard.dataZoom && !splitByHour) {
-    // Apply default setting for echart option.dataZoom, but only when splitByHour is not active
-    computedOption.dataZoom = [
-      {
-        type: 'slider',
-        start: 0,
-        end: 100,
-        labelFormatter: function (value) {
-          return new Date(value).toLocaleTimeString([tmpLocaleOption], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
-        },
-        filterMode: 'none'
-      }
-    ];
   }
 
   //These 2 keys (computedOption.series and computedOption.legend) cannot be overwritten from dashboard source code
