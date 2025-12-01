@@ -1,3 +1,4 @@
+const SplunkVisualizationBase = require('api/SplunkVisualizationBase'); // eslint-disable-line no-unused-vars
 /**
  * To be called after a timeline custom render item was clicked upon
 */
