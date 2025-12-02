@@ -5,15 +5,22 @@ const _reflow = function () {
   if (myChart != null) {
     let hasProperty = Object.prototype.hasOwnProperty.call(myChart, "resize");
     if(this.scopedVariables['visualizationType'] === 'timeline') {
-      const canvasHolder = myChart.getDom().firstChild;
-      const theCanvas = myChart.getDom().firstChild.firstChild;
-      theCanvas.setAttribute('height', this.scopedVariables['visualizationHeight']);
-      theCanvas.style.height = `${this.scopedVariables['visualizationHeight']}px`;
-      canvasHolder.style.overflowY = 'auto';
-      canvasHolder.style.overflowX = 'hidden';
+      const resizablePanel = document.querySelector('.shared-reportvisualizer.ui-resizable');
+      const resizablePanelHeightInPx = resizablePanel.style.height;
+      const intPanelHeight = parseInt(resizablePanelHeightInPx.replace('px', ''));
+      const theChartHolder = myChart.getDom();
+      const theChartScroller = theChartHolder.parentElement;
+      if(intPanelHeight < this.scopedVariables['visualizationHeight']) {
+        theChartHolder.style.height = `${this.scopedVariables['visualizationHeight']}px`;
+        theChartScroller.style.display = 'flex';
+        theChartScroller.style.overflowY = 'auto';
+      } else {
+        theChartHolder.style.height = '100%';
+        theChartScroller.style.display = 'block';
+        theChartScroller.style.overflowY = 'hidden';
+      }
     }
     if (hasProperty) {
-      // Resize chart
       myChart.resize();
     }
   }
