@@ -35,20 +35,34 @@ const _setCustomTokens = function (params, tmpChartInstance) {
             }
         });
 
-        // click.name / click.value — use the first dimension as the "clicked" field
-        var clickName  = params.dimensionNames[0] || '';
-        var clickValue = params.data.value[0] !== undefined ? String(params.data.value[0]) : '';
+        // ── click.name / click.value (e.name / e.value) ──
+        // Primary clicked dimension: the category field (index 3).
+        // params.name holds the ECharts data item's name (set to the category value
+        // in buildTimelineOption), which is the value the user actually clicked on.
+        // The corresponding field name is dimensionNames[3].
+        var clickName  = params.dimensionNames[3] || '';
+        var clickValue = params.name !== undefined ? String(params.name) : '';
 
-        drilldownData['click.name']   = clickName;
-        drilldownData['click.value']  = clickValue;
-        drilldownData['click.name2']  = clickName;
-        drilldownData['click.value2'] = clickValue;
+        drilldownData['click.name']  = clickName;
+        drilldownData['click.value'] = clickValue;
+
+        // ── click.name2 / click.value2 (e.name2 / e.value2) ──
+        // Secondary dimension: the internal_name / series field (index 2).
+        // Mirrors Splunk's normalizeDrilldownEventData: use name2 when present,
+        // otherwise fall back to the same values as click.name / click.value.
+        if (params.dimensionNames.length > 2 && params.data.value[2] !== undefined) {
+            drilldownData['click.name2']  = params.dimensionNames[2];
+            drilldownData['click.value2'] = String(params.data.value[2]);
+        } else {
+            drilldownData['click.name2']  = clickName;
+            drilldownData['click.value2'] = clickValue;
+        }
     }
 
     // ── 2. Build the event payload (same contract as Drilldown.createEventPayload) ──
     var defaultPrevented = false;
     var drilldownPayload = {
-        field: drilldownData['click.name'] || '',
+        field: drilldownData['click.name2'] || drilldownData['click.name'] || '',
         data:  drilldownData,
         event: params,
         preventDefault: function () {
