@@ -17,6 +17,7 @@ const _initializeMQTT = function (echartProps) {
       useMQTT = true;
     }
   } catch (e) {
+    console.log('Error _initializeMQTT', e);
     useMQTT = false;
   }
 
