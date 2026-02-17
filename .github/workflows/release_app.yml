@@ -62,11 +62,11 @@ jobs:
     - name: npm audit fix
       run: |
          cd appserver/static/visualizations/hman
-         npm audit fix --force
+         npm audit audit --omit=dev
     - name: npm audit
       run: |
         cd appserver/static/visualizations/hman
-        npm audit        
+        npm audit
     - name: Clean node-modules
       run: | 
         cd appserver/static/visualizations/hman
