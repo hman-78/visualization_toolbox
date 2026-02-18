@@ -126,8 +126,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   let computedOption = {};
   this.scopedVariables['visualizationType'] = 'timeline';
   let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-  //#TODO Add a sane default if option is missing from xml code (default value = false)
-  let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"];
+  let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"] || 'false';
   let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "splitByHour"];
 
   if (typeof splitByHour !== 'undefined' && splitByHour === 'true') {

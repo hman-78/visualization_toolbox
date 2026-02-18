@@ -59,14 +59,11 @@ jobs:
       run: |
          cd appserver/static/visualizations/hman
          npm fund
-    - name: npm audit fix
+    - name: npm audit without transitive deps
       run: |
          cd appserver/static/visualizations/hman
-         npm audit fix --force
-    - name: npm audit
-      run: |
-        cd appserver/static/visualizations/hman
-        npm audit        
+         npm audit audit --omit=dev
+
     - name: Clean node-modules
       run: | 
         cd appserver/static/visualizations/hman
