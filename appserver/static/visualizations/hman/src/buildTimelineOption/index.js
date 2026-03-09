@@ -394,14 +394,20 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   // Ensure grid property overwrite
   const visualizationHeight = splitByHour ? (35 * yAxisListedHours.length) : (70 * processedCategories.length);
 
+  this.scopedVariables['visualizationHeight'] = visualizationHeight + 130;
   if (!optionFromXmlDashboard.grid) {
     // Apply default setting for echart option.grid
-    this.scopedVariables['visualizationHeight'] = visualizationHeight + 130;
     computedOption.grid = {
       height: visualizationHeight,
       left: '5%',
       top: 80,
       containLabel: true,
+    };
+  } else {
+    // Merge custom grid but enforce the computed height to keep rectangle sizing consistent
+    computedOption.grid = {
+      ...optionFromXmlDashboard.grid,
+      height: visualizationHeight,
     };
   }
 
