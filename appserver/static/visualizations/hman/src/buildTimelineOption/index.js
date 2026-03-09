@@ -536,12 +536,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
 
   if (!optionFromXmlDashboard.legend) {
     computedOption.legend = {
-      ...computedOption.legend,
-      textStyle: {
-        color: genericTextColor,
-        fontSize: 13,
-      },
-      top: 30
+      ...computedOption.legend
     }
   } else {
     // Merge properties from optionFromXmlDashboard.legend into computedOption.legend
@@ -705,6 +700,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
       computedOption[tmpOptionKey] = optionFromXmlDashboard[tmpOptionKey];
     }
   }
+  console.log('Before returning the computed option...');
   return computedOption;
 }
 
