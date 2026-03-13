@@ -97,6 +97,17 @@ const _updateView = function (data, config) {
       fontFamily: "Splunk Platform Sans"
     }
   }
+
+  // Overwrite default eCharts v6 legend position
+  if (typeof option.legend === 'undefined' || (typeof option.legend.top === 'undefined' && typeof option.legend.bottom === 'undefined')) {
+    if (typeof option.legend === 'undefined') {
+      option.legend = {};
+    }
+    option.legend.top = 0;
+  }
+
+  console.log('He we apply the magical option...');
+
   tmpChart['instanceByDom'].setOption(option);
   tmpChart['_option'] = option;
   
