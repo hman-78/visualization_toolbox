@@ -5,12 +5,17 @@
     "id": {
       "group": null,
       "name": "visualization_toolbox",
-      "version": "0.4.4"
+      "version": "0.4.5-rc1"
     },
     "author": [
       {
         "name": "Bjoern Hamann",
         "email": null,
+        "company": null
+      },
+      {
+        "name": "Octavian Cioaca",
+        "email": "work@selardi.com",
         "company": null
       }
     ],
