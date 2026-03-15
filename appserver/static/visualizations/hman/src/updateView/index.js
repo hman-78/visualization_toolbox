@@ -106,8 +106,6 @@ const _updateView = function (data, config) {
     option.legend.top = 0;
   }
 
-  console.log('He we apply the magical option...');
-
   tmpChart['instanceByDom'].setOption(option);
   tmpChart['_option'] = option;
   
