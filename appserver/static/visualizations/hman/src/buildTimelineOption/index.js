@@ -394,21 +394,32 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   // Ensure grid property overwrite
   const visualizationHeight = splitByHour ? (35 * yAxisListedHours.length) : (70 * processedCategories.length);
 
+  this.scopedVariables['visualizationHeight'] = visualizationHeight + 130;
   if (!optionFromXmlDashboard.grid) {
     // Apply default setting for echart option.grid
-    this.scopedVariables['visualizationHeight'] = visualizationHeight + 130;
     computedOption.grid = {
       height: visualizationHeight,
       left: '5%',
       top: 80,
+      bottom: 44,
       containLabel: true,
+    };
+  } else {
+    // Merge custom grid but enforce the computed height to keep rectangle sizing consistent
+    computedOption.grid = {
+      ...optionFromXmlDashboard.grid,
+      height: visualizationHeight,
+      left: optionFromXmlDashboard.grid.left ?? '5%',
+      top: optionFromXmlDashboard.grid.top ?? 80,
+      bottom: optionFromXmlDashboard.grid.bottom ?? 44,
+      containLabel: optionFromXmlDashboard.grid.containLabel ?? true,
     };
   }
 
   // Ensure dataZoom property overwrite
   if (!optionFromXmlDashboard.dataZoom && !splitByHour) {
     // Apply default setting for echart option.dataZoom, but only when splitByHour is not active
-    const dataZoomTopPosition = this.scopedVariables['visualizationHeight'] - 40; //40 is the estimated height of the dataZoom slider bar
+    const dataZoomTopPosition = this.scopedVariables['visualizationHeight'] - 44; //40 is the estimated height of the dataZoom slider bar
     computedOption.dataZoom = [
       {
         type: 'slider',
@@ -536,12 +547,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
 
   if (!optionFromXmlDashboard.legend) {
     computedOption.legend = {
-      ...computedOption.legend,
-      textStyle: {
-        color: genericTextColor,
-        fontSize: 13,
-      },
-      top: 30
+      ...computedOption.legend
     }
   } else {
     // Merge properties from optionFromXmlDashboard.legend into computedOption.legend
@@ -699,12 +705,13 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
 
   // Overwrite the option keys with values from the xml dashboard
   for (var tmpOptionKey in optionFromXmlDashboard) {
-    // Check if the tmpOptionKey is not 'yAxis' or 'series' or 'legend' and if optionFromXmlDashboard has the tmpOptionKey
-    if (tmpOptionKey !== 'yAxis' && tmpOptionKey !== 'series' && tmpOptionKey !== 'legend' && Object.prototype.hasOwnProperty.call(optionFromXmlDashboard, tmpOptionKey)) {
+    // Check if the tmpOptionKey is not 'yAxis' or 'series', 'legend' or 'grid' and if optionFromXmlDashboard has the tmpOptionKey
+    if (tmpOptionKey !== 'yAxis' && tmpOptionKey !== 'series' && tmpOptionKey !== 'legend' && tmpOptionKey !== 'grid' && Object.prototype.hasOwnProperty.call(optionFromXmlDashboard, tmpOptionKey)) {
       // Replace the value in option with the value from optionFromXmlDashboard
       computedOption[tmpOptionKey] = optionFromXmlDashboard[tmpOptionKey];
     }
   }
+  console.log('Before returning the computed option...');
   return computedOption;
 }
 
