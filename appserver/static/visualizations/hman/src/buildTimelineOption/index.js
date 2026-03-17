@@ -131,11 +131,10 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   let computedOption = {};
   this.scopedVariables['visualizationType'] = 'timeline';
   let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-  let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"] || 'false';
-  let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "splitByHour"];
-  let _private_bandHeight = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "bandHeight"]);
-  let _private_bandGap = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "bandGap"]);
-
+  let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_useSplunkCategoricalColors"] || 'false';
+  let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_splitByHour"];
+  let _private_bandHeight = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_bandHeight"]);
+  let _private_bandGap = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_bandGap"]);
   if (typeof splitByHour !== 'undefined' && splitByHour === 'true') {
     splitByHour = true;
   } else {
@@ -400,9 +399,13 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
 
   if(Number.isInteger(_private_bandHeight)) {
     bandHeight = _private_bandHeight;
+  } else {
+    console.log('Warning! The timeline_bandHeight property must be an integer. The current values is not correct and was replaced with a default value.');
   }
   if(Number.isInteger(_private_bandGap)) {
     bandGap = _private_bandGap;
+  } else {
+    console.log('Warning! The timeline_bandGap property must be an integer. The current values is not correct and was replaced with a default value.');
   }
   // Ensure grid property overwrite
   const visualizationHeight = splitByHour ? ((bandHeight + bandGap) * yAxisListedHours.length) : ((bandHeight + bandGap) * processedCategories.length);
@@ -511,7 +514,8 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     computedOption.yAxis = {
       type: 'category',
       axisTick: {
-        show: true
+        show: true,
+        alignWithLabel: true
       },
       data: splitByHour ? yAxisListedHours : processedCategories
     };
