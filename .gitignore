@@ -127,3 +127,5 @@ generate_events.js
 lookups/oee_clean_last_hours.csv
 lookups/oee_last_4_hours.csv
 lookups/oeerawresults.csv
+lookups/timeline_by_hour_10_jan_2025.csv
+lookups/two_machines.csv
