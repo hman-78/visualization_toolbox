@@ -14,6 +14,8 @@ let xAxisDataMaxValue = '';
 let xAxisStartDates = [];
 let yAxisListedHours = [];
 let hourlyIntervals = [];
+let bandHeight = 32;
+let bandGap = 8;
 const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
 const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
@@ -63,11 +65,13 @@ function renderItemForHour(params, api) {
     // Use api.coord to get the pixel coordinates for the rectangle.
     const pointStart = api.coord([tmpEventStartPoint, yAxisIndexes[yAxisDownIterator]]);
     const pointEnd = api.coord([tmpEventStartPoint + tmpMaximumInitialDrawingSpace, yAxisIndexes[yAxisDownIterator]]);
+    var slotHeight = api.size([0, 1])[1]; // pixel height of one category slot
+    var drawHeight = slotHeight - bandGap;
     const rectShape = {
       x: pointStart[0],
-      y: pointStart[1] - api.size([0, 1])[1] / 2,
+      y: pointStart[1] - drawHeight / 2,
       width: pointEnd[0] - pointStart[0],
-      height: api.size([0, 1])[1] * 0.8,
+      height: drawHeight,
     };
     const rectDrawing = {
       type: 'rect',
@@ -94,13 +98,14 @@ function renderItemLogic(params, api) {
   var categoryIndex = api.value(2);
   var start = api.coord([api.value(0), categoryIndex]);
   var end = api.coord([api.value(1), categoryIndex]);
-  var height = api.size([0, 1])[1] * 0.6;
+  var slotHeight = api.size([0, 1])[1]; // pixel height of one category slot
+  var drawHeight = slotHeight - bandGap;
   var rectShape = echarts.graphic.clipRectByRect(
     {
       x: start[0],
-      y: start[1] - height / 2,
+      y: start[1] - drawHeight / 2,
       width: end[0] - start[0],
-      height: height
+      height: drawHeight
     },
     {
       x: params.coordSys.x,
@@ -126,9 +131,10 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   let computedOption = {};
   this.scopedVariables['visualizationType'] = 'timeline';
   let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-  let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "useSplunkCategoricalColors"] || 'false';
-  let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "splitByHour"];
-
+  let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_useSplunkCategoricalColors"] || 'false';
+  let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_splitByHour"];
+  let _private_bandHeight = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_bandHeight"]);
+  let _private_bandGap = parseInt(config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_bandGap"]);
   if (typeof splitByHour !== 'undefined' && splitByHour === 'true') {
     splitByHour = true;
   } else {
@@ -391,8 +397,18 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     return null;
   }
 
+  if(Number.isInteger(_private_bandHeight)) {
+    bandHeight = _private_bandHeight;
+  } else {
+    console.log('Warning! The timeline_bandHeight property must be an integer. The current values is not correct and was replaced with a default value.');
+  }
+  if(Number.isInteger(_private_bandGap)) {
+    bandGap = _private_bandGap;
+  } else {
+    console.log('Warning! The timeline_bandGap property must be an integer. The current values is not correct and was replaced with a default value.');
+  }
   // Ensure grid property overwrite
-  const visualizationHeight = splitByHour ? (35 * yAxisListedHours.length) : (70 * processedCategories.length);
+  const visualizationHeight = splitByHour ? ((bandHeight + bandGap) * yAxisListedHours.length) : ((bandHeight + bandGap) * processedCategories.length);
 
   this.scopedVariables['visualizationHeight'] = visualizationHeight + 130;
   if (!optionFromXmlDashboard.grid) {
@@ -498,7 +514,8 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     computedOption.yAxis = {
       type: 'category',
       axisTick: {
-        show: true
+        show: true,
+        alignWithLabel: true
       },
       data: splitByHour ? yAxisListedHours : processedCategories
     };
