@@ -4,14 +4,15 @@ const _reflow = function () {
   var myChart = echarts.getInstanceByDom(this.el);
   if (myChart != null) {
     let hasProperty = Object.prototype.hasOwnProperty.call(myChart, "resize");
-    if(this.scopedVariables['visualizationType'] === 'timeline') {
+    const currentChartEntry = this.scopedVariables['_renderedEchartsArray'].find(o => o.instanceByDom === myChart);
+    if(currentChartEntry && currentChartEntry['visualizationType'] === 'timeline') {
       const resizablePanel = document.querySelector('.shared-reportvisualizer.ui-resizable');
       const resizablePanelHeightInPx = resizablePanel.style.height;
       const intPanelHeight = parseInt(resizablePanelHeightInPx.replace('px', ''));
       const theChartHolder = myChart.getDom();
       const theChartScroller = theChartHolder.parentElement;
-      if(intPanelHeight < this.scopedVariables['visualizationHeight']) {
-        theChartHolder.style.height = `${this.scopedVariables['visualizationHeight']}px`;
+      if(intPanelHeight < currentChartEntry['visualizationHeight']) {
+        theChartHolder.style.height = `${currentChartEntry['visualizationHeight']}px`;
         theChartScroller.style.display = 'flex';
         theChartScroller.style.overflowY = 'auto';
       } else {

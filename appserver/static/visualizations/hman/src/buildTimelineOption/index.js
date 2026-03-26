@@ -34,6 +34,8 @@ function reInitializeDataHolders() {
   xAxisStartDates = [];
   yAxisListedHours = [];
   hourlyIntervals = [];
+  bandHeight = 32;
+  bandGap = 8;
 }
 
 function renderItemForHour(params, api) {
@@ -125,11 +127,11 @@ function renderItemLogic(params, api) {
   );
 }
 
-const _buildTimelineOption = function (data, config, tmpChartInstance) {
+const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart) {
   reInitializeDataHolders();
   // Start creating the annotated computedOption object that will be passed to echart instance
   let computedOption = {};
-  this.scopedVariables['visualizationType'] = 'timeline';
+
   let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
   let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_useSplunkCategoricalColors"] || 'false';
   let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_splitByHour"];
@@ -410,7 +412,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   // Ensure grid property overwrite
   const visualizationHeight = splitByHour ? ((bandHeight + bandGap) * yAxisListedHours.length) : ((bandHeight + bandGap) * processedCategories.length);
 
-  this.scopedVariables['visualizationHeight'] = visualizationHeight + 130;
+  tmpChart['visualizationHeight'] = visualizationHeight + 130;
   if (!optionFromXmlDashboard.grid) {
     // Apply default setting for echart option.grid
     computedOption.grid = {
@@ -435,7 +437,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   // Ensure dataZoom property overwrite
   if (!optionFromXmlDashboard.dataZoom && !splitByHour) {
     // Apply default setting for echart option.dataZoom, but only when splitByHour is not active
-    const dataZoomTopPosition = this.scopedVariables['visualizationHeight'] - 44; //40 is the estimated height of the dataZoom slider bar
+    const dataZoomTopPosition = (visualizationHeight + 130) - 44; //40 is the estimated height of the dataZoom slider bar
     computedOption.dataZoom = [
       {
         type: 'slider',

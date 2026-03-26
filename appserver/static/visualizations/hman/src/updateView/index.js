@@ -53,8 +53,6 @@ const _updateView = function (data, config) {
     tmpChart['mqttTopic'] = '';
     tmpChart['mqttOptions'] = '';
   }
-  this.scopedVariables['_renderedEchartsArray'].push(tmpChart);
-
   let option = {};
   if (echartProps.dataType.toLowerCase() == "custom") {
     option = this._buildCustomOption(data, config);
@@ -63,7 +61,7 @@ const _updateView = function (data, config) {
   } else if (echartProps.dataType.toLowerCase() == "simpleboxplot") {
     option = this._buildSimpleBoxplotOption(data, config);
   } else if (echartProps.dataType.toLowerCase() == "timeline") {
-    option = this._buildTimelineOption(data, config, tmpChart['instanceByDom']);
+    option = this._buildTimelineOption(data, config, tmpChart['instanceByDom'], tmpChart);
   } else if (echartProps.dataType.toLowerCase() == "hourlytimeline") {
     option = this._buildHourlyTimelineOption(data, config, tmpChart['instanceByDom']);
   }
@@ -72,8 +70,11 @@ const _updateView = function (data, config) {
   // Once the token is replaced this method is called again, option is parsed
   // and echart is shown to the user.
   if (option == null) {
+    tmpChart['instanceByDom'].dispose();
     return;
   }
+  tmpChart['visualizationType'] = echartProps.dataType.toLowerCase();
+  this.scopedVariables['_renderedEchartsArray'].push(tmpChart);
 
   if (echartProps.xAxisDataHook != null) {
     option.xAxis.data = this.selfModifiyingOptionWithReturn(data, config, option, echartProps.xAxisDataHook);
