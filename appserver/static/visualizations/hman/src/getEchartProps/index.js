@@ -23,7 +23,11 @@ const _getEchartProps = function (config) {
     xAxisDataHook: config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataHook"],
     yAxisDataHook: config[this.getPropertyNamespaceInfo().propertyNamespace + "yAxisDataHook"],
     annotationSeriesDataIndexBinding: config[this.getPropertyNamespaceInfo().propertyNamespace + "annotationSeriesDataIndexBinding"],
-    opco: config[this.getPropertyNamespaceInfo().propertyNamespace + "opco"]
+    opco: config[this.getPropertyNamespaceInfo().propertyNamespace + "opco"],
+    timeline_useSplunkCategoricalColors: config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_useSplunkCategoricalColors"],
+    timeline_splitByHour: config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_splitByHour"],
+    timeline_bandHeight: config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_bandHeight"],
+    timeline_bandGap: config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_bandGap"],
   }
 }
 
