@@ -432,10 +432,10 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
   }
 
   // Ensure dataZoom property overwrite
-  if (!splitByHour) {
+  if (!splitByHour && optionFromXmlDashboard.dataZoom) {
     const gridBottom = (computedOption.grid && computedOption.grid.bottom) ? computedOption.grid.bottom : 50;
     const dataZoomTopPosition = 80 + visualizationHeight + gridBottom; // position dataZoom below the grid and xAxis labels (top offset + grid height + bottom margin)
-    const defaultDataZoom = {
+    const defaultSliderDataZoom = {
       type: 'slider',
       start: 0,
       end: 100,
@@ -445,13 +445,15 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
       filterMode: 'none',
       top: dataZoomTopPosition,
     };
-    if (!optionFromXmlDashboard.dataZoom) {
-      computedOption.dataZoom = [defaultDataZoom];
-    } else {
-      // Merge user-provided dataZoom but always enforce filterMode: 'none' to prevent event truncation
-      const userDataZoom = Array.isArray(optionFromXmlDashboard.dataZoom) ? optionFromXmlDashboard.dataZoom[0] : optionFromXmlDashboard.dataZoom;
-      computedOption.dataZoom = [{ ...defaultDataZoom, ...userDataZoom, filterMode: 'none' }];
-    }
+    // Normalize to array regardless of whether the user provided an object or array
+    const userDataZoomArray = Array.isArray(optionFromXmlDashboard.dataZoom) ? optionFromXmlDashboard.dataZoom : [optionFromXmlDashboard.dataZoom];
+    // For slider entries merge with defaults; for all entries enforce filterMode: 'none' to prevent event truncation
+    computedOption.dataZoom = userDataZoomArray.map(userDataZoom => {
+      if (userDataZoom.type === 'slider' || (!userDataZoom.type)) {
+        return { ...defaultSliderDataZoom, ...userDataZoom, filterMode: 'none' };
+      }
+      return { ...userDataZoom, filterMode: 'none' };
+    });
   }
 
   // Ensure xAxis property overwrite
@@ -592,6 +594,10 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
       ...computedOption.legend,
       ...optionFromXmlDashboard.legend
     };
+
+    if (!('top' in computedOption.legend) && !('bottom' in computedOption.legend)) {
+      computedOption.legend.top = 0;
+    }
   }
 
   tmpChartInstance.on('highlight', function (params) {
