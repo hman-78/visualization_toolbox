@@ -43,7 +43,22 @@ const _updateView = function (data, config) {
   tmpChart['_data'] = data;
 
   const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
-  tmpChart['instanceByDom'] = echarts.init(this.el, currentTheme)
+  if (echartProps.dataType.toLowerCase() === 'timeline') {
+    const ns = this.getPropertyNamespaceInfo().propertyNamespace;
+    const preBandHeight = parseInt(config[ns + 'timeline_bandHeight']) || 32;
+    const preBandGap = parseInt(config[ns + 'timeline_bandGap']) || 8;
+    const preCategories = [...new Set(data.rows.map(r => r[2]))];
+    const preHeight = (preBandHeight + preBandGap) * preCategories.length + 210;
+    this.el.parentElement.style.height = `${preHeight}px`;
+    const resizablePanel = this.el.closest('.shared-reportvisualizer.ui-resizable');
+    if (resizablePanel) {
+      resizablePanel.style.overflowY = resizablePanel.clientHeight < preHeight ? 'scroll' : 'hidden';
+    }
+    tmpChart['instanceByDom'] = echarts.init(this.el, currentTheme, { height: preHeight });
+    tmpChart['_applyBgColor'] = true;
+  } else {
+    tmpChart['instanceByDom'] = echarts.init(this.el, currentTheme);
+  }
   if(typeof dedicatedMqttClient !== 'undefined') {
     tmpChart['mqttClient'] = dedicatedMqttClient.mqttClient;
     tmpChart['mqttTopic'] = dedicatedMqttClient.mqttTopic;
@@ -109,6 +124,16 @@ const _updateView = function (data, config) {
 
   tmpChart['instanceByDom'].setOption(option);
   tmpChart['_option'] = option;
+
+  if (tmpChart['_applyBgColor']) {
+    const canvasEl = this.el.querySelector('canvas');
+    const resizablePanelForBg = this.el.closest('.shared-reportvisualizer.ui-resizable');
+    if (canvasEl && resizablePanelForBg) {
+      const ctx = canvasEl.getContext('2d');
+      const pixel = ctx.getImageData(0, 0, 1, 1).data;
+      resizablePanelForBg.style.backgroundColor = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
+    }
+  }
   
   var splunk = this;
 

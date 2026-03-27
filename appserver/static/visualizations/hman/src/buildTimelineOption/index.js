@@ -411,32 +411,30 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
   }
   // Ensure grid property overwrite
   const visualizationHeight = splitByHour ? ((bandHeight + bandGap) * yAxisListedHours.length) : ((bandHeight + bandGap) * processedCategories.length);
-
-  tmpChart['visualizationHeight'] = visualizationHeight + 130;
+  tmpChart['visualizationHeight'] = visualizationHeight + 210;
   if (!optionFromXmlDashboard.grid) {
-    // Apply default setting for echart option.grid
     computedOption.grid = {
-      height: visualizationHeight,
-      left: '5%',
+      left: 160,
       top: 80,
-      bottom: 44,
-      containLabel: true,
+      bottom: 80,
+      right: 20,
+      containLabel: false,
     };
   } else {
-    // Merge custom grid but enforce the computed height to keep rectangle sizing consistent
     computedOption.grid = {
       ...optionFromXmlDashboard.grid,
-      height: visualizationHeight,
-      left: optionFromXmlDashboard.grid.left ?? '5%',
+      left: optionFromXmlDashboard.grid.left ?? 160,
       top: optionFromXmlDashboard.grid.top ?? 80,
-      bottom: optionFromXmlDashboard.grid.bottom ?? 44,
-      containLabel: optionFromXmlDashboard.grid.containLabel ?? true,
+      bottom: optionFromXmlDashboard.grid.bottom ?? 80,
+      right: optionFromXmlDashboard.grid.right ?? 20,
+      containLabel: false,
     };
   }
 
   // Ensure dataZoom property overwrite
   if (!splitByHour) {
-    const dataZoomTopPosition = (visualizationHeight + 130) - 44; //40 is the estimated height of the dataZoom slider bar
+    const gridBottom = (computedOption.grid && computedOption.grid.bottom) ? computedOption.grid.bottom : 50;
+    const dataZoomTopPosition = 80 + visualizationHeight + gridBottom; // position dataZoom below the grid and xAxis labels (top offset + grid height + bottom margin)
     const defaultDataZoom = {
       type: 'slider',
       start: 0,
