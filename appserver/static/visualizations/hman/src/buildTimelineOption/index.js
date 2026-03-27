@@ -16,8 +16,6 @@ let yAxisListedHours = [];
 let hourlyIntervals = [];
 let bandHeight = 32;
 let bandGap = 8;
-const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
-const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
   tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
 }
@@ -129,6 +127,8 @@ function renderItemLogic(params, api) {
 
 const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart) {
   reInitializeDataHolders();
+  const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
+  const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
   // Start creating the annotated computedOption object that will be passed to echart instance
   let computedOption = {};
 
