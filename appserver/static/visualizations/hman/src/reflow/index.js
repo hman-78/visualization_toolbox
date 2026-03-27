@@ -4,20 +4,13 @@ const _reflow = function () {
   var myChart = echarts.getInstanceByDom(this.el);
   if (myChart != null) {
     let hasProperty = Object.prototype.hasOwnProperty.call(myChart, "resize");
-    if(this.scopedVariables['visualizationType'] === 'timeline') {
-      const resizablePanel = document.querySelector('.shared-reportvisualizer.ui-resizable');
-      const resizablePanelHeightInPx = resizablePanel.style.height;
-      const intPanelHeight = parseInt(resizablePanelHeightInPx.replace('px', ''));
+    const currentChartEntry = this.scopedVariables['_renderedEchartsArray'].find(o => o.instanceByDom === myChart);
+    if(currentChartEntry && currentChartEntry['visualizationType'] === 'timeline') {
       const theChartHolder = myChart.getDom();
-      const theChartScroller = theChartHolder.parentElement;
-      if(intPanelHeight < this.scopedVariables['visualizationHeight']) {
-        theChartHolder.style.height = `${this.scopedVariables['visualizationHeight']}px`;
-        theChartScroller.style.display = 'flex';
-        theChartScroller.style.overflowY = 'auto';
-      } else {
-        theChartHolder.style.height = '100%';
-        theChartScroller.style.display = 'block';
-        theChartScroller.style.overflowY = 'hidden';
+      theChartHolder.parentElement.style.height = `${currentChartEntry['visualizationHeight']}px`;
+      const resizablePanel = theChartHolder.closest('.shared-reportvisualizer.ui-resizable');
+      if (resizablePanel) {
+        resizablePanel.style.overflowY = resizablePanel.clientHeight < currentChartEntry['visualizationHeight'] ? 'scroll' : 'hidden';
       }
     }
     if (hasProperty) {

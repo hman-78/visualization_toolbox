@@ -16,8 +16,6 @@ let yAxisListedHours = [];
 let hourlyIntervals = [];
 let bandHeight = 32;
 let bandGap = 8;
-const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
-const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
   tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
 }
@@ -34,6 +32,8 @@ function reInitializeDataHolders() {
   xAxisStartDates = [];
   yAxisListedHours = [];
   hourlyIntervals = [];
+  bandHeight = 32;
+  bandGap = 8;
 }
 
 function renderItemForHour(params, api) {
@@ -125,11 +125,13 @@ function renderItemLogic(params, api) {
   );
 }
 
-const _buildTimelineOption = function (data, config, tmpChartInstance) {
+const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart) {
   reInitializeDataHolders();
+  const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
+  const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
   // Start creating the annotated computedOption object that will be passed to echart instance
   let computedOption = {};
-  this.scopedVariables['visualizationType'] = 'timeline';
+
   let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
   let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_useSplunkCategoricalColors"] || 'false';
   let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_splitByHour"];
@@ -409,46 +411,49 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
   }
   // Ensure grid property overwrite
   const visualizationHeight = splitByHour ? ((bandHeight + bandGap) * yAxisListedHours.length) : ((bandHeight + bandGap) * processedCategories.length);
-
-  this.scopedVariables['visualizationHeight'] = visualizationHeight + 130;
+  tmpChart['visualizationHeight'] = visualizationHeight + 210;
   if (!optionFromXmlDashboard.grid) {
-    // Apply default setting for echart option.grid
     computedOption.grid = {
-      height: visualizationHeight,
-      left: '5%',
+      left: 160,
       top: 80,
-      bottom: 44,
-      containLabel: true,
+      bottom: 80,
+      right: 20,
+      containLabel: false,
     };
   } else {
-    // Merge custom grid but enforce the computed height to keep rectangle sizing consistent
     computedOption.grid = {
       ...optionFromXmlDashboard.grid,
-      height: visualizationHeight,
-      left: optionFromXmlDashboard.grid.left ?? '5%',
+      left: optionFromXmlDashboard.grid.left ?? 160,
       top: optionFromXmlDashboard.grid.top ?? 80,
-      bottom: optionFromXmlDashboard.grid.bottom ?? 44,
-      containLabel: optionFromXmlDashboard.grid.containLabel ?? true,
+      bottom: optionFromXmlDashboard.grid.bottom ?? 80,
+      right: optionFromXmlDashboard.grid.right ?? 20,
+      containLabel: false,
     };
   }
 
   // Ensure dataZoom property overwrite
-  if (!optionFromXmlDashboard.dataZoom && !splitByHour) {
-    // Apply default setting for echart option.dataZoom, but only when splitByHour is not active
-    const dataZoomTopPosition = this.scopedVariables['visualizationHeight'] - 44; //40 is the estimated height of the dataZoom slider bar
-    computedOption.dataZoom = [
-      {
-        type: 'slider',
-        start: 0,
-        end: 100,
-        labelFormatter: function (value) {
-          return new Date(value).toLocaleTimeString([tmpLocaleOption], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
-        },
-        filterMode: 'none',
-        // Now you can precisely position it
-        top: dataZoomTopPosition,  // distance from top of chart
+  if (!splitByHour && optionFromXmlDashboard.dataZoom) {
+    const gridBottom = (computedOption.grid && computedOption.grid.bottom) ? computedOption.grid.bottom : 50;
+    const dataZoomTopPosition = 80 + visualizationHeight + gridBottom; // position dataZoom below the grid and xAxis labels (top offset + grid height + bottom margin)
+    const defaultSliderDataZoom = {
+      type: 'slider',
+      start: 0,
+      end: 100,
+      labelFormatter: function (value) {
+        return new Date(value).toLocaleTimeString([tmpLocaleOption], { year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" })
+      },
+      filterMode: 'none',
+      top: dataZoomTopPosition,
+    };
+    // Normalize to array regardless of whether the user provided an object or array
+    const userDataZoomArray = Array.isArray(optionFromXmlDashboard.dataZoom) ? optionFromXmlDashboard.dataZoom : [optionFromXmlDashboard.dataZoom];
+    // For slider entries merge with defaults; for all entries enforce filterMode: 'none' to prevent event truncation
+    computedOption.dataZoom = userDataZoomArray.map(userDataZoom => {
+      if (userDataZoom.type === 'slider' || (!userDataZoom.type)) {
+        return { ...defaultSliderDataZoom, ...userDataZoom, filterMode: 'none' };
       }
-    ];
+      return { ...userDataZoom, filterMode: 'none' };
+    });
   }
 
   // Ensure xAxis property overwrite
@@ -589,6 +594,10 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
       ...computedOption.legend,
       ...optionFromXmlDashboard.legend
     };
+
+    if (!('top' in computedOption.legend) && !('bottom' in computedOption.legend)) {
+      computedOption.legend.top = 0;
+    }
   }
 
   tmpChartInstance.on('highlight', function (params) {
@@ -704,26 +713,12 @@ const _buildTimelineOption = function (data, config, tmpChartInstance) {
     }
   });
 
-  tmpChartInstance.on('datazoom', function () {
-    const xAxisModel = tmpChartInstance.getModel().getComponent('xAxis', 0);
-    const xAxis = xAxisModel.axis;
-    let datazoomStartTimestamp = xAxis.scale._extent[0];
-    let datazoomEndTimestamp = xAxis.scale._extent[1];
-    computedOption.series[0].data = computedOption.series[0].data.filter(eventObj => {
-      const eventStartTimestamp = eventObj.value[0];
-      const eventEndTimestamp = eventObj.value[1];
-      if(eventStartTimestamp < datazoomEndTimestamp && eventEndTimestamp > datazoomStartTimestamp) {
-        return true;
-      }
-    });
-
-  });
 
 
   // Overwrite the option keys with values from the xml dashboard
   for (var tmpOptionKey in optionFromXmlDashboard) {
     // Check if the tmpOptionKey is not 'yAxis' or 'series', 'legend' or 'grid' and if optionFromXmlDashboard has the tmpOptionKey
-    if (tmpOptionKey !== 'yAxis' && tmpOptionKey !== 'series' && tmpOptionKey !== 'legend' && tmpOptionKey !== 'grid' && Object.prototype.hasOwnProperty.call(optionFromXmlDashboard, tmpOptionKey)) {
+    if (tmpOptionKey !== 'yAxis' && tmpOptionKey !== 'series' && tmpOptionKey !== 'legend' && tmpOptionKey !== 'grid' && tmpOptionKey !== 'dataZoom' && Object.prototype.hasOwnProperty.call(optionFromXmlDashboard, tmpOptionKey)) {
       // Replace the value in option with the value from optionFromXmlDashboard
       computedOption[tmpOptionKey] = optionFromXmlDashboard[tmpOptionKey];
     }

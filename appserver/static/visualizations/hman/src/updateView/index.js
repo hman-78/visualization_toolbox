@@ -43,7 +43,23 @@ const _updateView = function (data, config) {
   tmpChart['_data'] = data;
 
   const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
-  tmpChart['instanceByDom'] = echarts.init(this.el, currentTheme)
+  const echartsTheme = currentTheme;
+  if (echartProps.dataType.toLowerCase() === 'timeline') {
+    const ns = this.getPropertyNamespaceInfo().propertyNamespace;
+    const preBandHeight = parseInt(config[ns + 'timeline_bandHeight']) || 32;
+    const preBandGap = parseInt(config[ns + 'timeline_bandGap']) || 8;
+    const preCategories = [...new Set(data.rows.map(r => r[2]))];
+    const preHeight = (preBandHeight + preBandGap) * preCategories.length + 210;
+    this.el.parentElement.style.height = `${preHeight}px`;
+    const resizablePanel = this.el.closest('.shared-reportvisualizer.ui-resizable');
+    if (resizablePanel) {
+      resizablePanel.style.overflowY = resizablePanel.clientHeight < preHeight ? 'scroll' : 'hidden';
+    }
+    tmpChart['instanceByDom'] = echarts.init(this.el, echartsTheme, { height: preHeight });
+    tmpChart['_applyBgColor'] = true;
+  } else {
+    tmpChart['instanceByDom'] = echarts.init(this.el, echartsTheme);
+  }
   if(typeof dedicatedMqttClient !== 'undefined') {
     tmpChart['mqttClient'] = dedicatedMqttClient.mqttClient;
     tmpChart['mqttTopic'] = dedicatedMqttClient.mqttTopic;
@@ -53,8 +69,6 @@ const _updateView = function (data, config) {
     tmpChart['mqttTopic'] = '';
     tmpChart['mqttOptions'] = '';
   }
-  this.scopedVariables['_renderedEchartsArray'].push(tmpChart);
-
   let option = {};
   if (echartProps.dataType.toLowerCase() == "custom") {
     option = this._buildCustomOption(data, config);
@@ -63,7 +77,7 @@ const _updateView = function (data, config) {
   } else if (echartProps.dataType.toLowerCase() == "simpleboxplot") {
     option = this._buildSimpleBoxplotOption(data, config);
   } else if (echartProps.dataType.toLowerCase() == "timeline") {
-    option = this._buildTimelineOption(data, config, tmpChart['instanceByDom']);
+    option = this._buildTimelineOption(data, config, tmpChart['instanceByDom'], tmpChart);
   } else if (echartProps.dataType.toLowerCase() == "hourlytimeline") {
     option = this._buildHourlyTimelineOption(data, config, tmpChart['instanceByDom']);
   }
@@ -72,8 +86,11 @@ const _updateView = function (data, config) {
   // Once the token is replaced this method is called again, option is parsed
   // and echart is shown to the user.
   if (option == null) {
+    tmpChart['instanceByDom'].dispose();
     return;
   }
+  tmpChart['visualizationType'] = echartProps.dataType.toLowerCase();
+  this.scopedVariables['_renderedEchartsArray'].push(tmpChart);
 
   if (echartProps.xAxisDataHook != null) {
     option.xAxis.data = this.selfModifiyingOptionWithReturn(data, config, option, echartProps.xAxisDataHook);
@@ -108,6 +125,22 @@ const _updateView = function (data, config) {
 
   tmpChart['instanceByDom'].setOption(option);
   tmpChart['_option'] = option;
+
+  if (tmpChart['_applyBgColor']) {
+    const resizablePanelForBg = this.el.closest('.shared-reportvisualizer.ui-resizable');
+    if (resizablePanelForBg) {
+      if (currentTheme === 'dark') {
+        const canvasEl = this.el.querySelector('canvas');
+        if (canvasEl) {
+          const ctx = canvasEl.getContext('2d');
+          const pixel = ctx.getImageData(0, 0, 1, 1).data;
+          resizablePanelForBg.style.backgroundColor = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
+        }
+      } else {
+        resizablePanelForBg.style.backgroundColor = '';
+      }
+    }
+  }
   
   var splunk = this;
 
