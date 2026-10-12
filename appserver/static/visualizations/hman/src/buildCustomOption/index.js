@@ -65,8 +65,7 @@ const _buildCustomOption = function (data, config) {
   echartProps.seriesColorDataIndexBinding = configSeriesColorDataIndexBinding ? Number(configSeriesColorDataIndexBinding) : NaN;
 
   // Clone the option.series object by value using cloneDeep() into staticSeriesTemplates
-  // The last series is the dynamic template when a wildcard is used, so it is not a static template
-  const staticSeriesTemplates = cloneDeep(echartHasDynamicSeries ? option.series.slice(0, -1) : option.series);
+  const staticSeriesTemplates = cloneDeep(option.series);
 
   if(echartHasDynamicSeries) {
     if (option.series.length === 0) {
