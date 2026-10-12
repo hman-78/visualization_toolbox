@@ -54,11 +54,9 @@ const _updateView = function (data, config) {
   if(typeof dedicatedMqttClient !== 'undefined') {
     tmpChart['mqttClient'] = dedicatedMqttClient.mqttClient;
     tmpChart['mqttTopic'] = dedicatedMqttClient.mqttTopic;
-    tmpChart['mqttOptions'] = dedicatedMqttClient.mqttOptions;
   } else {
     tmpChart['mqttClient'] = '';
     tmpChart['mqttTopic'] = '';
-    tmpChart['mqttOptions'] = '';
   }
   let option = {};
   if (echartProps.dataType.toLowerCase() == "custom") {
@@ -156,7 +154,6 @@ const _updateView = function (data, config) {
     this.evalHook = eval("(function a(params, data, config, option, event, splunk) {" + echartProps.clickHook + "})");
     this.evalHook(params, data, config, option, params.event, splunk);
   }
-  console.log("this.scopedVariables", this.scopedVariables);
   console.log('Applied option on echart instance ', option);
 }
 

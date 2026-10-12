@@ -44,8 +44,7 @@ const _initializeMQTT = function (echartProps) {
     })
     return {
       mqttClient: tmpMqttClient,
-      mqttTopic: tmpMqttTopic,
-      mqttOptions: tmpMqttOptions
+      mqttTopic: tmpMqttTopic
     }
   }
 }
