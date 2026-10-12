@@ -42,8 +42,8 @@ const _initializeMQTT = function (echartProps) {
         tmpMqttClient.end(true);
       }
     })
-    tmpMqttClient.on('error', () => {
-      console.log(`mqtt client id: ${clientId} encountered an error!`);
+    tmpMqttClient.on('error', (err) => {
+      console.log(`mqtt client id: ${clientId} encountered an error: ${err.message}`);
     })
     return {
       mqttClient: tmpMqttClient,
