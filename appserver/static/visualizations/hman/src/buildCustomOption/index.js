@@ -289,8 +289,9 @@ const _buildCustomOption = function (data, config) {
 
     // determine color of errorSeries to color yAxis
     var colorString = "";
-    if (Object.prototype.hasOwnProperty.call(option, "color") && option.color.length >= optionErrorSeriesIndex) {
-      colorString = option.color[optionErrorSeriesIndex];
+    // echarts cycles through the palette, so the series color is at index % palette length
+    if (Array.isArray(option.color) && option.color.length > 0) {
+      colorString = option.color[optionErrorSeriesIndex % option.color.length];
       yAxisObj.axisLine.lineStyle.color = colorString;
       yAxisObj.axisLabel.color = colorString;
     }
