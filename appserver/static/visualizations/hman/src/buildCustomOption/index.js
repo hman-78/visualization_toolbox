@@ -63,7 +63,8 @@ const _buildCustomOption = function (data, config) {
   xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
   const maxIndexNrForDataFields = data.fields.length - 1;
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
-  echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
+  // Number('') is 0, so an empty setting must stay NaN (= not set)
+  echartProps.seriesColorDataIndexBinding = configSeriesColorDataIndexBinding ? Number(configSeriesColorDataIndexBinding) : NaN;
 
   // Clone the option.series object by value using cloneDeep() into staticSeriesTemplates
   // The last series is the dynamic template when a wildcard is used, so it is not a static template
