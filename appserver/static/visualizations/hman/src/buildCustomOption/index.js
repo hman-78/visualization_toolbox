@@ -78,6 +78,8 @@ const _buildCustomOption = function (data, config) {
   let tmpNameIterator = 0;
   for (let i = 0; i < theProcessedSeries.length; i++) {
     let tmpSeriesObj = {};
+    // tuple bindings map to several fields, so only a single index has a field name
+    const fieldName = Number.isInteger(theProcessedSeries[i]) && data.fields[theProcessedSeries[i]] ? data.fields[theProcessedSeries[i]].name : undefined;
 
     if(typeof staticSeriesTemplates[i] !== 'undefined') {
       // Clone the staticSeriesTemplates[i] object by value using cloneDeep() into tmpSeriesObj
@@ -87,7 +89,7 @@ const _buildCustomOption = function (data, config) {
       tmpSeriesObj = cloneDeep(dynamicSeriesTemplate);
       tmpNameIterator += 1;
       if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
-        tmpSeriesObj.name = data.fields[theProcessedSeries[i]].name || `DynamicSeries ${tmpNameIterator}`;
+        tmpSeriesObj.name = fieldName || `DynamicSeries ${tmpNameIterator}`;
       } else {
         tmpSeriesObj.name += ` ${tmpNameIterator}`;
       }
@@ -98,7 +100,7 @@ const _buildCustomOption = function (data, config) {
     }
     
     if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
-      tmpSeriesObj.name = data.fields[theProcessedSeries[i]].name || `Series ${tmpNameIterator}`;
+      tmpSeriesObj.name = fieldName || `Series ${tmpNameIterator}`;
     }
 
     for (let j = 0; j < data.rows.length; j++) {
