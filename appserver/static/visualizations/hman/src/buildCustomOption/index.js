@@ -84,6 +84,8 @@ const _buildCustomOption = function (data, config) {
     if(typeof staticSeriesTemplates[i] !== 'undefined') {
       // Clone the staticSeriesTemplates[i] object by value using cloneDeep() into tmpSeriesObj
       tmpSeriesObj = cloneDeep(staticSeriesTemplates[i]);
+    } else if (!echartHasDynamicSeries) {
+      throw `Wrong configuration - seriesDataIndexBinding defines ${theProcessedSeries.length} series but option.series has only ${staticSeriesTemplates.length}. Add series to the option or use a wildcard (e.g. 2*).`;
     } else {
       // Clone the dynamicSeriesTemplate object by value using cloneDeep() into tmpSeriesObj
       tmpSeriesObj = cloneDeep(dynamicSeriesTemplate);
