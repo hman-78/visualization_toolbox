@@ -35,6 +35,7 @@ const _updateView = function (data, config) {
   let currentChart = this.scopedVariables['_renderedEchartsArray'].find(o => o.id === echartProps.echartUniqueId);
   if(typeof currentChart !== 'undefined') {
     currentChart.instanceByDom.dispose()
+    if (currentChart.mqttClient) { currentChart.mqttClient.end(true); }
     this.scopedVariables['_renderedEchartsArray'] = this.scopedVariables['_renderedEchartsArray'].filter(o => o.id !== echartProps.echartUniqueId);
   }
   const dedicatedMqttClient = this._initializeMQTT(echartProps);
