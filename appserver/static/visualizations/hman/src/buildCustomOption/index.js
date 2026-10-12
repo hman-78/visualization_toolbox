@@ -200,8 +200,8 @@ const _buildCustomOption = function (data, config) {
     // adding an error bar chart to the list of series 
 
     // parsing the rows indices of the error data
-    var errorDataIndexSplit = configErrorDataIndexBinding.split(",");
-    if (errorDataIndexSplit.length != 2) {
+    var errorDataIndexSplit = configErrorDataIndexBinding.split(",").map(index => parseInt(index, 10));
+    if (errorDataIndexSplit.length != 2 || errorDataIndexSplit.some(isNaN)) {
       throw "errorDataIndexBinding should configure exacly two numbers, for example 5,7";
     }
 
