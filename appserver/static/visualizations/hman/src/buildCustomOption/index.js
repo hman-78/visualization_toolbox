@@ -55,6 +55,8 @@ const _buildCustomOption = function (data, config) {
   if (option == null) {
     return null;
   }
+  // echarts accepts a single series object; normalize to an array
+  option.series = [].concat(option.series || []);
 
   // array with list of comma separated values provided in configXAxisDataIndexBinding
   let xAxisDataIndex = [];
@@ -67,6 +69,9 @@ const _buildCustomOption = function (data, config) {
   const staticSeriesTemplates = cloneDeep(option.series);
 
   if(echartHasDynamicSeries) {
+    if (option.series.length === 0) {
+      throw "Wrong configuration - a wildcard in seriesDataIndexBinding requires a series template in option.series!";
+    }
     // Get the last series and remove it from the original option.series array
     dynamicSeriesTemplate = option.series.pop();
 
@@ -143,7 +148,9 @@ const _buildCustomOption = function (data, config) {
   // the mapping logic 
   var xAxisObjects = [];
   if (xAxisDataIndex.length == 1) {
-    if (!Array.isArray(option.xAxis)) {
+    if (option.xAxis == null) {
+      throw "Wrong configuration of 'xAxisDataIndexBinding: '" + configXAxisDataIndexBinding + ". The option has no xAxis to bind the data to.";
+    } else if (!Array.isArray(option.xAxis)) {
       // option.xAxis is is not an array, so a single instance is provided in the config
       xAxisObjects[0] = option.xAxis;
     } else {
@@ -258,10 +265,7 @@ const _buildCustomOption = function (data, config) {
     var optionErrorSeriesIndex = option.series.length - 1;
 
     // adding y-axis to map confidence from 0 to 1 over heigth of chart
-    let checkYAxisProperty = Object.prototype.hasOwnProperty.call(option, "yAxis");
-    if (!checkYAxisProperty) {
-      option["yAxis"] = [];
-    }
+    option.yAxis = [].concat(option.yAxis || []);
     // adding yAxis confidence standard object
     var yAxisObj = {
       type: "value",
