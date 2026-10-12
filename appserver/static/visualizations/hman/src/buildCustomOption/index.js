@@ -50,8 +50,7 @@ const _buildCustomOption = function (data, config) {
   // Read echart properties
   const echartProps = this._getEchartProps(config);
 
-  let option = {};
-  option = this._parseOption(configOption);
+  let option = this._parseOption(configOption);
   if (option == null) {
     return null;
   }
@@ -59,8 +58,7 @@ const _buildCustomOption = function (data, config) {
   option.series = [].concat(option.series || []);
 
   // array with list of comma separated values provided in configXAxisDataIndexBinding
-  let xAxisDataIndex = [];
-  xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
+  let xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
   const maxIndexNrForDataFields = data.fields.length - 1;
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
   // Number('') is 0, so an empty setting must stay NaN (= not set)
@@ -141,7 +139,7 @@ const _buildCustomOption = function (data, config) {
     if(echartHasDynamicSeries) {
       option.series.push(tmpSeriesObj);
     } else {
-      option.series[i] = cloneDeep(tmpSeriesObj);
+      option.series[i] = tmpSeriesObj;
     }
   }
 
@@ -189,11 +187,7 @@ const _buildCustomOption = function (data, config) {
     }
   }
   if (configXAxisDataIndexBinding != null) {
-    if (Object.prototype.hasOwnProperty.call(option, "xAxis")) {
-      option['xAxis'] = xAxisObjects;
-    } else {
-      option.xAxis = xAxisObjects;
-    }
+    option.xAxis = xAxisObjects;
   }
 
   if (configErrorDataIndexBinding != null) {
