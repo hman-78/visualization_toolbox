@@ -50,34 +50,43 @@ const _buildCustomOption = function (data, config) {
   // Read echart properties
   const echartProps = this._getEchartProps(config);
 
-  let option = {};
-  option = this._parseOption(configOption);
+  let option = this._parseOption(configOption);
   if (option == null) {
     return null;
   }
+  // echarts accepts a single series object; normalize to an array
+  option.series = [].concat(option.series || []);
 
   // array with list of comma separated values provided in configXAxisDataIndexBinding
-  let xAxisDataIndex = [];
-  xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
+  let xAxisDataIndex = this._parseIndex(configXAxisDataIndexBinding);
   const maxIndexNrForDataFields = data.fields.length - 1;
   const theProcessedSeries = this._parseDynamicIndexInput(configSeriesDataIndexBinding, maxIndexNrForDataFields);
-  echartProps.seriesColorDataIndexBinding = Number(configSeriesColorDataIndexBinding);
+  // Number('') is 0, so an empty setting must stay NaN (= not set)
+  echartProps.seriesColorDataIndexBinding = configSeriesColorDataIndexBinding ? Number(configSeriesColorDataIndexBinding) : NaN;
 
   // Clone the option.series object by value using cloneDeep() into staticSeriesTemplates
   const staticSeriesTemplates = cloneDeep(option.series);
 
   if(echartHasDynamicSeries) {
+    if (option.series.length === 0) {
+      throw "Wrong configuration - a wildcard in seriesDataIndexBinding requires a series template in option.series!";
+    }
     // Get the last series and remove it from the original option.series array
     dynamicSeriesTemplate = option.series.pop();
 
     // Reinitialize option.series
     option.series = [];
+  } else if (theProcessedSeries.length > staticSeriesTemplates.length) {
+    // the extra series have no template and are not rendered by echarts
+    this._setSplunkMessages("warning", `seriesDataIndexBinding defines ${theProcessedSeries.length} series but option.series has only ${staticSeriesTemplates.length}. Add series to the option or use a wildcard (e.g. 2*).`);
   }
-  
+
 
   let tmpNameIterator = 0;
   for (let i = 0; i < theProcessedSeries.length; i++) {
     let tmpSeriesObj = {};
+    // tuple bindings map to several fields, so only a single index has a field name
+    const fieldName = Number.isInteger(theProcessedSeries[i]) && data.fields[theProcessedSeries[i]] ? data.fields[theProcessedSeries[i]].name : undefined;
 
     if(typeof staticSeriesTemplates[i] !== 'undefined') {
       // Clone the staticSeriesTemplates[i] object by value using cloneDeep() into tmpSeriesObj
@@ -87,7 +96,7 @@ const _buildCustomOption = function (data, config) {
       tmpSeriesObj = cloneDeep(dynamicSeriesTemplate);
       tmpNameIterator += 1;
       if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
-        tmpSeriesObj.name = data.fields[theProcessedSeries[i]].name || `DynamicSeries ${tmpNameIterator}`;
+        tmpSeriesObj.name = fieldName || `DynamicSeries ${tmpNameIterator}`;
       } else {
         tmpSeriesObj.name += ` ${tmpNameIterator}`;
       }
@@ -98,7 +107,7 @@ const _buildCustomOption = function (data, config) {
     }
     
     if(typeof tmpSeriesObj.name === 'undefined' || tmpSeriesObj.name === '') {
-      tmpSeriesObj.name = data.fields[theProcessedSeries[i]].name || `Series ${tmpNameIterator}`;
+      tmpSeriesObj.name = fieldName || `Series ${tmpNameIterator}`;
     }
 
     for (let j = 0; j < data.rows.length; j++) {
@@ -130,7 +139,7 @@ const _buildCustomOption = function (data, config) {
     if(echartHasDynamicSeries) {
       option.series.push(tmpSeriesObj);
     } else {
-      option.series[i] = cloneDeep(tmpSeriesObj);
+      option.series[i] = tmpSeriesObj;
     }
   }
 
@@ -139,13 +148,15 @@ const _buildCustomOption = function (data, config) {
   // the mapping logic 
   var xAxisObjects = [];
   if (xAxisDataIndex.length == 1) {
-    if (!Array.isArray(option.xAxis)) {
+    if (option.xAxis == null) {
+      throw "Wrong configuration of 'xAxisDataIndexBinding: '" + configXAxisDataIndexBinding + ". The option has no xAxis to bind the data to.";
+    } else if (!Array.isArray(option.xAxis)) {
       // option.xAxis is is not an array, so a single instance is provided in the config
       xAxisObjects[0] = option.xAxis;
     } else {
       // it is an array but as only one xAxisDataIndex is provided the array should be of size 1
       if (option.xAxis.length != 1) {
-        throw "Wrong configuration of 'xAxisDataIndexBinding: '" + configXAxisDataIndexBinding + ". You provided one value in 'xAxisDataIndexBinding'. Expecting also one xAxis configuration but found " + option.xAxis.length != 1;
+        throw "Wrong configuration of 'xAxisDataIndexBinding: '" + configXAxisDataIndexBinding + ". You provided one value in 'xAxisDataIndexBinding'. Expecting also one xAxis configuration but found " + option.xAxis.length;
       } else {
         // it is of size 1, so xAxisObjects can be copied
         xAxisObjects = option.xAxis;
@@ -176,19 +187,15 @@ const _buildCustomOption = function (data, config) {
     }
   }
   if (configXAxisDataIndexBinding != null) {
-    if (Object.prototype.hasOwnProperty.call(option, "xAxis")) {
-      option['xAxis'] = xAxisObjects;
-    } else {
-      option.xAxis = xAxisObjects;
-    }
+    option.xAxis = xAxisObjects;
   }
 
   if (configErrorDataIndexBinding != null) {
     // adding an error bar chart to the list of series 
 
     // parsing the rows indices of the error data
-    var errorDataIndexSplit = configErrorDataIndexBinding.split(",");
-    if (errorDataIndexSplit.length != 2) {
+    var errorDataIndexSplit = configErrorDataIndexBinding.split(",").map(index => parseInt(index, 10));
+    if (errorDataIndexSplit.length != 2 || errorDataIndexSplit.some(isNaN)) {
       throw "errorDataIndexBinding should configure exacly two numbers, for example 5,7";
     }
 
@@ -196,9 +203,7 @@ const _buildCustomOption = function (data, config) {
       type: 'custom',
       name: 'Confidence',
       itemStyle: {
-        normal: {
-          borderWidth: 1.5
-        }
+        borderWidth: 1.5
       },
       renderItem: function (params, api) {
         var xValue = api.value(0);
@@ -254,10 +259,7 @@ const _buildCustomOption = function (data, config) {
     var optionErrorSeriesIndex = option.series.length - 1;
 
     // adding y-axis to map confidence from 0 to 1 over heigth of chart
-    let checkYAxisProperty = Object.prototype.hasOwnProperty.call(option, "yAxis");
-    if (!checkYAxisProperty) {
-      option["yAxis"] = [];
-    }
+    option.yAxis = [].concat(option.yAxis || []);
     // adding yAxis confidence standard object
     var yAxisObj = {
       type: "value",
@@ -279,8 +281,9 @@ const _buildCustomOption = function (data, config) {
 
     // determine color of errorSeries to color yAxis
     var colorString = "";
-    if (Object.prototype.hasOwnProperty.call(option, "color") && option.color.length >= optionErrorSeriesIndex) {
-      colorString = option.color[optionErrorSeriesIndex];
+    // echarts cycles through the palette, so the series color is at index % palette length
+    if (Array.isArray(option.color) && option.color.length > 0) {
+      colorString = option.color[optionErrorSeriesIndex % option.color.length];
       yAxisObj.axisLine.lineStyle.color = colorString;
       yAxisObj.axisLabel.color = colorString;
     }
