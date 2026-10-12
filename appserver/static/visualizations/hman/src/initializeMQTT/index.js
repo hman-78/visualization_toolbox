@@ -4,7 +4,6 @@ const MQTT_MAX_FAILED_ATTEMPTS = 5;
 
 const _initializeMQTT = function (echartProps) {
   let clientId, tmpMqttOptions, tmpMqttTopic, tmpMqttClient;
-  let useMQTT = false;
   let configMqttUser = echartProps.mqttUser;
   let configMqttPassword = echartProps.mqttPassword;
   let configMqttTopic = echartProps.mqttTopic;
@@ -13,14 +12,8 @@ const _initializeMQTT = function (echartProps) {
   let configMqttPanelProtocol = echartProps.configMqttPanelProtocol || 'wss';
   let configMqttPanelPath = echartProps.configMqttPanelPath || '/mqtt';
   let configMqttPanelPort = parseInt(echartProps.configMqttPanelPort) || 8443;
-  try {
-    if (configMqttUser != null && configMqttPassword != null && configMqttTopic != null) {
-      useMQTT = true;
-    }
-  } catch (e) {
-    console.log('Error _initializeMQTT', e);
-    useMQTT = false;
-  }
+  // hostname is optional: in the browser mqtt.js falls back to the dashboard's host
+  const useMQTT = [configMqttUser, configMqttPassword, configMqttTopic].every(value => value != null && value !== '');
 
   if (useMQTT) {
     clientId = Math.random().toString(10) + Date.now();
