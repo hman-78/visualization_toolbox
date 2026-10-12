@@ -18,10 +18,10 @@ jobs:
       slim_package_name: ${{ steps.package_app.outputs.slim_package_name }}
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5
 
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4.4.0
+      uses: actions/setup-node@v5
       with:
         node-version: ${{ matrix.node-version }}
     # Write app version and workflow id to variables for later usage
@@ -71,7 +71,7 @@ jobs:
       run: |
           sed -i -e "s/replacebuild/${{ steps.version_information.outputs.build_number }}/g" default/app.conf  
     - name: install python 3.9
-      uses: actions/setup-python@v5.6.0
+      uses: actions/setup-python@v6
       with: 
        python-version: '3.9'     
     - name: install packaging toolkit CLI
@@ -97,7 +97,7 @@ jobs:
           sha256sum $TARNAME_NO_WHITESPACE > $TARNAME_NO_WHITESPACE.sha256
     - name: Upload artifacts - Packagingtoolkit results
       id: upload_app
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
        name:  ${{ steps.version_information.outputs.artifact_name_prefix }}_node_v${{ matrix.node-version }}
        path: /home/runner/work/visualization_toolbox/staging_AppPackaging-results
@@ -115,7 +115,7 @@ jobs:
           --output-file "${{ steps.version_information.outputs.artifact_name_prefix }}_AppInspect-results.json"
     - name: Deploy to GitHub Releases for Stable Version 🚀
       id: create_release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         tag_name: "v${{ steps.version_information.outputs.app_version }}"
         name: "v${{ steps.version_information.outputs.app_version }}"
