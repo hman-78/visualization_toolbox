@@ -147,7 +147,7 @@ const _buildCustomOption = function (data, config) {
     } else {
       // it is an array but as only one xAxisDataIndex is provided the array should be of size 1
       if (option.xAxis.length != 1) {
-        throw "Wrong configuration of 'xAxisDataIndexBinding: '" + configXAxisDataIndexBinding + ". You provided one value in 'xAxisDataIndexBinding'. Expecting also one xAxis configuration but found " + option.xAxis.length != 1;
+        throw "Wrong configuration of 'xAxisDataIndexBinding: '" + configXAxisDataIndexBinding + ". You provided one value in 'xAxisDataIndexBinding'. Expecting also one xAxis configuration but found " + option.xAxis.length;
       } else {
         // it is of size 1, so xAxisObjects can be copied
         xAxisObjects = option.xAxis;
