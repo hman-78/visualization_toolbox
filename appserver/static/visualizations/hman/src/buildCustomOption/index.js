@@ -209,9 +209,7 @@ const _buildCustomOption = function (data, config) {
       type: 'custom',
       name: 'Confidence',
       itemStyle: {
-        normal: {
-          borderWidth: 1.5
-        }
+        borderWidth: 1.5
       },
       renderItem: function (params, api) {
         var xValue = api.value(0);
