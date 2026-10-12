@@ -85,6 +85,7 @@ const _updateView = function (data, config) {
   // and echart is shown to the user.
   if (option == null) {
     tmpChart['instanceByDom'].dispose();
+    if (tmpChart['mqttClient']) { tmpChart['mqttClient'].end(true); }
     return;
   }
   tmpChart['visualizationType'] = echartProps.dataType.toLowerCase();
