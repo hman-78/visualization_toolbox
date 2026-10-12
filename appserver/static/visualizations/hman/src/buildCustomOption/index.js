@@ -76,8 +76,11 @@ const _buildCustomOption = function (data, config) {
 
     // Reinitialize option.series
     option.series = [];
+  } else if (theProcessedSeries.length > staticSeriesTemplates.length) {
+    // the extra series have no template and are not rendered by echarts
+    this._setSplunkMessages("warning", `seriesDataIndexBinding defines ${theProcessedSeries.length} series but option.series has only ${staticSeriesTemplates.length}. Add series to the option or use a wildcard (e.g. 2*).`);
   }
-  
+
 
   let tmpNameIterator = 0;
   for (let i = 0; i < theProcessedSeries.length; i++) {
@@ -88,8 +91,6 @@ const _buildCustomOption = function (data, config) {
     if(typeof staticSeriesTemplates[i] !== 'undefined') {
       // Clone the staticSeriesTemplates[i] object by value using cloneDeep() into tmpSeriesObj
       tmpSeriesObj = cloneDeep(staticSeriesTemplates[i]);
-    } else if (!echartHasDynamicSeries) {
-      throw `Wrong configuration - seriesDataIndexBinding defines ${theProcessedSeries.length} series but option.series has only ${staticSeriesTemplates.length}. Add series to the option or use a wildcard (e.g. 2*).`;
     } else {
       // Clone the dynamicSeriesTemplate object by value using cloneDeep() into tmpSeriesObj
       tmpSeriesObj = cloneDeep(dynamicSeriesTemplate);
