@@ -23,6 +23,30 @@
 
         <hr />
 
+        <h1>Timeline option names</h1>
+        <p>
+          All Timeline settings support names with a dot.
+          The older names with an underscore still work.
+          If both names are set for a setting, the name with a dot takes priority.
+        </p>
+        <table class="mytableclass">
+          <tr><td><b>New name</b></td><td><b>Older name</b></td></tr>
+          <tr><td><code>timeline.useSplunkCategoricalColors</code></td><td><code>timeline_useSplunkCategoricalColors</code></td></tr>
+          <tr><td><code>timeline.splitByHour</code></td><td><code>timeline_splitByHour</code></td></tr>
+          <tr><td><code>timeline.bandHeight</code></td><td><code>timeline_bandHeight</code></td></tr>
+          <tr><td><code>timeline.bandGap</code></td><td><code>timeline_bandGap</code></td></tr>
+        </table>
+        <p>
+          Add <code>visualization_toolbox.hman.</code> before each name in a dashboard option.
+          For example:
+        </p>
+<pre><code><![CDATA[<option name="visualization_toolbox.hman.timeline.useSplunkCategoricalColors">true</option>
+<option name="visualization_toolbox.hman.timeline.splitByHour">true</option>
+<option name="visualization_toolbox.hman.timeline.bandHeight">5</option>
+<option name="visualization_toolbox.hman.timeline.bandGap">5</option>]]></code></pre>
+
+        <hr />
+
         <h1>Required data format</h1>
         <p>
           The search must return these columns in order:
@@ -33,7 +57,7 @@
           <tr><td>1</td><td><code>end_time</code></td><td>Event end — Unix timestamp in <b>seconds</b></td></tr>
           <tr><td>2</td><td><code>internal_name</code></td><td>Y-axis row label (e.g. machine name)</td></tr>
           <tr><td>3</td><td><code>category</code></td><td>Legend/colour group (e.g. machine state)</td></tr>
-          <tr><td>4</td><td><code>fill_color</code></td><td><i>Optional</i> — hex/rgb colour; omit when using <code>timeline_useSplunkCategoricalColors=true</code></td></tr>
+          <tr><td>4</td><td><code>fill_color</code></td><td><i>Optional</i> — hex/rgb colour; when the column is missing or empty, colours come from the Splunk palette</td></tr>
         </table>
         <p>
           Timestamps must be <b>Unix seconds</b> (not milliseconds). Splunk functions
@@ -43,24 +67,200 @@
 
         <hr />
 
-        <h1>Colour assignment</h1>
+        <h1>Splunk categorical colors</h1>
+        <p>
+          A palette is a list of colors. Categorical colors give each group a color from that list.
+          In a Timeline chart, the fourth search column defines the group.
+          In this example, that column is <code>state</code>.
+          All <b>Running</b> events share one palette color, even on different machines.
+        </p>
+        <p>
+          Use <code>timeline.useSplunkCategoricalColors</code> to choose how colors are set.
+          This setting applies to <code>dataType=Timeline</code>, including <code>splitByHour</code> mode.
+        </p>
         <table class="mytableclass">
           <tr>
-            <td><b>Option</b></td>
-            <td><b>Behaviour</b></td>
-            <td><b>Columns required</b></td>
+            <td><b>Setting</b></td>
+            <td><b>What it does</b></td>
+            <td><b>Search columns</b></td>
           </tr>
           <tr>
-            <td><code>timeline_useSplunkCategoricalColors=true</code></td>
-            <td>Auto-assigns one Splunk palette colour per unique <code>category</code> value</td>
-            <td>4 (no fill_color column)</td>
+            <td><code>true</code></td>
+            <td>Uses one palette color per category. Ignores any colors in <code>fill_color</code>.</td>
+            <td>The first four columns are required. Extra columns are allowed.</td>
           </tr>
           <tr>
-            <td><code>timeline_useSplunkCategoricalColors=false</code> (default)</td>
-            <td>Reads colour from the 5th column. Falls back to palette for rows with an empty/invalid colour</td>
-            <td>5 (fill_color required)</td>
+            <td><code>false</code> (default)</td>
+            <td>Uses colors from the fifth column. Uses palette colors when values are empty.</td>
+            <td>Put <code>fill_color</code> in the fifth column. With only four columns, palette colors are used.</td>
           </tr>
         </table>
+        <p>
+          To use palette colors, add this option inside your <code>&lt;viz&gt;</code> element:
+        </p>
+<pre><code><![CDATA[<option name="visualization_toolbox.hman.timeline.useSplunkCategoricalColors">true</option>]]></code></pre>
+        <p>
+          You can then return just the four required columns:
+        </p>
+<pre><code><![CDATA[| table start_time end_time machine state]]></code></pre>
+        <p>
+          Colors follow the order in which categories first appear in the search results.
+          The first category gets the first palette color. The next category gets the next color.
+          Colors repeat after all 60 palette colors have been used.
+        </p>
+        <p>
+          A category's color can change when the result order or the set of categories changes.
+          The palette does not assign a fixed meaning to a color.
+          For example, <b>Error</b> is not always red.
+          To keep a fixed color, set the option to <code>false</code> and supply <code>fill_color</code>.
+        </p>
+        <p>
+          Column order matters. With <code>false</code>, the fifth column is read as a color.
+          If it holds extra data, such as <code>hour_index</code>, set the option to <code>true</code>.
+          The hourly example below uses this setting.
+        </p>
+
+        <hr />
+
+        <h1>Preview all 60 colors</h1>
+        <p>
+          Light and dark themes use the same palette colors.
+          The background changes how they look. Compare both previews below.
+          The numbers show the palette order. Each color has its hex code below it.
+        </p>
+        <!-- Keep both previews in the order used by sharedFunctions.generateColorPalette. -->
+        <div class="tutorial-palette-previews">
+          <div class="tutorial-palette-preview tutorial-palette-preview--light">
+            <h2>Light theme</h2>
+            <ol class="tutorial-palette-grid" aria-label="Splunk categorical colors on a light background">
+              <li><span class="tutorial-palette-swatch" style="background-color: #006d9c;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>01</span> <code>#006d9c</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #4fa484;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>02</span> <code>#4fa484</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #ec9960;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>03</span> <code>#ec9960</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #af575a;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>04</span> <code>#af575a</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b6c75a;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>05</span> <code>#b6c75a</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #62b3b2;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>06</span> <code>#62b3b2</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #294e70;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>07</span> <code>#294e70</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #738795;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>08</span> <code>#738795</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #edd051;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>09</span> <code>#edd051</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #bd9872;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>10</span> <code>#bd9872</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #5a4575;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>11</span> <code>#5a4575</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #7ea77b;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>12</span> <code>#7ea77b</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #708794;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>13</span> <code>#708794</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #d7c6b7;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>14</span> <code>#d7c6b7</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #339bb2;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>15</span> <code>#339bb2</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #55672d;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>16</span> <code>#55672d</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #e6e1ae;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>17</span> <code>#e6e1ae</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #96907f;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>18</span> <code>#96907f</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #87bc65;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>19</span> <code>#87bc65</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #cf7e60;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>20</span> <code>#cf7e60</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #7b5547;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>21</span> <code>#7b5547</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #77d6d8;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>22</span> <code>#77d6d8</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #4a7f2c;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>23</span> <code>#4a7f2c</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #f589ad;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>24</span> <code>#f589ad</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #6a2c5d;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>25</span> <code>#6a2c5d</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #aaabae;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>26</span> <code>#aaabae</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #9a7438;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>27</span> <code>#9a7438</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #a4d563;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>28</span> <code>#a4d563</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #7672a4;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>29</span> <code>#7672a4</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #184b81;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>30</span> <code>#184b81</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #7fb6ce;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>31</span> <code>#7fb6ce</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #a7d2c2;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>32</span> <code>#a7d2c2</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #f6ccb0;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>33</span> <code>#f6ccb0</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #d7abad;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>34</span> <code>#d7abad</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #dbe3ad;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>35</span> <code>#dbe3ad</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b1d9d9;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>36</span> <code>#b1d9d9</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #94a7b8;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>37</span> <code>#94a7b8</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b9c3ca;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>38</span> <code>#b9c3ca</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #f6e8a8;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>39</span> <code>#f6e8a8</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #deccb9;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>40</span> <code>#deccb9</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b7acca;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>41</span> <code>#b7acca</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b2cab0;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>42</span> <code>#b2cab0</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #a5b2bf;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>43</span> <code>#a5b2bf</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #e9ddd4;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>44</span> <code>#e9ddd4</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #66c3d0;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>45</span> <code>#66c3d0</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #aab396;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>46</span> <code>#aab396</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #f3f0d7;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>47</span> <code>#f3f0d7</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #c1bcb3;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>48</span> <code>#c1bcb3</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b6d7a3;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>49</span> <code>#b6d7a3</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #e1b2a1;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>50</span> <code>#e1b2a1</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #dec4ba;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>51</span> <code>#dec4ba</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #abe6e8;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>52</span> <code>#abe6e8</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #91b282;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>53</span> <code>#91b282</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #f8b7ce;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>54</span> <code>#f8b7ce</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #cba3c2;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>55</span> <code>#cba3c2</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #cccdce;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>56</span> <code>#cccdce</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #c3ab89;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>57</span> <code>#c3ab89</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #c7e6a3;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>58</span> <code>#c7e6a3</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #ada9c8;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>59</span> <code>#ada9c8</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #a4bbe0;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>60</span> <code>#a4bbe0</code></span></li>
+            </ol>
+          </div>
+          <div class="tutorial-palette-preview tutorial-palette-preview--dark">
+            <h2>Dark theme</h2>
+            <ol class="tutorial-palette-grid" aria-label="Splunk categorical colors on a dark background">
+              <li><span class="tutorial-palette-swatch" style="background-color: #006d9c;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>01</span> <code>#006d9c</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #4fa484;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>02</span> <code>#4fa484</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #ec9960;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>03</span> <code>#ec9960</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #af575a;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>04</span> <code>#af575a</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b6c75a;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>05</span> <code>#b6c75a</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #62b3b2;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>06</span> <code>#62b3b2</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #294e70;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>07</span> <code>#294e70</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #738795;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>08</span> <code>#738795</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #edd051;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>09</span> <code>#edd051</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #bd9872;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>10</span> <code>#bd9872</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #5a4575;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>11</span> <code>#5a4575</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #7ea77b;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>12</span> <code>#7ea77b</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #708794;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>13</span> <code>#708794</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #d7c6b7;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>14</span> <code>#d7c6b7</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #339bb2;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>15</span> <code>#339bb2</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #55672d;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>16</span> <code>#55672d</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #e6e1ae;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>17</span> <code>#e6e1ae</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #96907f;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>18</span> <code>#96907f</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #87bc65;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>19</span> <code>#87bc65</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #cf7e60;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>20</span> <code>#cf7e60</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #7b5547;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>21</span> <code>#7b5547</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #77d6d8;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>22</span> <code>#77d6d8</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #4a7f2c;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>23</span> <code>#4a7f2c</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #f589ad;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>24</span> <code>#f589ad</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #6a2c5d;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>25</span> <code>#6a2c5d</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #aaabae;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>26</span> <code>#aaabae</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #9a7438;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>27</span> <code>#9a7438</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #a4d563;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>28</span> <code>#a4d563</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #7672a4;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>29</span> <code>#7672a4</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #184b81;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>30</span> <code>#184b81</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #7fb6ce;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>31</span> <code>#7fb6ce</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #a7d2c2;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>32</span> <code>#a7d2c2</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #f6ccb0;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>33</span> <code>#f6ccb0</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #d7abad;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>34</span> <code>#d7abad</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #dbe3ad;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>35</span> <code>#dbe3ad</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b1d9d9;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>36</span> <code>#b1d9d9</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #94a7b8;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>37</span> <code>#94a7b8</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b9c3ca;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>38</span> <code>#b9c3ca</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #f6e8a8;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>39</span> <code>#f6e8a8</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #deccb9;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>40</span> <code>#deccb9</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b7acca;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>41</span> <code>#b7acca</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b2cab0;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>42</span> <code>#b2cab0</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #a5b2bf;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>43</span> <code>#a5b2bf</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #e9ddd4;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>44</span> <code>#e9ddd4</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #66c3d0;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>45</span> <code>#66c3d0</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #aab396;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>46</span> <code>#aab396</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #f3f0d7;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>47</span> <code>#f3f0d7</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #c1bcb3;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>48</span> <code>#c1bcb3</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #b6d7a3;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>49</span> <code>#b6d7a3</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #e1b2a1;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>50</span> <code>#e1b2a1</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #dec4ba;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>51</span> <code>#dec4ba</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #abe6e8;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>52</span> <code>#abe6e8</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #91b282;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>53</span> <code>#91b282</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #f8b7ce;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>54</span> <code>#f8b7ce</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #cba3c2;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>55</span> <code>#cba3c2</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #cccdce;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>56</span> <code>#cccdce</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #c3ab89;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>57</span> <code>#c3ab89</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #c7e6a3;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>58</span> <code>#c7e6a3</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #ada9c8;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>59</span> <code>#ada9c8</code></span></li>
+              <li><span class="tutorial-palette-swatch" style="background-color: #a4bbe0;" aria-hidden="true">&#160;</span><span class="tutorial-palette-label"><span>60</span> <code>#a4bbe0</code></span></li>
+            </ol>
+          </div>
+        </div>
 
         <hr />
 
@@ -123,9 +323,9 @@
           <latest>$time_range.latest$</latest>
         </search>
         <option name="visualization_toolbox.hman.dataType">Timeline</option>
-        <option name="visualization_toolbox.hman.timeline_useSplunkCategoricalColors">true</option>
-        <option name="visualization_toolbox.hman.timeline_bandHeight">36</option>
-        <option name="visualization_toolbox.hman.timeline_bandGap">6</option>
+        <option name="visualization_toolbox.hman.timeline.useSplunkCategoricalColors">true</option>
+        <option name="visualization_toolbox.hman.timeline.bandHeight">36</option>
+        <option name="visualization_toolbox.hman.timeline.bandGap">6</option>
         <option name="visualization_toolbox.hman.option">
 option = {
   title: {
@@ -176,9 +376,9 @@ option = {
           <latest>$time_range.latest$</latest>
         </search>
         <option name="visualization_toolbox.hman.dataType">Timeline</option>
-        <option name="visualization_toolbox.hman.timeline_useSplunkCategoricalColors">true</option>
-        <option name="visualization_toolbox.hman.timeline_bandHeight">36</option>
-        <option name="visualization_toolbox.hman.timeline_bandGap">6</option>
+        <option name="visualization_toolbox.hman.timeline.useSplunkCategoricalColors">true</option>
+        <option name="visualization_toolbox.hman.timeline.bandHeight">36</option>
+        <option name="visualization_toolbox.hman.timeline.bandGap">6</option>
         <option name="visualization_toolbox.hman.option">
 option = {
   title: {
@@ -210,13 +410,12 @@ option = {
 
       <html>
         <hr />
-        <h1>Custom fill colours</h1>
+        <h1>Choose your own colors</h1>
         <p>
-          To control colours precisely, set
-          <code>timeline_useSplunkCategoricalColors=false</code> and provide a
-          <code>fill_color</code> fifth column with a valid hex or rgb value per row.
-          Rows with an empty or invalid colour fall back to the Splunk categorical palette
-          automatically.
+          Set <code>timeline.useSplunkCategoricalColors=false</code>.
+          Add <code>fill_color</code> as the fifth search column.
+          Give each row a valid color, such as <code>#d9534f</code>.
+          Use the same color for every row in a category so the bars match the legend.
         </p>
 <pre><code><![CDATA[| eval fill_color=case(
     state="Running",     "#5cb85c",
@@ -228,14 +427,118 @@ option = {
 | table start_time end_time machine state fill_color]]></code></pre>
 
         <p>
-          And in the viz options:
+          Add this option inside your <code>&lt;viz&gt;</code> element:
         </p>
-<pre><code><![CDATA[<option name="visualization_toolbox.hman.timeline_useSplunkCategoricalColors">false</option>]]></code></pre>
+<pre><code><![CDATA[<option name="visualization_toolbox.hman.timeline.useSplunkCategoricalColors">false</option>]]></code></pre>
+
+        <hr />
+        <h1>What happens when a color is missing?</h1>
+        <p>
+          These rules apply when the setting is <code>false</code> or is left out.
+          All rows in a Splunk result table have the same columns.
+          Some rows may have an empty <code>fill_color</code> value.
+          If one row has no color, the whole category gets a palette color.
+        </p>
+        <table class="mytableclass">
+          <tr><td><b>Search results</b></td><td><b>Color used</b></td></tr>
+          <tr>
+            <td>Only the four required columns</td>
+            <td>One palette color per category.</td>
+          </tr>
+          <tr>
+            <td>Every row in a category has a color</td>
+            <td>Each row uses its supplied color. The legend uses the first row's color.</td>
+          </tr>
+          <tr>
+            <td>At least one row in a category has an empty color</td>
+            <td>All rows in that category use one palette color. Their supplied colors are ignored.</td>
+          </tr>
+        </table>
+        <p>
+          A mistyped color is not treated as an empty value.
+          For example, <code>#5cb85</code> is invalid, but it is still passed to the chart.
+          Check your color codes if a bar does not look right.
+        </p>
+        <p>
+          The chart below uses the default setting, <code>false</code>.
+          <b>Error</b> has a supplied color, so it stays red.
+          Only one of the three <b>Running</b> rows has a supplied color.
+          All three Running rows therefore use one palette color.
+          <b>Maintenance</b> and <b>Idle</b> also use palette colors.
+          Hover over a bar to see its color code.
+        </p>
+      </html>
+
+      <viz type="visualization_toolbox.hman">
+        <search>
+          <query>| makeresults
+| eval b=relative_time(now(), "-8h@h")
+| eval segment=split("CNC-01,Running,0,7200;CNC-01,Maintenance,7200,9000;CNC-01,Running,9000,28800;CNC-02,Running,0,10800;CNC-02,Error,10800,14400;CNC-02,Idle,14400,28800", ";")
+| mvexpand segment
+| eval parts=split(segment, ",")
+| eval machine=mvindex(parts,0), state=mvindex(parts,1), start_time=b+tonumber(mvindex(parts,2)), end_time=b+tonumber(mvindex(parts,3))
+| eval fill_color=case(state="Error", "#d9534f", state="Running" AND machine="CNC-02", "#5cb85c")
+| table start_time end_time machine state fill_color</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="visualization_toolbox.hman.dataType">Timeline</option>
+        <option name="visualization_toolbox.hman.option">
+option = {
+  tooltip: {
+    trigger: 'item',
+    formatter: function (params) {
+      var d = params.data;
+      return d.value[2] + ' — ' + d.name + ': ' + d.itemStyle.color;
+    }
+  },
+  grid: {
+    left: 130
+  }
+};
+        </option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+
+      <html>
+        <p><b>Full viz source for the chart above</b> (copy into a <code>&lt;panel&gt;</code> of your own dashboard):</p>
+<pre><code><![CDATA[<viz type="visualization_toolbox.hman">
+        <search>
+          <query>| makeresults
+| eval b=relative_time(now(), "-8h@h")
+| eval segment=split("CNC-01,Running,0,7200;CNC-01,Maintenance,7200,9000;CNC-01,Running,9000,28800;CNC-02,Running,0,10800;CNC-02,Error,10800,14400;CNC-02,Idle,14400,28800", ";")
+| mvexpand segment
+| eval parts=split(segment, ",")
+| eval machine=mvindex(parts,0), state=mvindex(parts,1), start_time=b+tonumber(mvindex(parts,2)), end_time=b+tonumber(mvindex(parts,3))
+| eval fill_color=case(state="Error", "#d9534f", state="Running" AND machine="CNC-02", "#5cb85c")
+| table start_time end_time machine state fill_color</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="visualization_toolbox.hman.dataType">Timeline</option>
+        <option name="visualization_toolbox.hman.option">
+option = {
+  tooltip: {
+    trigger: 'item',
+    formatter: function (params) {
+      var d = params.data;
+      return d.value[2] + ' — ' + d.name + ': ' + d.itemStyle.color;
+    }
+  },
+  grid: {
+    left: 130
+  }
+};
+        </option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>]]></code></pre>
 
         <hr />
         <h1>splitByHour mode</h1>
         <p>
-          Setting <code>timeline_splitByHour=true</code> changes the layout: the y-axis becomes
+          Setting <code>timeline.splitByHour=true</code> changes the layout: the y-axis becomes
           hourly time slots and each machine's events are drawn as bars within those slots.
           This lets you see — for each hour of the shift — which machines were active, idle,
           or in maintenance, all on the same chart.
@@ -282,10 +585,10 @@ option = {
           <latest>$time_range.latest$</latest>
         </search>
         <option name="visualization_toolbox.hman.dataType">Timeline</option>
-        <option name="visualization_toolbox.hman.timeline_useSplunkCategoricalColors">true</option>
-        <option name="visualization_toolbox.hman.timeline_splitByHour">true</option>
-        <option name="visualization_toolbox.hman.timeline_bandHeight">32</option>
-        <option name="visualization_toolbox.hman.timeline_bandGap">8</option>
+        <option name="visualization_toolbox.hman.timeline.useSplunkCategoricalColors">true</option>
+        <option name="visualization_toolbox.hman.timeline.splitByHour">true</option>
+        <option name="visualization_toolbox.hman.timeline.bandHeight">32</option>
+        <option name="visualization_toolbox.hman.timeline.bandGap">8</option>
         <option name="visualization_toolbox.hman.option">
 option = {
   title: {
@@ -377,10 +680,10 @@ option = {
           <latest>$time_range.latest$</latest>
         </search>
         <option name="visualization_toolbox.hman.dataType">Timeline</option>
-        <option name="visualization_toolbox.hman.timeline_useSplunkCategoricalColors">true</option>
-        <option name="visualization_toolbox.hman.timeline_splitByHour">true</option>
-        <option name="visualization_toolbox.hman.timeline_bandHeight">32</option>
-        <option name="visualization_toolbox.hman.timeline_bandGap">8</option>
+        <option name="visualization_toolbox.hman.timeline.useSplunkCategoricalColors">true</option>
+        <option name="visualization_toolbox.hman.timeline.splitByHour">true</option>
+        <option name="visualization_toolbox.hman.timeline.bandHeight">32</option>
+        <option name="visualization_toolbox.hman.timeline.bandGap">8</option>
         <option name="visualization_toolbox.hman.option">
 option = {
   title: {
@@ -454,16 +757,22 @@ option = {
         <table class="mytableclass">
           <tr><td><b>Option</b></td><td><b>Default</b></td><td><b>Description</b></td></tr>
           <tr>
-            <td><code>timeline_bandHeight</code></td>
+            <td><code>timeline.bandHeight</code></td>
             <td>32</td>
             <td>Height in pixels of each event rectangle</td>
           </tr>
           <tr>
-            <td><code>timeline_bandGap</code></td>
+            <td><code>timeline.bandGap</code></td>
             <td>8</td>
             <td>Vertical gap in pixels between rows</td>
           </tr>
         </table>
+<pre><code><![CDATA[<option name="visualization_toolbox.hman.timeline.bandGap">5</option>
+<option name="visualization_toolbox.hman.timeline.bandHeight">5</option>]]></code></pre>
+        <p>
+          The older names <code>timeline_bandGap</code> and <code>timeline_bandHeight</code> still work.
+          If both names are set for an option, the name with a dot takes priority.
+        </p>
         <p>
           The chart canvas height is automatically computed as
           <code>(bandHeight + bandGap) * numberOfRows + gridTop + gridBottom</code>.

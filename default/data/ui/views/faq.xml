@@ -68,7 +68,7 @@
           <b>Q: Timeline splitByHour shows no data or a blank chart.</b>
         </p>
         <p>
-          <code>timeline_splitByHour=true</code> requires the dashboard to be a <code>&lt;form&gt;</code> with a time picker whose <b>token is exactly <code>time_range</code></b>. The builder reads the <code>time_range.earliest</code> and <code>time_range.latest</code> tokens from the Splunk token model to build the hourly y-axis — any other token name is ignored and the chart renders blank. The search element must also include <code>&lt;earliest&gt;$time_range.earliest$&lt;/earliest&gt;</code> and <code>&lt;latest&gt;$time_range.latest$&lt;/latest&gt;</code>. Also confirm the time range is 24 hours or less.
+          <code>timeline.splitByHour=true</code> requires the dashboard to be a <code>&lt;form&gt;</code> with a time picker whose <b>token is exactly <code>time_range</code></b>. The builder reads the <code>time_range.earliest</code> and <code>time_range.latest</code> tokens from the Splunk token model to build the hourly y-axis — any other token name is ignored and the chart renders blank. The search element must also include <code>&lt;earliest&gt;$time_range.earliest$&lt;/earliest&gt;</code> and <code>&lt;latest&gt;$time_range.latest$&lt;/latest&gt;</code>. Also confirm the time range is 24 hours or less.
         </p>
 
         <hr />

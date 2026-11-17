@@ -18,3 +18,72 @@
     outline: red;
     display: block;
   }
+
+.tutorial-palette-previews {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.tutorial-palette-preview {
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid #89939e;
+    border-radius: 8px;
+}
+
+.tutorial-palette-preview--light {
+    background-color: #ffffff;
+    color: #171d21;
+}
+
+/* Match the default ECharts 6.1 dark chart background. */
+.tutorial-palette-preview--dark {
+    background-color: #040810;
+    color: #f2f4f7;
+}
+
+.tutorial-palette-preview h2 {
+    margin: 0 0 16px;
+    color: inherit;
+}
+
+.tutorial-palette-preview .tutorial-palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 16px 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tutorial-palette-grid li {
+    margin: 0;
+    padding: 0;
+}
+
+.tutorial-palette-swatch {
+    display: block;
+    height: 36px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.3);
+}
+
+.tutorial-palette-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+.tutorial-palette-label code {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 12px;
+    white-space: nowrap;
+}

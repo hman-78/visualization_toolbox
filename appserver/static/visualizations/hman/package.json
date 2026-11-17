@@ -1,6 +1,6 @@
 {
   "name": "spc",
-  "version": "0.4.9",
+  "version": "0.5.0",
   "description": "ECharts visualization for splunk",
   "main": "visualization.js",
   "scripts": {
@@ -13,7 +13,7 @@
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "9.0.0",
-    "eslint": "^10.0.0",
+    "eslint": "^9.39.5",
     "globals": "15.0.0",
     "terser-webpack-plugin": "^5.3.16",
     "webpack": "^5.94.0",

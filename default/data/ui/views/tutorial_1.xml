@@ -244,4 +244,22 @@ option = {
 </viz>
 </panel>
 </row>
+<row>
+  <panel>
+    <html>
+      <h1>Splunk categorical colors for Timeline charts</h1>
+      <p>
+        Timeline charts can choose colors from a built-in Splunk palette.
+        Set <code>timeline.useSplunkCategoricalColors=true</code> to give each category a color.
+        Events in the same category share that color.
+        Set it to <code>false</code> to use colors from the fifth search column, <code>fill_color</code>.
+      </p>
+      <p>
+        This setting applies to <code>dataType=Timeline</code>.
+        See <a href="/app/visualization_toolbox/tutorial_11">Tutorial 11</a>
+        for examples and the rules for missing colors.
+      </p>
+    </html>
+  </panel>
+</row>
 </dashboard>

@@ -57,6 +57,12 @@ const _sharedFunctions = {
       // Step 2: Map the valid indicesArray to their corresponding elements in the `arrayToProcess` array.
       .map(index => arrayToProcess[index]);
   },
+  // Timestamp plus 3 random base-36 chars: panels of the same dashboard are set up within the
+  // same millisecond, so the timestamp alone is not unique.
+  generateEchartUniqueId: function () {
+    const randomSuffix = Math.random().toString(36).slice(2, 5).padEnd(3, '0');
+    return `${Date.now()}${randomSuffix}`;
+  },
   hasDynamicSeries: function (str) {
     try {
       // Split the string input into segments by commas

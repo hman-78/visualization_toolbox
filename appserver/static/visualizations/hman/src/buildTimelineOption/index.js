@@ -61,7 +61,8 @@ function makeRenderItemForHour(bandHeight, processedData) {
       const rectDrawing = {
         type: 'rect',
         shape: rectShape,
-        style: { fill: api.visual('color') },
+        style: api.style(),
+        emphasis: { style: api.styleEmphasis() },
       };
       rectangleDrawingsArray.push(rectDrawing);
       tmpEventStartPoint = 0; // Start from zero on the next row
@@ -104,7 +105,9 @@ function makeRenderItemLogic(bandHeight) {
         type: 'rect',
         transition: ['shape'],
         shape: rectShape,
-        style: { fill: api.visual('color') },
+        // Preserve itemStyle.opacity, which the legend hover handlers update.
+        style: api.style(),
+        emphasis: { style: api.styleEmphasis() },
       }
     );
   };
@@ -113,14 +116,20 @@ function makeRenderItemLogic(bandHeight) {
 const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart) {
   const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
   const genericTextColor = currentTheme === 'dark' ? '#fff' : '#000';
+  // Use Splunk's light-theme chart text color; inherit ECharts defaults in dark mode.
+  const axisLabelDefaults = currentTheme === 'dark' ? {} : { color: 'rgba(0, 0, 0, 0.65)' };
   // Start creating the annotated computedOption object that will be passed to echart instance
   let computedOption = {};
 
   let configOption = config[this.getPropertyNamespaceInfo().propertyNamespace + "option"];
-  let useSplunkCategoricalColors = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_useSplunkCategoricalColors"] || 'false';
-  let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_splitByHour"];
-  let _private_bandHeight = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_bandHeight"];
-  let _private_bandGap = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_bandGap"];
+  let useSplunkCategoricalColors = (config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline.useSplunkCategoricalColors"]
+    ?? config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_useSplunkCategoricalColors"]) || 'false';
+  let splitByHour = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline.splitByHour"]
+    ?? config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_splitByHour"];
+  let _private_bandHeight = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline.bandHeight"]
+    ?? config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_bandHeight"];
+  let _private_bandGap = config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline.bandGap"]
+    ?? config[this.getPropertyNamespaceInfo().propertyNamespace + "timeline_bandGap"];
   if (typeof splitByHour !== 'undefined' && splitByHour === 'true') {
     splitByHour = true;
   } else {
@@ -138,6 +147,11 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
   let originalDataHasBeenCopied = false;
   let nrOfDataFieldsToBeCheckedFor = 4; // Minimum nr of fields required for this visualization to work in case the user is choosing to use splunk categorical colors
   let configColorDataIndexBinding;
+
+  // Without a fill_color column there are no colors to read, so fall back to the splunk categorical colors
+  if (data.fields.length < 5) {
+    useSplunkCategoricalColors = 'true';
+  }
 
   if (useSplunkCategoricalColors.toLowerCase() !== 'true') {
     nrOfDataFieldsToBeCheckedFor = 5; // Minimum nr of fields required for this visualization to work in case the user is choosing to use its own colors
@@ -169,6 +183,8 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
 
   // Read the legends name from data.fields[3]
   let configLegendsDataIndexBinding = 3;
+
+  const hourIndexDataIndexBinding = splitByHour ? computedDimensions.indexOf('hour_index') : -1;
 
   // Before doing any processing ignore any rows that have any of the start_time, end_time, internal_name or category properties empty
   // The data.rows array contains sub-arrays, each with at least four elements (representing start_time, end_time, internal_name, and category)
@@ -356,6 +372,10 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
     let dynamicValue = tmpRow;
     dynamicValue[configStartTimeDataIndexBinding] = parseFloat(tmpStartTime * 1000);//start_time (javascript timestamp in miliseconds)
     dynamicValue[configEndTimeDataIndexBinding] = parseFloat(tmpEndTime * 1000);//end_time (javascript timestamp in miliseconds)
+    if (hourIndexDataIndexBinding >= 0) {
+      // ECharts treats strings as category labels, but hour_index identifies a numeric row.
+      dynamicValue[hourIndexDataIndexBinding] = Number(dynamicValue[hourIndexDataIndexBinding]);
+    }
     dynamicValue.push(tmpDuration); //duration
     dynamicValue.push(tmpProcessedInternalNameIdx); //legend index,
     dynamicValue.push(tmpStartTime); //unix_start_time (unix timestamp in seconds)
@@ -516,6 +536,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
       nameLocation: 'middle',
       nameGap: 25,
       axisLabel: {
+        ...axisLabelDefaults,
         formatter: function (value) {
           const minutes = Math.floor(value / 60);
           return minutes < 10 ? `0${minutes}:00` : `${minutes}:00`;
@@ -539,6 +560,10 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
     // Using spread operator to insert data property inside computedOption.yAxis
     computedOption.yAxis = { ...optionFromXmlDashboard.yAxis, data: splitByHour ? yAxisListedHours : processedCategories };
   }
+  computedOption.yAxis.axisLabel = {
+    ...axisLabelDefaults,
+    ...computedOption.yAxis.axisLabel,
+  };
 
   //These 2 keys (computedOption.series and computedOption.legend) cannot be overwritten from dashboard source code
   computedOption.series = [{
