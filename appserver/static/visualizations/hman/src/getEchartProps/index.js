@@ -3,7 +3,8 @@
 const _getEchartProps = function (config) {
   return {
     echartUniqueId: config['display.visualizations.custom.visualization_toolbox.hman.echartUniqueId'] || this._sharedFunctions.generateEchartUniqueId(),
-    dataType: config[this.getPropertyNamespaceInfo().propertyNamespace + "dataType"],
+    // Falls back to 'Custom' (the formatter default): a panel without an explicit dataType option gets no value from Splunk.
+    dataType: config[this.getPropertyNamespaceInfo().propertyNamespace + "dataType"] || 'Custom',
     option: config[this.getPropertyNamespaceInfo().propertyNamespace + "option"],
     xAxisDataIndexBinding: config[this.getPropertyNamespaceInfo().propertyNamespace + "xAxisDataIndexBinding"],
     seriesDataIndexBinding: config[this.getPropertyNamespaceInfo().propertyNamespace + "seriesDataIndexBinding"],

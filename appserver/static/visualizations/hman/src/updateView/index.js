@@ -1,6 +1,8 @@
 const echarts = require('echarts');
 const SplunkVisualizationUtils = require('api/SplunkVisualizationUtils');
 
+const SUPPORTED_DATA_TYPES = ['custom', 'boxplot', 'simpleboxplot', 'timeline'];
+
 // Implement updateView to render a visualization.
 // This function is called whenever search results are updated or the visualization format changes. It handles visualization rendering
 // 'data' will be the data object returned from formatData or from the search containing search result data
@@ -15,6 +17,12 @@ const _updateView = function (data, config) {
 
   if(typeof echartProps.echartUniqueId === 'undefined' || echartProps.echartUniqueId === '') {
     throw `Wrong configuration - echartUniqueId property not found! Please provide a unique echart id.`;
+  }
+
+  // Validated before the previous chart is disposed and MQTT is opened, so a bad value leaves nothing half-initialised.
+  const dataType = String(echartProps.dataType).trim().toLowerCase();
+  if (!SUPPORTED_DATA_TYPES.includes(dataType)) {
+    throw `Wrong configuration - unknown dataType '${echartProps.dataType}'! Supported values are Custom, Boxplot, SimpleBoxplot and Timeline.`;
   }
 
   // Get the default tokens model, extract splunk relative times and save them to scopedVariables
@@ -44,11 +52,11 @@ const _updateView = function (data, config) {
 
   const currentTheme = SplunkVisualizationUtils.getCurrentTheme();
   const echartsTheme = currentTheme;
-  if (echartProps.dataType.toLowerCase() === 'timeline') {
+  if (dataType === 'timeline') {
     tmpChart['_applyBgColor'] = true;
   }
   // For timeline, echarts.init is deferred until after buildTimelineOption computes the correct height
-  if (echartProps.dataType.toLowerCase() !== 'timeline') {
+  if (dataType !== 'timeline') {
     tmpChart['instanceByDom'] = echarts.init(this.el, echartsTheme);
   }
   if(typeof dedicatedMqttClient !== 'undefined') {
@@ -59,13 +67,13 @@ const _updateView = function (data, config) {
     tmpChart['mqttTopic'] = '';
   }
   let option = {};
-  if (echartProps.dataType.toLowerCase() == "custom") {
+  if (dataType == "custom") {
     option = this._buildCustomOption(data, config);
-  } else if (echartProps.dataType.toLowerCase() == "boxplot") {
+  } else if (dataType == "boxplot") {
     option = this._buildBoxplotOption(data, config);
-  } else if (echartProps.dataType.toLowerCase() == "simpleboxplot") {
+  } else if (dataType == "simpleboxplot") {
     option = this._buildSimpleBoxplotOption(data, config);
-  } else if (echartProps.dataType.toLowerCase() == "timeline") {
+  } else if (dataType == "timeline") {
     // Init with height:1 as placeholder — we will resize to the correct height after build
     tmpChart['instanceByDom'] = echarts.init(this.el, echartsTheme, { height: 1 });
     option = this._buildTimelineOption(data, config, tmpChart['instanceByDom'], tmpChart);
@@ -74,7 +82,7 @@ const _updateView = function (data, config) {
       this.el.style.height = `${contentHeight}px`;
       tmpChart['instanceByDom'].resize({ height: contentHeight });
     }
-  } else if (echartProps.dataType.toLowerCase() == "hourlytimeline") {
+  } else if (dataType == "hourlytimeline") {
     option = this._buildHourlyTimelineOption(data, config, tmpChart['instanceByDom']);
   }
   // tokens might not yet be replaced in the option. In this case we
@@ -86,7 +94,7 @@ const _updateView = function (data, config) {
     if (tmpChart['mqttClient']) { tmpChart['mqttClient'].end(true); }
     return;
   }
-  tmpChart['visualizationType'] = echartProps.dataType.toLowerCase();
+  tmpChart['visualizationType'] = dataType;
   this.scopedVariables['_renderedEchartsArray'].push(tmpChart);
 
   if (echartProps.xAxisDataHook != null) {
