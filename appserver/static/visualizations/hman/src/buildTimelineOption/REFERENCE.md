@@ -357,9 +357,9 @@ if (useSplunkCategoricalColors.toLowerCase() === 'true') {
 ```javascript
 else {
   const categoriesWithEmptyColorColumnValues = new Set();
-  // Find rows with empty fill_color
-  // Generate palette for missing colors
-  // Assign colors to rows with empty values
+  // Find categories with an empty or invalid fill_color (isColorCode)
+  // Generate palette for those categories
+  // Assign palette colors to every row of those categories
 }
 ```
 
@@ -825,9 +825,11 @@ const colorPalette = this._sharedFunctions.generateColorPalette(uniqueCategories
 
 #### isColorCode(colorCode)
 
-**Purpose**: Validates if string is a valid color code.
+**Purpose**: Validates if a value is a color the chart can draw.
 
-**Supported Formats**:
+**In the browser**: returns `CSS.supports('color', value)`, so every CSS color is accepted (hex, `rgb()`, `hsla()`, names such as `red`), and values a fill would render as black (`0`, `100`, `#5cb85`) are rejected.
+
+**Outside a browser** (no `CSS` global, e.g. Node), falls back to these formats:
 - Hex: `#fff`, `#ffffff`, `fff`, `ffffff`
 - RGB: `rgb(255, 255, 255)`
 - RGBA: `rgba(255, 255, 255, 0.5)`
@@ -837,9 +839,8 @@ const colorPalette = this._sharedFunctions.generateColorPalette(uniqueCategories
 
 **Usage**:
 ```javascript
-const dataRowsIsValidColor = this._sharedFunctions.isColorCode(data.rows[0][4]);
-if (!dataRowsIsValidColor) {
-  console.log(`The 5th data field is not a valid color code!`);
+if (!this._sharedFunctions.isColorCode(rowSubArray[configColorDataIndexBinding])) {
+  categoriesWithEmptyColorColumnValues.add(rowSubArray[configLegendsDataIndexBinding]);
 }
 ```
 
@@ -1274,11 +1275,10 @@ if(data.rows.length > 50000) {
 }
 ```
 
-#### Invalid Color Code
+#### Empty or Invalid Color Code
+Every row is checked. Each category with at least one empty or invalid `fill_color` gets a Splunk palette color for all its rows, and the affected categories are logged:
 ```javascript
-if (!dataRowsIsValidColor) {
-  console.log(`The 5th data field is not a valid color code! It is going to be prefilled with a splunk categorical color.`);
-}
+console.log(`The fill_color field (5th field) is empty or not a valid color for categories: Error, Idle. Using splunk categorical colors for them.`);
 ```
 
 #### Too Many Hourly Intervals

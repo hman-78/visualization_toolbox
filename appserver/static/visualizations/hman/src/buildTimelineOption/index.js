@@ -157,10 +157,6 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
   if (useSplunkCategoricalColors.toLowerCase() !== 'true') {
     nrOfDataFieldsToBeCheckedFor = 5; // Minimum nr of fields required for this visualization to work in case the user is choosing to use its own colors
     configColorDataIndexBinding = 4;
-    const dataRowsIsValidColor = this._sharedFunctions.isColorCode(data.rows[0][4]);
-    if (!dataRowsIsValidColor) {
-      console.log(`The 5th data field is not a valid color code! It is going to be prefilled with a splunk categorical color.`);
-    }
   }
 
   // Dynamic data field length check
@@ -228,16 +224,20 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
     // Overwrite configColorDataIndexBinding with the index of the dynamicFillColor property
     configColorDataIndexBinding = cleanDataRows[0].length - 1;
   } else {
-    // Identify all unique rows that at least one empty value in the fill_color property.
+    // Identify all categories with at least one empty or invalid value in the fill_color property.
     // Then, sets the value of fill_color to a color from splunk color palette for all rows belonging to the same category.
+    // Invalid values would otherwise be drawn as black.
 
-    // Step 1: Identify all unique rows that have at least one empty fill_color value
+    // Step 1: Identify all categories that have at least one empty or invalid fill_color value
     const categoriesWithEmptyColorColumnValues = new Set();
     cleanDataRows.forEach((rowSubArray) => {
-      if (!rowSubArray[configColorDataIndexBinding] || rowSubArray[configColorDataIndexBinding] == "") {
+      if (!this._sharedFunctions.isColorCode(rowSubArray[configColorDataIndexBinding])) {
         categoriesWithEmptyColorColumnValues.add(rowSubArray[configLegendsDataIndexBinding]);
       }
     });
+    if (categoriesWithEmptyColorColumnValues.size > 0) {
+      console.log(`The fill_color field (5th field) is empty or not a valid color for categories: ${Array.from(categoriesWithEmptyColorColumnValues).join(', ')}. Using splunk categorical colors for them.`);
+    }
 
     // Generate color palette based on number of unique categories with at least 1 empty color value
     const colorPalette = this._sharedFunctions.generateColorPalette(categoriesWithEmptyColorColumnValues.size);
