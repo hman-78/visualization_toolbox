@@ -3,6 +3,9 @@ const echarts = require('echarts');
 const lodashFind = require('lodash.find');
 const { resolvePixelValue } = require('../timelineLayoutUtils');
 
+// Opacity of the other categories' bars while a legend entry is hovered (an 80% reduction from full opacity)
+const LEGEND_HOVER_DIMMED_OPACITY = 0.075;
+
 let tmpLocaleOption = 'en-GB';
 if (typeof window._i18n_locale !== 'undefined' && typeof window._i18n_locale.locale_name !== 'undefined') {
   tmpLocaleOption = window._i18n_locale.locale_name.replace('_', '-');
@@ -142,9 +145,7 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
 
   // Extract
   let computedDimensions = data.fields.map(tmpField => tmpField.name);
-  let allSeriesData = [];
-  let deselectedLegends = []; // Array to track deselected legends
-  let originalDataHasBeenCopied = false;
+  let selectedCategory = null; // Category pinned by a legend click, or null when every category is shown at full opacity
   let nrOfDataFieldsToBeCheckedFor = 4; // Minimum nr of fields required for this visualization to work in case the user is choosing to use splunk categorical colors
   let configColorDataIndexBinding;
 
@@ -156,10 +157,6 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
   if (useSplunkCategoricalColors.toLowerCase() !== 'true') {
     nrOfDataFieldsToBeCheckedFor = 5; // Minimum nr of fields required for this visualization to work in case the user is choosing to use its own colors
     configColorDataIndexBinding = 4;
-    const dataRowsIsValidColor = this._sharedFunctions.isColorCode(data.rows[0][4]);
-    if (!dataRowsIsValidColor) {
-      console.log(`The 5th data field is not a valid color code! It is going to be prefilled with a splunk categorical color.`);
-    }
   }
 
   // Dynamic data field length check
@@ -227,16 +224,20 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
     // Overwrite configColorDataIndexBinding with the index of the dynamicFillColor property
     configColorDataIndexBinding = cleanDataRows[0].length - 1;
   } else {
-    // Identify all unique rows that at least one empty value in the fill_color property.
+    // Identify all categories with at least one empty or invalid value in the fill_color property.
     // Then, sets the value of fill_color to a color from splunk color palette for all rows belonging to the same category.
+    // Invalid values would otherwise be drawn as black.
 
-    // Step 1: Identify all unique rows that have at least one empty fill_color value
+    // Step 1: Identify all categories that have at least one empty or invalid fill_color value
     const categoriesWithEmptyColorColumnValues = new Set();
     cleanDataRows.forEach((rowSubArray) => {
-      if (!rowSubArray[configColorDataIndexBinding] || rowSubArray[configColorDataIndexBinding] == "") {
+      if (!this._sharedFunctions.isColorCode(rowSubArray[configColorDataIndexBinding])) {
         categoriesWithEmptyColorColumnValues.add(rowSubArray[configLegendsDataIndexBinding]);
       }
     });
+    if (categoriesWithEmptyColorColumnValues.size > 0) {
+      console.log(`The fill_color field (5th field) is empty or not a valid color for categories: ${Array.from(categoriesWithEmptyColorColumnValues).join(', ')}. Using splunk categorical colors for them.`);
+    }
 
     // Generate color palette based on number of unique categories with at least 1 empty color value
     const colorPalette = this._sharedFunctions.generateColorPalette(categoriesWithEmptyColorColumnValues.size);
@@ -636,109 +637,59 @@ const _buildTimelineOption = function (data, config, tmpChartInstance, tmpChart)
     }
   }
 
-  tmpChartInstance.on('highlight', function (params) {
-    const highlightedName = params.seriesName;
-    if (deselectedLegends.includes(highlightedName)) {
-      // Do not highligh any data items of this legend if the legend is deselected
-      return;
-    }
-
-    const tmpXoption = tmpChartInstance.getOption();
-    const tmpXseriesData = tmpXoption.series[0].data;
-    // Find all indices with matching names
-    const indicesToHighlight = [];
-    tmpXseriesData.forEach((item, index) => {
-      if (item.name !== highlightedName) {
-        indicesToHighlight.push(index);
-      }
-    });
-    // Apply opacity only to matching indices
-    const rowsOfDataFromSelectedLegends = tmpXseriesData.map((item, index) => {
-      if (indicesToHighlight.includes(index)) {
-        return {
-          ...item,
-          itemStyle: {
-            ...item.itemStyle,
-            opacity: 0 // Make matching items transparent
-          }
-        };
-      }
-      return item;
-    });
-    tmpChartInstance.setOption({
-      series: [
-        {
-          id: 'timelineData',
-          data: rowsOfDataFromSelectedLegends
-        }
-      ]
-    }, {
-      notMerge: false, // Merges only the data property of the first item from series array with the existing echart options
-    });
-
-  });
-
-  tmpChartInstance.on('downplay', function (params) {
-    const highlightedName = params.seriesName;
-    if (deselectedLegends.includes(highlightedName)) {
-      // Do not downplay any data items of this legend if the legend is deselected
-      return;
-    }
-
-    const tmpXoption = tmpChartInstance.getOption();
-    const tmpXseriesData = tmpXoption.series[0].data;
-    const rowsOfDataFromSelectedLegends = tmpXseriesData.map(item => ({
+  // Hovering and selecting a legend entry share one effect: the category stays at full opacity and every other
+  // category is dimmed. Only opacity changes; every data item stays in place, so no bar is removed or moves.
+  // Pass null to show every category at full opacity.
+  function showCategoryAtFullOpacity(categoryName) {
+    const seriesData = tmpChartInstance.getOption().series[0].data;
+    const restyledSeriesData = seriesData.map(item => ({
       ...item,
       itemStyle: {
         ...item.itemStyle,
-        opacity: 1
+        opacity: categoryName === null || item.name === categoryName ? 1 : LEGEND_HOVER_DIMMED_OPACITY
       }
     }));
     tmpChartInstance.setOption({
       series: [
         {
           id: 'timelineData',
-          data: rowsOfDataFromSelectedLegends
+          data: restyledSeriesData
         }
       ]
     }, {
       notMerge: false, // Merges only the data property of the first item from series array with the existing echart options
     });
-  });
-
-  // Shallow copy of computedOption.series[0].data in allSeriesData with no reference to original computedOption.series[0].data;
-  if (!originalDataHasBeenCopied) {
-    allSeriesData = computedOption.series[0].data;
-    originalDataHasBeenCopied = true;
   }
 
+  // Hovering any legend entry previews its category, including one greyed out by another entry's selection
+  tmpChartInstance.on('highlight', function (params) {
+    showCategoryAtFullOpacity(params.seriesName);
+  });
+
+  // Leaving a legend entry returns to the selected category, or to every category when none is selected
+  tmpChartInstance.on('downplay', function () {
+    showCategoryAtFullOpacity(selectedCategory);
+  });
+
+  // Clicking a legend entry pins its hover effect. Clicking the selected entry again unpins it.
+  // Clicking another entry moves the selection to that entry.
   tmpChartInstance.on('legendselectchanged', function (params) {
     const legendName = params.name;
-    const isSelected = params.selected[legendName];
-    if (isSelected) {
-      const index = deselectedLegends.indexOf(legendName);
-      if (index !== -1) {
-        deselectedLegends.splice(index, 1);
-      }
-    } else {
-      deselectedLegends.push(legendName);
-    }
-    const rowsOfDataFromSelectedLegends = allSeriesData.filter(dataRow => {
-      if (deselectedLegends.includes(dataRow.name)) {
-        return false;
-      }
-      return true;
+    selectedCategory = selectedCategory === legendName ? null : legendName;
+
+    // Grey out the other legend entries while a category is selected, so the legend shows which one is pinned
+    const selectedLegends = {};
+    Object.keys(params.selected).forEach(name => {
+      selectedLegends[name] = selectedCategory === null || name === selectedCategory;
     });
     tmpChartInstance.setOption({
-      series: [
-        {
-          id: 'timelineData',
-          data: rowsOfDataFromSelectedLegends
-        }
-      ]
+      legend: {
+        selected: selectedLegends
+      }
     }, {
-      notMerge: false // Merges only the data property of the first item from series array with the existing echart options
+      notMerge: false // Merges only the legend selection into the existing echart options
     });
+    showCategoryAtFullOpacity(selectedCategory);
   });
 
   // After clicking an ECharts custom visualisation rectangle (from timeline) the tokens will be populated, and Splunk will either run the linked search or navigate to another dashboard depending on the xml dashboard definition.

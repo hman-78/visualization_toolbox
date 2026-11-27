@@ -242,6 +242,13 @@ const _sharedFunctions = {
     if (!colorCode) {
       return false;
     }
+    // In the browser, accept exactly what it can draw: named colors, hsla(), etc. pass, while values such as "0" or
+    // "100" (which a canvas or SVG fill silently renders as black) fail.
+    if (typeof CSS !== 'undefined' && typeof CSS.supports === 'function') {
+      return CSS.supports('color', String(colorCode).trim());
+    }
+    // Outside a browser (e.g. Node), fall back to recognizing the common formats.
+    colorCode = String(colorCode);
     // Regular expression for Hex colors (3 or 6 digits, with or without a leading #)
     const hexRegex = /^#?([0-9a-fA-F]{3}){1,2}$/;
 

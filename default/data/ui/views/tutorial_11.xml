@@ -57,7 +57,7 @@
           <tr><td>1</td><td><code>end_time</code></td><td>Event end — Unix timestamp in <b>seconds</b></td></tr>
           <tr><td>2</td><td><code>internal_name</code></td><td>Y-axis row label (e.g. machine name)</td></tr>
           <tr><td>3</td><td><code>category</code></td><td>Legend/colour group (e.g. machine state)</td></tr>
-          <tr><td>4</td><td><code>fill_color</code></td><td><i>Optional</i> — hex/rgb colour; when the column is missing or empty, colours come from the Splunk palette</td></tr>
+          <tr><td>4</td><td><code>fill_color</code></td><td><i>Optional</i> — hex/rgb colour; when the column is missing, empty or not a valid colour, colours come from the Splunk palette</td></tr>
         </table>
         <p>
           Timestamps must be <b>Unix seconds</b> (not milliseconds). Splunk functions
@@ -91,7 +91,7 @@
           </tr>
           <tr>
             <td><code>false</code> (default)</td>
-            <td>Uses colors from the fifth column. Uses palette colors when values are empty.</td>
+            <td>Uses colors from the fifth column. Uses palette colors when values are empty or invalid.</td>
             <td>Put <code>fill_color</code> in the fifth column. With only four columns, palette colors are used.</td>
           </tr>
         </table>
@@ -436,8 +436,8 @@ option = {
         <p>
           These rules apply when the setting is <code>false</code> or is left out.
           All rows in a Splunk result table have the same columns.
-          Some rows may have an empty <code>fill_color</code> value.
-          If one row has no color, the whole category gets a palette color.
+          Some rows may have an empty or invalid <code>fill_color</code> value.
+          If one row has no usable color, the whole category gets a palette color.
         </p>
         <table class="mytableclass">
           <tr><td><b>Search results</b></td><td><b>Color used</b></td></tr>
@@ -450,14 +450,16 @@ option = {
             <td>Each row uses its supplied color. The legend uses the first row's color.</td>
           </tr>
           <tr>
-            <td>At least one row in a category has an empty color</td>
+            <td>At least one row in a category has an empty or invalid color</td>
             <td>All rows in that category use one palette color. Their supplied colors are ignored.</td>
           </tr>
         </table>
         <p>
-          A mistyped color is not treated as an empty value.
-          For example, <code>#5cb85</code> is invalid, but it is still passed to the chart.
-          Check your color codes if a bar does not look right.
+          A mistyped color is treated like an empty value, because the browser would draw it as black.
+          For example, <code>#5cb85</code> is invalid, so its whole category gets a palette color.
+          Any color the browser accepts works, including names such as <code>red</code>.
+          If a category shows a palette color instead of yours, check its color codes;
+          the browser console lists the affected categories.
         </p>
         <p>
           The chart below uses the default setting, <code>false</code>.
