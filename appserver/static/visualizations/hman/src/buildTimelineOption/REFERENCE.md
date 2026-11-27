@@ -79,6 +79,7 @@ let xAxisDataMinValue = '';          // Minimum x-axis timestamp
 let xAxisDataMaxValue = '';          // Maximum x-axis timestamp
 let xAxisStartDates = [];            // Collection of event start dates
 let yAxisListedHours = [];           // Hourly labels for y-axis (when splitByHour is enabled)
+let selectedCategory = null;         // Category pinned by a legend click (null = none)
 let hourlyIntervals = [];            // Hourly interval metadata
 ```
 
@@ -604,117 +605,60 @@ return computedOption;
 
 ## Event Handlers
 
-### Highlight Event Handler
+### Legend Hover and Selection
 
-**Location**: Lines 568-608
+Hovering and selecting a legend entry share one effect: the entry's category stays at full opacity and every other category is dimmed to `LEGEND_HOVER_DIMMED_OPACITY`. Only `itemStyle.opacity` changes. Every data item stays in the series, so no bar is removed and no bar moves.
 
-**Purpose**: Applies opacity to non-highlighted timeline items when hovering over a legend.
+**State**: `selectedCategory` holds the category pinned by a legend click, or `null` when nothing is pinned.
 
-**Trigger**: `tmpChartInstance.on('highlight', ...)`
-
-**Logic**:
-1. Get highlighted series name
-2. Check if legend is deselected (skip if true)
-3. Find all data items NOT matching the highlighted name
-4. Apply opacity: 0 to non-matching items
-5. Update chart with modified data
+**Shared helper**: `showCategoryAtFullOpacity(categoryName)` restyles every data item of the `timelineData` series. Passing `null` shows every category at full opacity.
 
 ```javascript
-tmpChartInstance.on('highlight', function (params) {
-  const highlightedName = params.seriesName;
-  if (deselectedLegends.includes(highlightedName)) return;
-
-  const indicesToHighlight = [];
-  tmpXseriesData.forEach((item, index) => {
-    if (item.name !== highlightedName) {
-      indicesToHighlight.push(index);
-    }
-  });
-
-  const rowsOfDataFromSelectedLegends = tmpXseriesData.map((item, index) => {
-    if (indicesToHighlight.includes(index)) {
-      return { ...item, itemStyle: { ...item.itemStyle, opacity: 0 } };
-    }
-    return item;
-  });
-
-  tmpChartInstance.setOption({
-    series: [{ id: 'timelineData', data: rowsOfDataFromSelectedLegends }]
-  }, { notMerge: false });
-});
-```
-
----
-
-### Downplay Event Handler
-
-**Location**: Lines 610-636
-
-**Purpose**: Restores full opacity to all items when mouse leaves legend area.
-
-**Trigger**: `tmpChartInstance.on('downplay', ...)`
-
-**Logic**:
-1. Get series name being downplayed
-2. Check if legend is deselected (skip if true)
-3. Restore opacity: 1 to all items
-4. Update chart
-
-```javascript
-tmpChartInstance.on('downplay', function (params) {
-  const highlightedName = params.seriesName;
-  if (deselectedLegends.includes(highlightedName)) return;
-
-  const rowsOfDataFromSelectedLegends = tmpXseriesData.map(item => ({
+function showCategoryAtFullOpacity(categoryName) {
+  const seriesData = tmpChartInstance.getOption().series[0].data;
+  const restyledSeriesData = seriesData.map(item => ({
     ...item,
-    itemStyle: { ...item.itemStyle, opacity: 1 }
+    itemStyle: {
+      ...item.itemStyle,
+      opacity: categoryName === null || item.name === categoryName ? 1 : LEGEND_HOVER_DIMMED_OPACITY
+    }
   }));
-
   tmpChartInstance.setOption({
-    series: [{ id: 'timelineData', data: rowsOfDataFromSelectedLegends }]
+    series: [{ id: 'timelineData', data: restyledSeriesData }]
   }, { notMerge: false });
-});
+}
 ```
 
----
+#### Highlight Event Handler
 
-### Legend Select Changed Handler
+**Trigger**: `tmpChartInstance.on('highlight', ...)`, fired when the mouse enters a legend entry.
 
-**Location**: Lines 644-671
+Previews the hovered category with `showCategoryAtFullOpacity(params.seriesName)`. This also works for a legend entry greyed out by another entry's selection.
 
-**Purpose**: Filters timeline data when legends are toggled on/off.
+#### Downplay Event Handler
 
-**Trigger**: `tmpChartInstance.on('legendselectchanged', ...)`
+**Trigger**: `tmpChartInstance.on('downplay', ...)`, fired when the mouse leaves a legend entry.
+
+Returns to the pinned state with `showCategoryAtFullOpacity(selectedCategory)`: the selected category's effect, or every category at full opacity when none is selected.
+
+#### Legend Select Changed Handler
+
+**Trigger**: `tmpChartInstance.on('legendselectchanged', ...)`, fired when a legend entry is clicked.
 
 **Logic**:
-1. Get legend name and selection state
-2. Update `deselectedLegends` array
-3. Filter data to show only selected legend items
-4. Update chart with filtered data
+1. Toggle the pin: clicking the selected entry unpins it, clicking any other entry pins that entry
+2. Grey out the other legend entries while a category is pinned, so the legend shows which one is selected
+3. Apply `showCategoryAtFullOpacity(selectedCategory)`
 
-```javascript
-tmpChartInstance.on('legendselectchanged', function (params) {
-  const legendName = params.name;
-  const isSelected = params.selected[legendName];
+| Before click | Click on | Result |
+|---|---|---|
+| Nothing selected | `A` | `A` full, others dimmed (stays after the mouse leaves) |
+| `A` selected | `B` | `B` full, others dimmed |
+| `A` selected | `A` | Every category at full opacity |
 
-  if (isSelected) {
-    const index = deselectedLegends.indexOf(legendName);
-    if (index !== -1) {
-      deselectedLegends.splice(index, 1);
-    }
-  } else {
-    deselectedLegends.push(legendName);
-  }
+ECharts sends a legend click as `downplay`, `legendselectchanged`, then `highlight`, so the hover preview and the pinned state always agree while the mouse is on the entry.
 
-  const rowsOfDataFromSelectedLegends = allSeriesData.filter(dataRow => {
-    return !deselectedLegends.includes(dataRow.name);
-  });
-
-  tmpChartInstance.setOption({
-    series: [{ id: 'timelineData', data: rowsOfDataFromSelectedLegends }]
-  }, { notMerge: false });
-});
-```
+**Drilldown**: the click event handler below sets tokens only for categories whose legend entry is selected, so dimmed bars do not drill down while another category is pinned.
 
 ---
 
